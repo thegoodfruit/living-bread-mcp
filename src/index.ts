@@ -92,6 +92,12 @@ export default {
     // (mcp-publisher login http). The private key lives outside the repo.
     if (p === '/.well-known/mcp-registry-auth') return text(REGISTRY_PROOF + '\n', 'text/plain; charset=utf-8', 200, { 'cache-control': 'public, max-age=3600' });
     if (p === '/server.json') return text(JSON.stringify(serverJson, null, 2), 'application/json; charset=utf-8', 200, { 'cache-control': 'public, max-age=3600' });
+    // OpenAI's app directory verifies this domain by reading a plain token here
+    // (developers.openai.com/plugins/deploy/submission). Set with `wrangler secret put OPENAI_APPS_CHALLENGE`.
+    if (p === '/.well-known/openai-apps-challenge') {
+      const token = (env as unknown as { OPENAI_APPS_CHALLENGE?: string }).OPENAI_APPS_CHALLENGE?.trim();
+      return token ? text(token, 'text/plain; charset=utf-8', 200, { 'cache-control': 'no-store' }) : text('not set', 'text/plain; charset=utf-8', 404);
+    }
     if (p === '/robots.txt') return text('User-agent: *\nAllow: /\n', 'text/plain; charset=utf-8');
 
     return text(JSON.stringify({ error: 'not found', see: `${url.origin}/`, mcp: `${url.origin}/mcp` }), 'application/json; charset=utf-8', 404);
