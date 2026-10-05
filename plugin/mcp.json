@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "living-bread": { "type": "streamable-http", "url": "https://mcp.living-bread.org/me" }
+  }
+}

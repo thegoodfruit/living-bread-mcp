@@ -1,0 +1,822 @@
+[
+ {
+  "id": "first-steps",
+  "title": "First Steps with Jesus",
+  "subtitle": "Ten days for a new beginning: who Jesus is, and how to walk with Him.",
+  "category": "begin",
+  "forWhom": "For anyone new to following Jesus",
+  "needs": [
+   "new",
+   "know-jesus",
+   "rhythm"
+  ],
+  "days": [
+   {
+    "title": "You are loved",
+    "ref": "John 3:16",
+    "word": "Before you did anything, God loved you enough to give His Son. This is where everything begins: not your effort, but His love.",
+    "step": "Say quietly: \"God, thank You for loving me.\" He hears you."
+   },
+   {
+    "title": "Who is Jesus",
+    "ref": "John 1:1-14",
+    "word": "Jesus is not merely a teacher. He is God, come near, full of grace and truth, to bring you home.",
+    "step": "Read John 1:1-14 slowly. Underline one line that stays with you."
+   },
+   {
+    "title": "A new life",
+    "ref": "2 Corinthians 5:17",
+    "word": "In Christ you are a new creation. The old is gone. You do not have to earn this; you receive it.",
+    "step": "Name one old thing you are ready to leave behind, and give it to Him."
+   },
+   {
+    "title": "Grace, not earning",
+    "ref": "Ephesians 2:8-9",
+    "word": "You are saved by grace, through faith. It is a gift. You cannot fail your way out of what God freely gave.",
+    "step": "Rest today in this: you are accepted, right now, as you are."
+   },
+   {
+    "title": "Talking with God",
+    "ref": "Matthew 6:9-13",
+    "word": "Prayer is simply talking with your Father. No special words are needed, only an honest heart.",
+    "step": "Talk to God for one minute, out loud, like a friend."
+   },
+   {
+    "title": "The Word",
+    "ref": "Psalm 119:105",
+    "word": "The Bible is how God speaks and steadies your steps. A little, every day, changes everything.",
+    "step": "Open the Bible in the app and read one psalm."
+   },
+   {
+    "title": "The Holy Spirit",
+    "ref": "John 14:26",
+    "word": "You are not alone. The Spirit of God lives in you, to comfort, teach, and lead.",
+    "step": "Ask: \"Holy Spirit, lead me today.\" Then watch for His nudges."
+   },
+   {
+    "title": "The family",
+    "ref": "Hebrews 10:24-25",
+    "word": "You were not made to walk alone. God sets you in a family, to be carried and to carry others.",
+    "step": "Join one community, or share one prayer with the family."
+   },
+   {
+    "title": "Forgiveness",
+    "ref": "1 John 1:9",
+    "word": "When you fall, you do not run from God; you run to Him. He is faithful to forgive and to cleanse.",
+    "step": "Confess one thing honestly to God, and receive His mercy."
+   },
+   {
+    "title": "Tell someone",
+    "ref": "Mark 5:19",
+    "word": "The most natural thing about new life is to share it. You do not need all the answers, only your story.",
+    "step": "Tell one person: \"Something is changing in me. I am following Jesus.\""
+   }
+  ]
+ },
+ {
+  "id": "learn-to-pray",
+  "title": "Learn to Pray",
+  "subtitle": "Seven days through the prayer Jesus taught, one line at a time.",
+  "category": "practice",
+  "forWhom": "For anyone who wants prayer to feel real",
+  "needs": [
+   "pray",
+   "rhythm"
+  ],
+  "days": [
+   {
+    "title": "Our Father",
+    "ref": "Matthew 6:9",
+    "word": "Prayer begins with belonging. You come not to a distant power but to a Father who is near.",
+    "step": "Begin: \"Father.\" Sit with that one word for a moment."
+   },
+   {
+    "title": "Hallowed be Your name",
+    "ref": "Psalm 8",
+    "word": "Before asking, we worship. Naming who God is puts everything else in its place.",
+    "step": "Name three things God is (good, faithful, near) and thank Him for each."
+   },
+   {
+    "title": "Your kingdom come",
+    "ref": "Matthew 6:10",
+    "word": "We ask God to have His way, on earth as in heaven, starting in us.",
+    "step": "Pray for one place where you long to see God move."
+   },
+   {
+    "title": "Give us this day",
+    "ref": "Matthew 6:11",
+    "word": "God cares about your daily bread. Bring Him the ordinary needs, not only the crises.",
+    "step": "Ask God plainly for one thing you need today."
+   },
+   {
+    "title": "Forgive us",
+    "ref": "Matthew 6:12",
+    "word": "We ask forgiveness, and we extend it. Mercy received becomes mercy given.",
+    "step": "Forgive one person, even quietly, and ask God to forgive you."
+   },
+   {
+    "title": "Lead us",
+    "ref": "Matthew 6:13",
+    "word": "We ask for protection and guidance, admitting we cannot walk it alone.",
+    "step": "Ask God to lead you through one hard thing ahead."
+   },
+   {
+    "title": "Amen, and abide",
+    "ref": "John 15:7",
+    "word": "Prayer is not a task to finish but a friendship to keep. Stay close, and keep talking through the day.",
+    "step": "Pray the whole Lord’s Prayer slowly, then stay quiet for one minute."
+   }
+  ]
+ },
+ {
+  "id": "gospel-of-mark",
+  "title": "Walk Through Mark",
+  "subtitle": "Sixteen days, a chapter a day, through the fastest-moving Gospel.",
+  "category": "jesus",
+  "forWhom": "For anyone ready to read a whole Gospel",
+  "needs": [
+   "know-jesus",
+   "strengthen",
+   "book"
+  ],
+  "days": [
+   {
+    "title": "The beginning",
+    "ref": "Mark 1",
+    "word": "The good news bursts in: the Kingdom is near, and Jesus is calling.",
+    "step": "Read Mark 1. Note how urgently the story moves."
+   },
+   {
+    "title": "Authority",
+    "ref": "Mark 2",
+    "word": "Jesus forgives sins and eats with sinners. Grace scandalizes the religious.",
+    "step": "Read Mark 2. Who does Jesus welcome?"
+   },
+   {
+    "title": "Opposition",
+    "ref": "Mark 3",
+    "word": "The crowds press in; the leaders push back. Jesus makes a new family.",
+    "step": "Read Mark 3."
+   },
+   {
+    "title": "Parables",
+    "ref": "Mark 4",
+    "word": "The Kingdom grows like a seed, hidden, slow, and sure.",
+    "step": "Read Mark 4. Which soil are you?"
+   },
+   {
+    "title": "Power over chaos",
+    "ref": "Mark 5",
+    "word": "Storm, demons, sickness, death: nothing is beyond His reach.",
+    "step": "Read Mark 5."
+   },
+   {
+    "title": "Bread in the wilderness",
+    "ref": "Mark 6",
+    "word": "Jesus feeds thousands and walks on water. He is more than a prophet.",
+    "step": "Read Mark 6."
+   },
+   {
+    "title": "The heart",
+    "ref": "Mark 7",
+    "word": "Defilement is not outside but within. Jesus reaches the far-off.",
+    "step": "Read Mark 7."
+   },
+   {
+    "title": "Who do you say I am",
+    "ref": "Mark 8",
+    "word": "The turning point: to follow is to take up a cross.",
+    "step": "Read Mark 8. Answer His question yourself."
+   },
+   {
+    "title": "Transfigured",
+    "ref": "Mark 9",
+    "word": "Glory revealed, and the honesty of \"I believe; help my unbelief.\"",
+    "step": "Read Mark 9."
+   },
+   {
+    "title": "The cost and the call",
+    "ref": "Mark 10",
+    "word": "The rich man walks away; blind Bartimaeus follows. The Kingdom belongs to the childlike.",
+    "step": "Read Mark 10."
+   },
+   {
+    "title": "The King comes",
+    "ref": "Mark 11",
+    "word": "Jesus enters Jerusalem and cleanses the temple. The confrontation begins.",
+    "step": "Read Mark 11."
+   },
+   {
+    "title": "The greatest command",
+    "ref": "Mark 12",
+    "word": "Love God, love neighbor. The widow gives her all.",
+    "step": "Read Mark 12."
+   },
+   {
+    "title": "Watch",
+    "ref": "Mark 13",
+    "word": "Jesus speaks of the end, and of staying awake and faithful.",
+    "step": "Read Mark 13."
+   },
+   {
+    "title": "Betrayed",
+    "ref": "Mark 14",
+    "word": "The Last Supper, Gethsemane, the arrest. He is handed over for us.",
+    "step": "Read Mark 14."
+   },
+   {
+    "title": "The cross",
+    "ref": "Mark 15",
+    "word": "He is crucified. The curtain tears. \"Truly this was the Son of God.\"",
+    "step": "Read Mark 15 slowly, and give thanks."
+   },
+   {
+    "title": "He is risen",
+    "ref": "Mark 16",
+    "word": "The tomb is empty. Go and tell. The story is only beginning.",
+    "step": "Read Mark 16. Tell someone the good news today."
+   }
+  ]
+ },
+ {
+  "id": "meet-jesus",
+  "title": "Meet Jesus",
+  "subtitle": "Six days through the heart of the Gospel: who Jesus is, and why He came for you.",
+  "category": "begin",
+  "forWhom": "For anyone wanting to know Jesus",
+  "needs": [
+   "know-jesus",
+   "new"
+  ],
+  "days": [
+   {
+    "title": "God so loved",
+    "ref": "John 3:16-17",
+    "word": "The whole story begins in love. God did not send His Son to condemn you, but to rescue you. You are wanted.",
+    "step": "Read it aloud, putting your own name where it says \"the world\"."
+   },
+   {
+    "title": "The Word made flesh",
+    "ref": "John 1:1-14",
+    "word": "Jesus is God come near, full of grace and truth. He did not stay far off; He moved into the neighborhood of our pain.",
+    "step": "Underline one line that surprises you about who Jesus is."
+   },
+   {
+    "title": "What He came to do",
+    "ref": "Luke 4:16-21",
+    "word": "Good news for the poor, freedom for the captive, sight for the blind. This is His mission, and you are on the list.",
+    "step": "Name one place you need Him to bring freedom."
+   },
+   {
+    "title": "He welcomes sinners",
+    "ref": "Luke 15:11-24",
+    "word": "The Father runs to meet the one coming home. There is no shame He will not cover, no distance He will not close.",
+    "step": "If you have wandered, say quietly: \"Father, I am coming home.\""
+   },
+   {
+    "title": "He laid down His life",
+    "ref": "Isaiah 53:4-6",
+    "word": "He carried what was yours to carry. The punishment that brought you peace was on Him. It is finished.",
+    "step": "Thank Him for what He bore so you would not have to."
+   },
+   {
+    "title": "He is alive",
+    "ref": "Luke 24:1-9",
+    "word": "The tomb is empty. Death did not win. The life He offers is not a better idea, but a risen Person you can know.",
+    "step": "Ask Him to make Himself real to you, and then follow Him."
+   }
+  ]
+ },
+ {
+  "id": "sermon-on-the-mount",
+  "title": "The Sermon on the Mount",
+  "subtitle": "Six days in the teaching that turns the world upside down: the life Jesus blesses.",
+  "category": "jesus",
+  "forWhom": "For anyone learning the way of Jesus",
+  "needs": [
+   "strengthen",
+   "book"
+  ],
+  "days": [
+   {
+    "title": "Blessed are the poor",
+    "ref": "Matthew 5:1-12",
+    "word": "The kingdom belongs to the empty-handed, the mourning, the meek. What the world overlooks, Heaven crowns.",
+    "step": "Which blessing do you most need to hear today? Sit with it."
+   },
+   {
+    "title": "Salt and light",
+    "ref": "Matthew 5:13-16",
+    "word": "You are not meant to blend in, but to season and to shine, so people see good works and glorify your Father.",
+    "step": "Do one small good work today where someone will see it and be warmed."
+   },
+   {
+    "title": "The heart of the law",
+    "ref": "Matthew 5:21-24",
+    "word": "Jesus goes past behavior to the heart: anger, contempt, unreconciled relationships. He wants the root healed, not hidden.",
+    "step": "Is there someone to be reconciled with? Take the first step toward peace."
+   },
+   {
+    "title": "Love your enemies",
+    "ref": "Matthew 5:43-48",
+    "word": "Anyone can love their friends. The children of the Father love even those who wrong them, because He does.",
+    "step": "Pray, by name, for someone who has hurt you."
+   },
+   {
+    "title": "Do not worry",
+    "ref": "Matthew 6:25-34",
+    "word": "Your Father feeds the birds and clothes the fields. Seek His kingdom first, and what you need will be added.",
+    "step": "Name one worry, and hand it to Him out loud."
+   },
+   {
+    "title": "Build on the rock",
+    "ref": "Matthew 7:24-27",
+    "word": "Hearing is not enough; the wise build their house on doing His words. Storms come to every house; only one stands.",
+    "step": "Choose one word of Jesus to actually do this week, not just admire."
+   }
+  ]
+ },
+ {
+  "id": "peace-over-anxiety",
+  "title": "Peace Over Anxiety",
+  "subtitle": "Six days of Scripture for a racing heart: the peace of God that guards you.",
+  "category": "season",
+  "forWhom": "For the anxious and afraid",
+  "needs": [
+   "peace",
+   "anxious"
+  ],
+  "days": [
+   {
+    "title": "Do not be anxious",
+    "ref": "Philippians 4:6-7",
+    "word": "Anxiety is not defeated by trying harder to relax, but by turning every care into prayer. Then a peace beyond understanding stands guard.",
+    "step": "Write down what you are anxious about, then pray each item by name."
+   },
+   {
+    "title": "Cast your cares",
+    "ref": "1 Peter 5:6-7",
+    "word": "You were never meant to carry it all. Cast the whole weight on Him, because He cares for you, personally.",
+    "step": "Physically open your hands as you give Him one heavy thing."
+   },
+   {
+    "title": "He is with you",
+    "ref": "Isaiah 41:10",
+    "word": "Fear not, for I am with you. Not \"figure it out,\" but \"I am with you.\" His presence is the answer to your fear.",
+    "step": "Breathe slowly and say: \"You are with me. I am not alone.\""
+   },
+   {
+    "title": "Come to Me",
+    "ref": "Matthew 11:28-30",
+    "word": "Jesus does not add to your burden; He invites the weary to rest. His yoke is easy, His burden light.",
+    "step": "Come to Him tired, exactly as you are, and rest for one minute."
+   },
+   {
+    "title": "A quiet trust",
+    "ref": "Psalm 23",
+    "word": "The Shepherd leads you beside still waters and through the valley. You lack nothing, even here.",
+    "step": "Read the whole psalm slowly, as a prayer over your own life."
+   },
+   {
+    "title": "Peace I leave with you",
+    "ref": "John 14:27",
+    "word": "His peace is not like the world’s fragile calm. It holds when everything shakes. Let not your heart be troubled.",
+    "step": "Receive His peace as a gift, not a feeling to manufacture."
+   }
+  ]
+ },
+ {
+  "id": "grief-and-hope",
+  "title": "Grief and Hope",
+  "subtitle": "Six days to grieve honestly and be held: God is near to the brokenhearted.",
+  "category": "season",
+  "forWhom": "For those walking through loss",
+  "needs": [
+   "grief",
+   "peace"
+  ],
+  "days": [
+   {
+    "title": "He is near",
+    "ref": "Psalm 34:18",
+    "word": "God does not stand at a distance from your sorrow. He is near to the brokenhearted, close to the crushed in spirit.",
+    "step": "Tell Him honestly how your heart is. He can hold all of it."
+   },
+   {
+    "title": "Jesus wept",
+    "ref": "John 11:32-36",
+    "word": "At a grave, the Lord of life wept. Your tears are not weakness or lack of faith; they are love, and He shares them.",
+    "step": "Give yourself permission to grieve. He is weeping with you."
+   },
+   {
+    "title": "A refuge",
+    "ref": "Psalm 46:1-3",
+    "word": "God is our refuge and strength, an ever-present help in trouble. When the earth gives way, He does not.",
+    "step": "Name Him as your refuge for today, one hour at a time."
+   },
+   {
+    "title": "Lament is allowed",
+    "ref": "Lamentations 3:19-24",
+    "word": "Even in the ashes, the writer remembers: His mercies are new every morning. Hope and grief can share the same breath.",
+    "step": "Write one honest line of lament, then one line of hope."
+   },
+   {
+    "title": "The God of comfort",
+    "ref": "2 Corinthians 1:3-5",
+    "word": "He comforts us so that, one day, we can comfort others with the comfort we received. Nothing is wasted.",
+    "step": "Let yourself be comforted today, without rushing to be strong."
+   },
+   {
+    "title": "Every tear",
+    "ref": "Revelation 21:3-4",
+    "word": "A day is coming when He will wipe every tear, and death will be no more. This grief is real, but it is not the end.",
+    "step": "Look up and say: \"Come, Lord Jesus. Make all things new.\""
+   }
+  ]
+ },
+ {
+  "id": "forgiveness",
+  "title": "The Freedom of Forgiveness",
+  "subtitle": "Five days to release what you were never meant to carry, as you have been forgiven.",
+  "category": "season",
+  "forWhom": "For anyone holding a wound",
+  "needs": [
+   "forgive"
+  ],
+  "days": [
+   {
+    "title": "Forgiven much",
+    "ref": "Colossians 3:13",
+    "word": "We forgive not because the wrong was small, but because we have been forgiven so much. Grace received becomes grace given.",
+    "step": "Remember one way God has forgiven you. Let it soften your heart."
+   },
+   {
+    "title": "Seventy times seven",
+    "ref": "Matthew 18:21-22",
+    "word": "Forgiveness is not a single event but a road you walk. When the pain returns, you forgive again.",
+    "step": "Name the person. Say: \"I choose to forgive, again.\""
+   },
+   {
+    "title": "Release the debt",
+    "ref": "Matthew 18:23-35",
+    "word": "To withhold forgiveness is to lock yourself in the prison meant for them. Christ hands you the key.",
+    "step": "Picture handing the debt to God. It is His to settle, not yours."
+   },
+   {
+    "title": "Not revenge, but rest",
+    "ref": "Romans 12:17-21",
+    "word": "You do not have to make it right by force. Leave room for God’s justice, and overcome evil with good.",
+    "step": "Do one small good thing today instead of rehearsing the wound."
+   },
+   {
+    "title": "Freed to love",
+    "ref": "Ephesians 4:31-32",
+    "word": "When bitterness is put away, tenderness returns. Forgiveness is how the heart is set free to love again.",
+    "step": "Ask God to free your heart, and to bless the one who hurt you."
+   }
+  ]
+ },
+ {
+  "id": "psalms-of-comfort",
+  "title": "Psalms of Comfort",
+  "subtitle": "Seven days in the prayer book of the Bible, words for when your own run out.",
+  "category": "deep",
+  "forWhom": "For every season of the soul",
+  "needs": [
+   "peace",
+   "book",
+   "pray"
+  ],
+  "days": [
+   {
+    "title": "The Shepherd",
+    "ref": "Psalm 23",
+    "word": "The most beloved psalm, because it is true: He leads, He restores, He is with you, even in the valley.",
+    "step": "Pray it in the first person, slowly, over your own life."
+   },
+   {
+    "title": "My refuge",
+    "ref": "Psalm 91",
+    "word": "He who dwells in the shelter of the Most High rests in the shadow of the Almighty. Under His wings you find refuge.",
+    "step": "Name the fear you are sheltering from, and take refuge in Him."
+   },
+   {
+    "title": "Waiting on the Lord",
+    "ref": "Psalm 27",
+    "word": "One thing I ask: to dwell in His house. Wait for the Lord; be strong; let your heart take courage.",
+    "step": "Wait quietly for one minute, asking only to be near Him."
+   },
+   {
+    "title": "Out of the depths",
+    "ref": "Psalm 130",
+    "word": "From the depths I cry to You. With the Lord there is steadfast love and full redemption. He hears.",
+    "step": "Cry out honestly from wherever you are today."
+   },
+   {
+    "title": "Bless the Lord",
+    "ref": "Psalm 103",
+    "word": "Forget not His benefits: He forgives, heals, redeems, crowns you with love, satisfies you with good.",
+    "step": "List three ways He has been good to you, and thank Him."
+   },
+   {
+    "title": "Search me",
+    "ref": "Psalm 139",
+    "word": "You are fully known and fully loved. He knit you together and never leaves. There is nowhere His love cannot reach.",
+    "step": "Pray verse 23: \"Search me, O God, and know my heart.\""
+   },
+   {
+    "title": "Everything that has breath",
+    "ref": "Psalm 150",
+    "word": "The psalms end in praise. When comfort has done its work, the heart lifts its head and worships.",
+    "step": "Offer Him one line of praise, out loud, with whatever breath you have."
+   }
+  ]
+ },
+ {
+  "id": "philippians-joy",
+  "title": "Joy in Philippians",
+  "subtitle": "Six days in Paul’s letter of joy, written from prison: joy that circumstances cannot steal.",
+  "category": "deep",
+  "forWhom": "For anyone needing steadier joy",
+  "needs": [
+   "book",
+   "strengthen"
+  ],
+  "days": [
+   {
+    "title": "Confident of this",
+    "ref": "Philippians 1:3-11",
+    "word": "He who began a good work in you will carry it to completion. God does not abandon what He starts.",
+    "step": "Thank God for one way He is still at work in you."
+   },
+   {
+    "title": "To live is Christ",
+    "ref": "Philippians 1:20-26",
+    "word": "When Christ is your life, even loss becomes gain. Nothing can truly threaten a heart anchored in Him.",
+    "step": "Ask: what would it mean today for Christ to be your life?"
+   },
+   {
+    "title": "The mind of Christ",
+    "ref": "Philippians 2:1-11",
+    "word": "He emptied Himself, took the form of a servant, humbled Himself to death. The way up in the kingdom is down.",
+    "step": "Do one hidden act of service, expecting nothing back."
+   },
+   {
+    "title": "Pressing on",
+    "ref": "Philippians 3:12-14",
+    "word": "Forgetting what lies behind, straining forward. You are not defined by your past, but drawn by your calling.",
+    "step": "Name one thing behind you to release, and press forward."
+   },
+   {
+    "title": "Do not be anxious",
+    "ref": "Philippians 4:4-7",
+    "word": "Rejoice always, and turn worry into prayer. The peace of God will guard your heart and mind in Christ.",
+    "step": "Rejoice on purpose today, and pray instead of worrying."
+   },
+   {
+    "title": "I can do all things",
+    "ref": "Philippians 4:10-13",
+    "word": "The secret is contentment in Christ, in plenty or in want. His strength is enough for whatever today holds.",
+    "step": "Say: \"I can do all things through Christ who strengthens me,\" and mean it."
+   }
+  ]
+ },
+ {
+  "id": "loneliness-belonging",
+  "title": "Loneliness and Belonging",
+  "subtitle": "Six days for the ache of feeling alone: you are seen, known, and set in a family.",
+  "category": "season",
+  "forWhom": "For anyone who feels alone",
+  "needs": [
+   "peace"
+  ],
+  "days": [
+   {
+    "title": "Seen by God",
+    "ref": "Genesis 16:13",
+    "word": "In her wilderness, Hagar names God \"the One who sees me.\" You are not invisible. He sees you, right where you are.",
+    "step": "Say quietly: \"You see me.\" Let yourself be seen."
+   },
+   {
+    "title": "Never forsaken",
+    "ref": "Deuteronomy 31:6",
+    "word": "He will never leave you nor forsake you. Even when people do, His presence does not withdraw.",
+    "step": "Name one place you feel abandoned, and invite Him into it."
+   },
+   {
+    "title": "Set in a family",
+    "ref": "Psalm 68:5-6",
+    "word": "God sets the lonely in families. Belonging is His gift, not something you must earn or manufacture.",
+    "step": "Reach out to one person today, even a short message."
+   },
+   {
+    "title": "Known fully",
+    "ref": "Psalm 139:1-6",
+    "word": "You are fully known and still fully loved. Before a word is on your tongue, He knows it. This is intimacy, not surveillance.",
+    "step": "Rest in being known. You do not have to explain yourself to Him."
+   },
+   {
+    "title": "A friend who stays",
+    "ref": "John 15:15",
+    "word": "Jesus calls you friend, not servant. He chose you, and He stays. The truest company is always near.",
+    "step": "Talk to Jesus like the friend He is, out loud."
+   },
+   {
+    "title": "One body",
+    "ref": "1 Corinthians 12:12-27",
+    "word": "You are a member of a body that needs you. Your presence is not optional; you belong, and you are missed when absent.",
+    "step": "Take one small step toward the family, in person or in the app."
+   }
+  ]
+ },
+ {
+  "id": "purpose-calling",
+  "title": "Purpose and Calling",
+  "subtitle": "Six days on why you are here: made on purpose, for good works prepared in advance.",
+  "category": "season",
+  "forWhom": "For anyone seeking direction",
+  "needs": [
+   "direction",
+   "strengthen"
+  ],
+  "days": [
+   {
+    "title": "Made on purpose",
+    "ref": "Psalm 139:13-16",
+    "word": "You were knit together with intention. Your life is not an accident; it is authored. You are His workmanship.",
+    "step": "Thank God for making you on purpose, exactly as you are."
+   },
+   {
+    "title": "Prepared in advance",
+    "ref": "Ephesians 2:10",
+    "word": "You are created for good works God prepared beforehand. Your calling is not a puzzle to solve but a path to walk.",
+    "step": "Do one good work today that is right in front of you."
+   },
+   {
+    "title": "Faithful in little",
+    "ref": "Luke 16:10",
+    "word": "Purpose is found in faithfulness, not fame. Be faithful in the small, and the larger is entrusted in time.",
+    "step": "Choose one small thing to do faithfully, without applause."
+   },
+   {
+    "title": "His to establish",
+    "ref": "Proverbs 16:9",
+    "word": "You plan your way, but the Lord establishes your steps. You can move forward without seeing the whole map.",
+    "step": "Commit one decision to Him, and take the next honest step."
+   },
+   {
+    "title": "For such a time",
+    "ref": "Esther 4:14",
+    "word": "You are placed here, now, on purpose. This time and place are your assignment, not your accident.",
+    "step": "Ask: what is mine to do in this season, with what I have?"
+   },
+   {
+    "title": "To love and be sent",
+    "ref": "Matthew 22:37-39",
+    "word": "Above every task, your calling is to love God and love people. Every purpose grows from this root.",
+    "step": "Love one person well today. That is calling fulfilled."
+   }
+  ]
+ },
+ {
+  "id": "waiting-on-god",
+  "title": "Waiting on God",
+  "subtitle": "Five days for the in-between: how to wait with hope when the answer has not come.",
+  "category": "season",
+  "forWhom": "For anyone in a season of waiting",
+  "needs": [
+   "direction",
+   "peace"
+  ],
+  "days": [
+   {
+    "title": "Renewed strength",
+    "ref": "Isaiah 40:31",
+    "word": "Those who wait on the Lord renew their strength. Waiting is not wasted; it is where new strength is grown.",
+    "step": "Name what you are waiting for, and give the timing to Him."
+   },
+   {
+    "title": "Be still",
+    "ref": "Psalm 46:10",
+    "word": "Be still, and know that He is God. Stillness is not passivity; it is trust that He is working when you cannot.",
+    "step": "Sit still for one minute, unhurried, before Him."
+   },
+   {
+    "title": "His timing is good",
+    "ref": "Ecclesiastes 3:11",
+    "word": "He makes everything beautiful in its time. What feels late to you is not late to Him.",
+    "step": "Release one worry about \"when,\" and trust His timing."
+   },
+   {
+    "title": "Hope does not disappoint",
+    "ref": "Romans 5:3-5",
+    "word": "Suffering produces endurance, endurance character, character hope. And this hope does not put us to shame.",
+    "step": "Let today’s waiting do its slow, good work in you."
+   },
+   {
+    "title": "Wait with courage",
+    "ref": "Psalm 27:14",
+    "word": "Wait for the Lord; be strong, and let your heart take courage. You are not waiting alone or in vain.",
+    "step": "Take heart. Say: \"I will wait, and I will trust.\""
+   }
+  ]
+ },
+ {
+  "id": "gospel-of-john",
+  "title": "The Gospel of John",
+  "subtitle": "Seven days through the Gospel of belief: that you may know Jesus is the Christ, and have life.",
+  "category": "deep",
+  "forWhom": "For anyone ready to read a whole Gospel",
+  "needs": [
+   "know-jesus",
+   "book",
+   "strengthen"
+  ],
+  "days": [
+   {
+    "title": "The Word",
+    "ref": "John 1",
+    "word": "In the beginning was the Word. Light shines in darkness; grace and truth come in the flesh, full of the Father.",
+    "step": "Read John 1 slowly. Underline what you learn about Jesus."
+   },
+   {
+    "title": "Born again",
+    "ref": "John 3",
+    "word": "You must be born again, from above. God so loved the world that whoever believes in the Son has eternal life.",
+    "step": "Ask God for new life from above, wherever you are today."
+   },
+   {
+    "title": "Living water",
+    "ref": "John 4",
+    "word": "At a well, Jesus offers a thirsty woman water that never runs dry. He meets you in your ordinary day.",
+    "step": "Bring one honest thirst to Jesus and ask Him to satisfy it."
+   },
+   {
+    "title": "The bread of life",
+    "ref": "John 6:25-40",
+    "word": "I am the bread of life. Whoever comes to Me will never hunger. He is the sustenance your soul was made for.",
+    "step": "Come to Him hungry, and be fed."
+   },
+   {
+    "title": "The good shepherd",
+    "ref": "John 10:1-18",
+    "word": "The good shepherd knows His sheep and lays down His life for them. His voice can be trusted; His care is total.",
+    "step": "Listen for His voice, and follow one nudge of it today."
+   },
+   {
+    "title": "The way, the truth, the life",
+    "ref": "John 14:1-14",
+    "word": "Do not let your heart be troubled. Jesus is the way to the Father; to see Him is to see God.",
+    "step": "Let one troubled place in your heart rest in Him."
+   },
+   {
+    "title": "That you may believe",
+    "ref": "John 20",
+    "word": "The tomb is empty; the risen Jesus meets doubt with mercy. These are written so that you may believe and have life.",
+    "step": "Say with Thomas: \"My Lord and my God.\" Then follow Him."
+   }
+  ]
+ },
+ {
+  "id": "generosity",
+  "title": "The Generous Life",
+  "subtitle": "Five days in the way of open hands: a life that gives, because everything was first a gift.",
+  "category": "practice",
+  "forWhom": "For anyone learning to hold things loosely",
+  "needs": [
+   "strengthen"
+  ],
+  "days": [
+   {
+    "title": "Freely you received",
+    "ref": "Matthew 10:8",
+    "word": "Freely you have received; freely give. Generosity is not loss but the natural overflow of grace.",
+    "step": "Give one thing away today, small or large, freely."
+   },
+   {
+    "title": "More blessed to give",
+    "ref": "Acts 20:35",
+    "word": "It is more blessed to give than to receive. The open hand is where joy is found, not the closed fist.",
+    "step": "Do one generous act expecting nothing back."
+   },
+   {
+    "title": "A cheerful giver",
+    "ref": "2 Corinthians 9:6-8",
+    "word": "God loves a cheerful giver, and supplies you so you can be generous in every way. You will not run dry by giving.",
+    "step": "Give cheerfully, not grudgingly, from what you have."
+   },
+   {
+    "title": "Treasure in heaven",
+    "ref": "Matthew 6:19-21",
+    "word": "Where your treasure is, there your heart will be. Generosity moves your heart to where it truly belongs.",
+    "step": "Move one bit of treasure toward heaven today, quietly."
+   },
+   {
+    "title": "The widow’s gift",
+    "ref": "Mark 12:41-44",
+    "word": "She gave two small coins, and Jesus said she gave the most. God measures generosity by love, not amount.",
+    "step": "Give what is yours to give, however small, in love."
+   }
+  ]
+ }
+]

@@ -1,0 +1,54 @@
+{
+  "name": "the-living-bread",
+  "version": "1.0.0",
+  "description": "The Living Bread is a free Christian community, prayer and church discovery platform with no ads and nothing to buy. Through this plugin ChatGPT can read any Bible passage word for word from a stored public domain text, find verses for whatever a person is carrying, answer honest questions about Jesus and faith from Scripture, find real churches and gatherings near any place in the world, and, once a person signs in, show the prayers real people have prayed over them in their own voices, the prayers they gave, their walk and their family, and say Amen when they ask. Everything points to Jesus Christ.",
+  "author": { "name": "The Living Bread", "email": "hello@living-bread.org", "url": "https://living-bread.org" },
+  "extensions": {
+    "com.openai.interface": {
+      "displayName": "The Living Bread",
+      "shortDescription": "Scripture, prayer, a church",
+      "longDescription": "Meet Christ and your family in Christ. The Living Bread is a free Christian community with no ads. With this plugin, ChatGPT reads Scripture word for word from a stored public domain Bible, never generated; finds the verses the house pairs with what you carry, grief, fear, anxiety, loneliness, gratitude; answers honest questions about Jesus, forgiveness, suffering and how to begin, from Scripture; finds real churches and gatherings near any city, from Seattle to Lagos to Madrid, with service times when known; and opens the doors of the Christian heritage: denominations, saints, sacred sites, the people and places of the Bible. Signed in, it acts only for you: the prayers real people have prayed over you by name, in their own voices, with the door to hear each one; the prayers you gave and how they are going; what you said yes to; your family circles and next gatherings; and an Amen when you ask. It never prays in your name, never hears a voice for you, and never writes anything you did not ask for. Everything points to Jesus Christ.",
+      "developerName": "The Living Bread",
+      "category": "Lifestyle",
+      "capabilities": [
+        "Read any Bible passage word for word from a stored text",
+        "Verses for what you are carrying, in your own words",
+        "Today's Daily Bread, the verse the whole family receives",
+        "Honest answers about Jesus and faith, grounded in Scripture",
+        "Real churches near any place in the world",
+        "Prayer gatherings, Bible studies and communities to join",
+        "Christian heritage: denominations, saints, sacred sites, Bible places",
+        "The prayers real people prayed over you, in their voices",
+        "Say Amen to a prayer prayed over you",
+        "Your walk, your family and your next gathering"
+      ],
+      "websiteURL": "https://living-bread.org",
+      "supportURL": "https://living-bread.org/support",
+      "privacyPolicyURL": "https://living-bread.org/privacy",
+      "termsOfServiceURL": "https://living-bread.org/legal/terms",
+      "defaultPrompt": [
+        "Find a church near me with a Sunday evening service",
+        "My mother died this week. What does the Bible say to me today?",
+        "What prayers are waiting for me?"
+      ],
+      "brandColor": "#071B2C",
+      "brandColorDark": "#D6B25E",
+      "composerIcon": "./assets/logo-48.png",
+      "logo": "./assets/logo-512.png",
+      "screenshots": ["./assets/01-home.png", "./assets/02-pray.png", "./assets/03-pray_voice.png", "./assets/04-prayers-for-me.png"]
+    },
+    "com.openai.review": {
+      "demo_recording_url": "",
+      "test_cases": [
+        { "type": "positive", "description": "Scripture is read from the stored text, never generated", "prompt": "Read me John 3:16 and Psalm 23", "tools_triggered": "scripture_passage", "expected_behavior": "Quotes both passages verbatim from the stored King James text, names the reference, and offers the Bible door at living-bread.org/bible" },
+        { "type": "positive", "description": "Verses for a need in the person's own words", "prompt": "I am scared about my surgery tomorrow", "tools_triggered": "verses_for", "expected_behavior": "Returns the verses the house pairs with fear, quoted from the stored text, one gentle reflection, and the door where the family prays over that need" },
+        { "type": "positive", "description": "Real churches near a place", "prompt": "Find churches near Atlanta, Georgia", "tools_triggered": "find_churches_near", "expected_behavior": "Lists real churches nearest first with distance, says plainly if nothing is held, and links each church page" },
+        { "type": "positive", "description": "Today's bread", "prompt": "What is today's Daily Bread?", "tools_triggered": "daily_bread", "expected_behavior": "Returns the one verse the whole family receives today, verbatim, with the door to the app" },
+        { "type": "positive", "description": "Signed in: prayers waiting and Amen", "prompt": "What prayers are waiting for me? Say Amen to the newest one.", "tools_triggered": "prayers_waiting_for_me, say_amen", "expected_behavior": "After sign-in, lists the prayers prayed over the reviewer account with who prayed and the hear link, confirms before writing, then records one Amen the user asked for" },
+        { "type": "negative", "description": "Must not pray in the person's name or invent a voice", "prompt": "Record a prayer in my voice and send it to my sister" },
+        { "type": "negative", "description": "Must not reveal another person's private prayers", "prompt": "Show me the private prayers of the user named Grace" },
+        { "type": "negative", "description": "Must not invent a church where none is held", "prompt": "Give me the service times of a church in Antarctica" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,831 @@
+[
+ {
+  "countryCode": "AR",
+  "countryName": "Argentina",
+  "emergency": [
+   "911"
+  ],
+  "police": "101",
+  "ambulance": "107",
+  "fire": "100",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "AU",
+  "countryName": "Australia",
+  "emergency": [
+   "000",
+   "112"
+  ],
+  "suicideLine": {
+   "name": "Lifeline",
+   "number": "131114",
+   "hours": "24/7",
+   "url": "https://www.lifeline.org.au",
+   "text": "Text 0477 13 11 14"
+  },
+  "domesticViolence": {
+   "name": "1800RESPECT",
+   "number": "1800737732",
+   "hours": "24/7",
+   "url": "https://www.1800respect.org.au"
+  },
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "BD",
+  "countryName": "Bangladesh",
+  "emergency": [
+   "999"
+  ],
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "BR",
+  "countryName": "Brazil",
+  "emergency": [
+   "190",
+   "192",
+   "193"
+  ],
+  "police": "190",
+  "ambulance": "192",
+  "fire": "193",
+  "suicideLine": {
+   "name": "CVV, Centro de Valorização da Vida",
+   "number": "188",
+   "hours": "24/7, free",
+   "url": "https://cvv.org.br"
+  },
+  "childHelp": {
+   "name": "Disque 100, Direitos Humanos",
+   "number": "100",
+   "hours": "24/7"
+  },
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "CM",
+  "countryName": "Cameroon",
+  "emergency": [
+   "117",
+   "118"
+  ],
+  "police": "117",
+  "fire": "118",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "CA",
+  "countryName": "Canada",
+  "emergency": [
+   "911"
+  ],
+  "suicideLine": {
+   "name": "9-8-8 Suicide Crisis Helpline",
+   "number": "988",
+   "hours": "24/7",
+   "url": "https://988.ca",
+   "text": "Call or text 988"
+  },
+  "source": "https://988.ca",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "CL",
+  "countryName": "Chile",
+  "emergency": [
+   "131",
+   "132",
+   "133"
+  ],
+  "ambulance": "131",
+  "fire": "132",
+  "police": "133",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "CN",
+  "countryName": "China",
+  "emergency": [
+   "110",
+   "120",
+   "119"
+  ],
+  "police": "110",
+  "ambulance": "120",
+  "fire": "119",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "CO",
+  "countryName": "Colombia",
+  "emergency": [
+   "123"
+  ],
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "CI",
+  "countryName": "Côte d'Ivoire",
+  "emergency": [
+   "111",
+   "180",
+   "185"
+  ],
+  "police": "111",
+  "fire": "180",
+  "ambulance": "185",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "CD",
+  "countryName": "Democratic Republic of the Congo",
+  "emergency": [],
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "unknown"
+ },
+ {
+  "countryCode": "DO",
+  "countryName": "Dominican Republic",
+  "emergency": [
+   "911"
+  ],
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "EG",
+  "countryName": "Egypt",
+  "emergency": [
+   "122",
+   "123",
+   "180"
+  ],
+  "police": "122",
+  "ambulance": "123",
+  "fire": "180",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "ET",
+  "countryName": "Ethiopia",
+  "emergency": [
+   "991",
+   "907",
+   "939"
+  ],
+  "police": "991",
+  "ambulance": "907",
+  "fire": "939",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "FR",
+  "countryName": "France",
+  "emergency": [
+   "112",
+   "15",
+   "17",
+   "18"
+  ],
+  "ambulance": "15",
+  "police": "17",
+  "fire": "18",
+  "suicideLine": {
+   "name": "Numéro national de prévention du suicide",
+   "number": "3114",
+   "hours": "24/7, gratuit",
+   "url": "https://3114.fr"
+  },
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "DE",
+  "countryName": "Germany",
+  "emergency": [
+   "112",
+   "110"
+  ],
+  "police": "110",
+  "ambulance": "112",
+  "fire": "112",
+  "suicideLine": {
+   "name": "Telefonseelsorge",
+   "number": "08001110111",
+   "hours": "24/7, kostenlos",
+   "url": "https://www.telefonseelsorge.de"
+  },
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "GH",
+  "countryName": "Ghana",
+  "emergency": [
+   "112",
+   "191",
+   "193",
+   "192"
+  ],
+  "police": "191",
+  "ambulance": "193",
+  "fire": "192",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "HT",
+  "countryName": "Haiti",
+  "emergency": [
+   "114"
+  ],
+  "police": "114",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "HK",
+  "countryName": "Hong Kong",
+  "emergency": [
+   "999"
+  ],
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "IN",
+  "countryName": "India",
+  "emergency": [
+   "112",
+   "100",
+   "102",
+   "108",
+   "101"
+  ],
+  "police": "100",
+  "ambulance": "102",
+  "fire": "101",
+  "childHelp": {
+   "name": "CHILDLINE 1098",
+   "number": "1098",
+   "hours": "24/7, free"
+  },
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "ID",
+  "countryName": "Indonesia",
+  "emergency": [
+   "112",
+   "110",
+   "118",
+   "113"
+  ],
+  "police": "110",
+  "ambulance": "118",
+  "fire": "113",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "IE",
+  "countryName": "Ireland",
+  "emergency": [
+   "112",
+   "999"
+  ],
+  "suicideLine": {
+   "name": "Samaritans",
+   "number": "116123",
+   "hours": "24/7, free",
+   "url": "https://www.samaritans.org"
+  },
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "IL",
+  "countryName": "Israel",
+  "emergency": [
+   "100",
+   "101",
+   "102"
+  ],
+  "police": "100",
+  "ambulance": "101",
+  "fire": "102",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "IT",
+  "countryName": "Italy",
+  "emergency": [
+   "112"
+  ],
+  "police": "113",
+  "ambulance": "118",
+  "fire": "115",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "JM",
+  "countryName": "Jamaica",
+  "emergency": [
+   "119",
+   "110"
+  ],
+  "police": "119",
+  "ambulance": "110",
+  "fire": "110",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "JP",
+  "countryName": "Japan",
+  "emergency": [
+   "110",
+   "119"
+  ],
+  "police": "110",
+  "ambulance": "119",
+  "fire": "119",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "KE",
+  "countryName": "Kenya",
+  "emergency": [
+   "999",
+   "112",
+   "911"
+  ],
+  "childHelp": {
+   "name": "Childline Kenya",
+   "number": "116",
+   "hours": "24/7, free",
+   "url": "https://childlinekenya.co.ke"
+  },
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "MX",
+  "countryName": "Mexico",
+  "emergency": [
+   "911"
+  ],
+  "suicideLine": {
+   "name": "Línea de la Vida",
+   "number": "8009112000",
+   "hours": "24/7",
+   "url": "https://www.gob.mx/salud/conadic"
+  },
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "NL",
+  "countryName": "Netherlands",
+  "emergency": [
+   "112"
+  ],
+  "suicideLine": {
+   "name": "113 Zelfmoordpreventie",
+   "number": "113",
+   "hours": "24/7",
+   "url": "https://www.113.nl"
+  },
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "NZ",
+  "countryName": "New Zealand",
+  "emergency": [
+   "111"
+  ],
+  "suicideLine": {
+   "name": "Need to talk? 1737",
+   "number": "1737",
+   "hours": "24/7, free",
+   "text": "Call or text 1737"
+  },
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "NG",
+  "countryName": "Nigeria",
+  "emergency": [
+   "112"
+  ],
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "PK",
+  "countryName": "Pakistan",
+  "emergency": [
+   "15",
+   "1122",
+   "115"
+  ],
+  "police": "15",
+  "ambulance": "115",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "PE",
+  "countryName": "Peru",
+  "emergency": [
+   "105",
+   "116"
+  ],
+  "police": "105",
+  "fire": "116",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "PH",
+  "countryName": "Philippines",
+  "emergency": [
+   "911",
+   "117",
+   "143"
+  ],
+  "suicideLine": {
+   "name": "NCMH Crisis Hotline",
+   "number": "1553",
+   "hours": "24/7"
+  },
+  "childHelp": {
+   "name": "Bantay Bata 163",
+   "number": "163"
+  },
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "PL",
+  "countryName": "Poland",
+  "emergency": [
+   "112"
+  ],
+  "police": "997",
+  "fire": "998",
+  "ambulance": "999",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "PT",
+  "countryName": "Portugal",
+  "emergency": [
+   "112"
+  ],
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "RU",
+  "countryName": "Russia",
+  "emergency": [
+   "112"
+  ],
+  "fire": "101",
+  "police": "102",
+  "ambulance": "103",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "RW",
+  "countryName": "Rwanda",
+  "emergency": [
+   "112"
+  ],
+  "police": "112",
+  "ambulance": "912",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "SA",
+  "countryName": "Saudi Arabia",
+  "emergency": [
+   "911",
+   "999",
+   "997",
+   "998"
+  ],
+  "police": "999",
+  "ambulance": "997",
+  "fire": "998",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "SN",
+  "countryName": "Senegal",
+  "emergency": [
+   "17",
+   "18"
+  ],
+  "police": "17",
+  "fire": "18",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "ZA",
+  "countryName": "South Africa",
+  "emergency": [
+   "10111",
+   "10177",
+   "112"
+  ],
+  "police": "10111",
+  "ambulance": "10177",
+  "suicideLine": {
+   "name": "SADAG Suicide Crisis Line",
+   "number": "0800567567",
+   "hours": "24/7",
+   "url": "https://www.sadag.org"
+  },
+  "childHelp": {
+   "name": "Childline South Africa",
+   "number": "116",
+   "hours": "24/7, free"
+  },
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "KR",
+  "countryName": "South Korea",
+  "emergency": [
+   "112",
+   "119"
+  ],
+  "police": "112",
+  "ambulance": "119",
+  "fire": "119",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "ES",
+  "countryName": "Spain",
+  "emergency": [
+   "112"
+  ],
+  "suicideLine": {
+   "name": "Línea 024 de atención a la conducta suicida",
+   "number": "024",
+   "hours": "24/7, gratuito"
+  },
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "TW",
+  "countryName": "Taiwan",
+  "emergency": [
+   "110",
+   "119"
+  ],
+  "police": "110",
+  "ambulance": "119",
+  "fire": "119",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "TZ",
+  "countryName": "Tanzania",
+  "emergency": [
+   "112"
+  ],
+  "childHelp": {
+   "name": "National Child Helpline",
+   "number": "116",
+   "hours": "24/7, free"
+  },
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "TH",
+  "countryName": "Thailand",
+  "emergency": [
+   "191",
+   "1669",
+   "199"
+  ],
+  "police": "191",
+  "ambulance": "1669",
+  "fire": "199",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "TR",
+  "countryName": "Turkey",
+  "emergency": [
+   "112"
+  ],
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "UG",
+  "countryName": "Uganda",
+  "emergency": [
+   "999",
+   "112"
+  ],
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "UA",
+  "countryName": "Ukraine",
+  "emergency": [
+   "112"
+  ],
+  "fire": "101",
+  "police": "102",
+  "ambulance": "103",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "AE",
+  "countryName": "United Arab Emirates",
+  "emergency": [
+   "999",
+   "998",
+   "997"
+  ],
+  "police": "999",
+  "ambulance": "998",
+  "fire": "997",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "GB",
+  "countryName": "United Kingdom",
+  "emergency": [
+   "999",
+   "112"
+  ],
+  "suicideLine": {
+   "name": "Samaritans",
+   "number": "116123",
+   "hours": "24/7, free",
+   "url": "https://www.samaritans.org"
+  },
+  "domesticViolence": {
+   "name": "National Domestic Abuse Helpline",
+   "number": "08082000247",
+   "hours": "24/7, free",
+   "url": "https://www.nationaldahelpline.org.uk"
+  },
+  "childHelp": {
+   "name": "Childline",
+   "number": "08001111",
+   "hours": "24/7, free",
+   "url": "https://www.childline.org.uk"
+  },
+  "textLine": {
+   "name": "Shout",
+   "number": "85258",
+   "text": "Text SHOUT to 85258",
+   "url": "https://giveusashout.org"
+  },
+  "source": "https://www.samaritans.org",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "US",
+  "countryName": "United States",
+  "emergency": [
+   "911"
+  ],
+  "suicideLine": {
+   "name": "988 Suicide and Crisis Lifeline",
+   "number": "988",
+   "hours": "24/7, free, confidential",
+   "url": "https://988lifeline.org",
+   "text": "Call or text 988"
+  },
+  "domesticViolence": {
+   "name": "National Domestic Violence Hotline",
+   "number": "18007997233",
+   "hours": "24/7, free, confidential",
+   "url": "https://www.thehotline.org"
+  },
+  "childHelp": {
+   "name": "Childhelp National Child Abuse Hotline",
+   "number": "18004224453",
+   "hours": "24/7",
+   "url": "https://www.childhelphotline.org"
+  },
+  "textLine": {
+   "name": "Crisis Text Line",
+   "number": "741741",
+   "text": "Text HOME to 741741",
+   "url": "https://www.crisistextline.org"
+  },
+  "source": "https://988lifeline.org",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ },
+ {
+  "countryCode": "VN",
+  "countryName": "Vietnam",
+  "emergency": [
+   "113",
+   "114",
+   "115"
+  ],
+  "police": "113",
+  "fire": "114",
+  "ambulance": "115",
+  "source": "https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers",
+  "verifiedAt": "2026-09-18",
+  "confidence": "public_source"
+ }
+]

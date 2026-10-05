@@ -1,0 +1,52 @@
+{
+  // The Living Bread remote MCP server: mcp.living-bread.org
+  // Any assistant that speaks MCP (Claude, ChatGPT, Cursor, Windsurf, VS Code and the rest)
+  // connects here and receives tools that point people to Christ and to one another:
+  // Scripture from a stored text, verses for a need, today's bread, grounded answers from the
+  // Christian Knowledge API, real churches and real gatherings near a person, communities to
+  // join, and the exact doors into The Living Bread (pray out loud for someone, hear the
+  // Kingdom pray, begin).
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "living-bread-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-20",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  // Same pattern as render-service/wrangler.toml: a Worker Custom Domain on a subdomain, which the
+  // apex (served by Expo hosting) never touches. wrangler provisions the DNS record and the cert.
+  "routes": [
+    { "pattern": "mcp.living-bread.org", "custom_domain": true }
+  ],
+  // One Durable Object class per McpAgent, per the Agents SDK. Each MCP session is one instance.
+  "durable_objects": {
+    "bindings": [{ "name": "MCP_OBJECT", "class_name": "LivingBreadMCP" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["LivingBreadMCP"] }],
+  // The bundled King James Version, the SAME 66 files the app reads (assets/bible/books), served
+  // to the Worker by book through the ASSETS binding and never to the public by path, because
+  // run_worker_first routes every request through the Worker. Scripture is never typed here, it
+  // is read from this stored text.
+  "assets": {
+    "directory": "./assets/bible/books",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  // Honest, generous per-IP rate limiting: 300 requests a minute, which no person reaches and no
+  // runaway loop exceeds for long. Checked in the Worker before anything is routed.
+  "ratelimits": [
+    { "name": "RATE", "namespace_id": "2001", "simple": { "limit": 300, "period": 60 } }
+  ],
+  "vars": {
+    "SITE": "https://living-bread.org",
+    "KNOWLEDGE_API": "https://discover.living-bread.org",
+    // Learn from the asks (migration 0680): "1" writes one scrubbed row per public discovery ask,
+    // "0" is the kill switch. Never a user id, IP or personal-tool input either way.
+    "MCP_ASK_LOG": "1",
+    "SUPABASE_URL": "https://eiekmrbmscorzjogpbzf.supabase.co",
+    // The public anon key, already shipped in the app's web bundle and in render-service. RLS and
+    // the anon-granted ai_* functions decide what it can read: city-level church data, public
+    // gatherings, discoverable communities. Nothing personal.
+    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpZWttcmJtc2Nvcnpqb2dwYnpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4ODMzMTUsImV4cCI6MjA5NjQ1OTMxNX0.uugKXNhivmxZ3ES-kFLdqJrpWIfWpAaegp9wQOlXTyE"
+  },
+  "observability": { "enabled": true, "head_sampling_rate": 1 }
+}
