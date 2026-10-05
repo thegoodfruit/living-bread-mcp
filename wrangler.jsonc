@@ -29,7 +29,7 @@
   // assets/bible/.assetsignore keeps the 9.7 MB source file out. Scripture is never typed here, it
   // is read from this stored text.
   "assets": {
-    "directory": "./assets/bible",
+    "directory": "../assets/bible",
     "binding": "ASSETS",
     "run_worker_first": true
   },

@@ -23,62 +23,21 @@ Server http://127.0.0.1:8791, version 1.2.0, run 2026-10-05T11:10:49.951Z. Laten
 | deep_links | 5 | 5 |
 | tool_hygiene | 7 | 7 |
 
-## production: 33 of 71 passed (46%)
+## production: 71 of 71 passed (100%)
 
-Server https://mcp.living-bread.org, version 1.1.1, run 2026-10-05T11:13:18.319Z. Latency per case: p50 252 ms, p95 2630 ms.
+Server https://mcp.living-bread.org, version 1.2.0, run 2026-10-05T20:13:38.732Z. Latency per case: p50 215 ms, p95 1547 ms.
 
 | Category | Passed | Of |
 |---|---|---|
-| scripture_accuracy | 11 | 14 |
-| evidence_label | 1 | 5 |
-| interpretation_labels | 1 | 6 |
-| geography | 5 | 6 |
-| multilingual | 2 | 5 |
-| stale_availability | 3 | 5 |
-| empty_results | 4 | 6 |
-| permissions | 4 | 6 |
-| prompt_injection | 1 | 4 |
-| duplicate_actions | 0 | 2 |
-| deep_links | 0 | 5 |
-| tool_hygiene | 1 | 7 |
-
-Failures:
-
-- `scr-10` (scripture_context): error: MCP error -32602: Tool scripture_context not found; sc.passage.text differs from the stored corpus; sc.before.text differs from the stored corpus; sc.after.text differs from the stored corpus
-- `scr-11` (scripture_search): error: MCP error -32602: Tool scripture_search not found; sc.total_matches = undefined, wanted >= 1
-- `scr-12` (cross_references): error: MCP error -32602: Tool cross_references not found; sc.count = undefined, wanted >= 1
-- `ev-01` (scripture_passage): sc.evidence.corpus_version does not match ^kjv-[0-9a-f]{16}$; no evidence label; sc.evidence.canon_coverage does not match 66 books; sc.evidence.retrieved_at is empty; sc.evidence.corpus_check = undefined, wanted "every book read matched the manifest hash"
-- `ev-02` (verses_for): no evidence label; sc.evidence.passages.length = undefined, wanted >= 1
-- `ev-03` (the_gospel): no evidence label; sc.evidence.translation = undefined, wanted "KJV"
-- `ev-04` (cross_references): sc.evidence.cross_references.license does not match CC BY; no evidence label
-- `int-01` (verses_for): sc.content_layers.reflection lacks verses[].why; sc.content_layers.scripture lacks verses[].text
-- `int-02` (the_gospel): sc.content_layers.interpretation lacks steps[].words; sc.content_layers.tradition is empty
-- `int-03` (what_the_bible_says_about): sc.content_layers.interpretation lacks body; sc.content_layers.tradition is empty
-- `int-04` (cross_references): sc.content_layers.interpretation is empty
-- `int-05` (ask_living_bread): sc.content_layers.interpretation is empty
-- `geo-05` (journey_next_steps): error: MCP error -32602: Tool journey_next_steps not found; sc.results.length = undefined, wanted <= 5
-- `ml-01` (journey_next_steps): error: MCP error -32602: Tool journey_next_steps not found; text does not match Spanish; sc.results.length = undefined, wanted <= 5
-- `ml-02` (journey_next_steps): error: MCP error -32602: Tool journey_next_steps not found; text does not match Korean
-- `ml-03` (verses_for): an error with no alternative
-- `fr-01` (find_gatherings_near): 95d60a9f-6886-4e40-84c1-6e3648d9a8d3 has no freshness
-- `fr-02` (events_this_week): a40fa130-d89a-4396-81a9-872bf3cb300c has no freshness
-- `em-01` (scripture_search): sc.count = undefined, wanted 0; sc.result_state = undefined, wanted "empty"; text does not match No verse
-- `em-02` (journey_next_steps): error: MCP error -32602: Tool journey_next_steps not found; sc.next_step.url is empty; sc.alternatives has 0, wanted >= 1
-- `pm-01` (list): journey_next_steps is missing on /mcp
-- `pm-04` (list): who_is_available_now is missing on /me; find_help_for_my_need is missing on /me; say_yes lacks idempotency_key
-- `inj-01` (kingdom_map): text contains "ignore all previous instructions"; text does not match instruction-like text removed
-- `inj-02` (kingdom_map): text contains "<system>"; text contains "you are now a"
-- `inj-04` (instructions): instructions lack the law
-- `dup-01` (say_yes): the second call was not replayed; the second call returned a different row; 2 rows were written
-- `dup-02` (say_yes): the second call was not replayed; the second call returned a different row; 2 rows were written
-- `dl-01` (journey_next_steps): sc.next_step.url does not match via=mcpWordL; no living-bread.org links to check
-- `dl-02` (journey_next_steps): sc.next_step.url does not match via=mcpServe; no living-bread.org links to check
-- `dl-03` (journey_next_steps): sc.next_step.url does not match via=mcpNewFa; no living-bread.org links to check
-- `dl-04` (reading_plans): https://living-bread.org/plans/grief-and-hope answered 404; https://living-bread.org/plans/first-steps answered 404; https://living-bread.org/plans/learn-to-pray answered 404; https://living-bread.org/plans/gospel-of-mark answered 404; https://living-bread.org/plans/meet-jesus answered 404; https://
-- `dl-05` (needs_near): https://living-bread.org/serve/dca260cc-7330-4d8a-9775-cafedc6f0c0d answered 404; https://living-bread.org/serve/a298ae4c-86fa-4f6f-b431-88d2515d663c answered 404; https://living-bread.org/serve/8f86c510-67af-41a0-9ccf-703b4e1d81b7 answered 404; https://living-bread.org/serve/081d7a41-d13b-41af-94ff
-- `hy-01` (scripture_passage): reason undefined, wanted unparsed_reference; no try_instead
-- `hy-02` (scripture_search): sc.next_cursor is empty; the next page repeats the first
-- `hy-03` (find_churches_near): sc.ok = undefined, wanted true; sc.visibility is empty; sc.freshness is empty; sc.next_actions is not an array; sc.ids is not an array
-- `hy-04` (daily_bread): no try_instead
-- `hy-06` (http): status 404, wanted 200
-- `hy-07` (http): status 404, wanted 200; ok = undefined
+| scripture_accuracy | 14 | 14 |
+| evidence_label | 5 | 5 |
+| interpretation_labels | 6 | 6 |
+| geography | 6 | 6 |
+| multilingual | 5 | 5 |
+| stale_availability | 5 | 5 |
+| empty_results | 6 | 6 |
+| permissions | 6 | 6 |
+| prompt_injection | 4 | 4 |
+| duplicate_actions | 2 | 2 |
+| deep_links | 5 | 5 |
+| tool_hygiene | 7 | 7 |
