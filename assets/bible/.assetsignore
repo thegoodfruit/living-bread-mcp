@@ -1,0 +1,3 @@
+# The MCP Worker reads books/ and xref/ only (mcp/scripts/build-corpus.py).
+cross-references.json
+popular-verses-translations.json

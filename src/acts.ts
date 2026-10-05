@@ -104,6 +104,8 @@ export const SIGNED_IN_READ_SUMMARY: ReadonlyArray<[string, string]> = [
   ['my_church', 'their church: this week\'s events and the prayer requests the church shares with its members'],
   ['my_invitations', 'what is waiting for them: offers to walk a yes with them, seats saved at a Table'],
   ['family_saying_yes', 'the yeses the family has opened to the Body, the heavy ones first'],
+  ['who_is_available_now', 'how many said they are available to pray, listen, talk or serve, in a window still open; counts and first names only'],
+  ['find_help_for_my_need', 'the nearest safe doors for a need, in order: family, groups, people available, church, a gathering, the Word, crisis first when there is danger'],
 ];
 
 export function registerActs(server: McpServer, env: Env, me: Believer): void {
@@ -138,7 +140,7 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
     words: z.string().min(1).max(2000).describe('The prayer, in the BELIEVER\'S OWN WORDS as they said them. Never composed by the assistant.'),
     confirmed: z.boolean().default(false).describe('True only after the believer confirmed the exact words and the exact person.'),
   };
-  const actOut = out({ done: z.boolean(), needs_confirmation: z.boolean(), would: z.string().optional(), prayer_id: z.string().optional(), to: z.object({ id: z.string(), name: z.string(), relation: z.string() }).optional(), candidates: z.array(z.object({ id: z.string(), name: z.string(), relation: z.string() })).optional(), door: z.string().optional() });
+  const actOut = out({ done: z.boolean(), needs_confirmation: z.boolean(), would: z.string().optional(), prayer_id: z.string().optional(), to: z.looseObject({ id: z.string(), name: z.string(), relation: z.string() }).optional(), candidates: z.array(z.looseObject({ id: z.string(), name: z.string(), relation: z.string() })).optional(), door: z.string().optional() });
 
   tool(server, 'pray_for_someone', {
     title: 'Pray for someone, in writing, as the believer',
@@ -314,7 +316,7 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
     title: 'Offer to meet a need',
     description: `Promise, as the signed-in believer, to meet one open Serve need the way the app's "I will" does (a commitment the believer alone can later say was kept). Use a need id from needs_near. People say: "I'll take the groceries need in Bugesera", "sign me up to help with that". ${CONSENT_LAW}`,
     inputSchema: { need_id: z.string().uuid(), promise: z.string().max(300).optional().describe('What exactly they will do, in their words.'), confirmed: z.boolean().default(false) },
-    outputSchema: out({ done: z.boolean(), needs_confirmation: z.boolean(), would: z.string().optional(), commitment_id: z.string().optional(), need: z.object({ id: z.string(), title: z.string() }).optional(), door: z.string().optional() }),
+    outputSchema: out({ done: z.boolean(), needs_confirmation: z.boolean(), would: z.string().optional(), commitment_id: z.string().optional(), need: z.looseObject({ id: z.string(), title: z.string() }).optional(), door: z.string().optional() }),
     annotations: WRITES,
   }, async ({ need_id, promise, confirmed }) => {
     const rows = await selectAs<{ id: string; title: string; status: string; city: string | null; country: string | null }>(env, me, 'serve_needs', `id=eq.${need_id}&select=id,title,status,city,country&limit=1`);
@@ -328,7 +330,7 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
     const r = await rpcAs(env, me, 'commit_to', { p_kind: 'need', p_subject: need.id, p_promise: promise ?? null, p_due: null });
     const id = typeof r.data === 'string' ? r.data : null;
     if (r.error || !id) return fail(paragraph([`The promise was not recorded${r.error ? ` (${r.error})` : ''}`, `The need is at ${DOORS.serve}`]));
-    const door = `${SITE}/serve/${need.id}`;
+    const door = DOORS.serve; // serve/<id> has no web shell yet (404 on the web, 2026-10-05)
     return ok(paragraph([`Recorded: they will meet "${need.title}"`, `The need, and the partner behind it, are at ${door}; all Serve is at ${DOORS.serve}`, 'Whoever is kind to the poor lends to the LORD (Proverbs 19:17)']), { done: true, needs_confirmation: false, commitment_id: id, need: { id: need.id, title: need.title }, door });
   });
 
@@ -353,7 +355,7 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
     title: 'My church this week',
     description: 'The signed-in believer\'s church on The Living Bread: its events in the coming week and the prayer requests the church shares with its members (the church layer of the prayer wall, exactly what the app shows them). Honest when they have not named a church. People ask: "what is on at my church this week", "what is my church praying for".',
     inputSchema: { days: z.number().int().min(1).max(60).default(7) },
-    outputSchema: out({ church: z.object({ id: z.string(), name: z.string().nullable() }).nullable(), events: z.array(z.object({ id: z.string(), title: z.string(), when: z.string(), where: z.string().nullable(), online: z.boolean(), going: z.number(), i_am_going: z.boolean() })), prayers: z.array(z.object({ id: z.string(), from: z.string(), title: z.string().nullable(), body: z.string(), urgent: z.boolean(), when: z.string() })), door: z.string() }),
+    outputSchema: out({ church: z.looseObject({ id: z.string(), name: z.string().nullable() }).nullable(), events: z.array(z.looseObject({ id: z.string(), title: z.string(), when: z.string(), where: z.string().nullable(), online: z.boolean(), going: z.number(), i_am_going: z.boolean() })), prayers: z.array(z.looseObject({ id: z.string(), from: z.string(), title: z.string().nullable(), body: z.string(), urgent: z.boolean(), when: z.string() })), door: z.string() }),
     annotations: READS,
   }, async ({ days }) => {
     const rows = await selectAs<{ church_id: string | null; church_name: string | null }>(env, me, 'users', `id=eq.${me.userId}&select=church_id,church_name&limit=1`);
@@ -378,7 +380,7 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
     title: 'What is waiting for me',
     description: 'Offers made to the signed-in believer that wait for their answer: people offering to walk a yes with them, and seats saved for them at a Table. Read only; answering is done in the app. People ask: "did anyone offer to walk with me", "is a seat saved for me anywhere".',
     inputSchema: {},
-    outputSchema: out({ walk_offers: z.array(z.object({ yes_id: z.string(), words: z.string(), from: z.string(), when: z.string(), door: z.string() })), saved_seats: z.array(z.object({ table_id: z.string(), title: z.string(), host: z.string(), present: z.number(), seats: z.number(), door: z.string() })), door: z.string() }),
+    outputSchema: out({ walk_offers: z.array(z.looseObject({ yes_id: z.string(), words: z.string(), from: z.string(), when: z.string(), door: z.string() })), saved_seats: z.array(z.looseObject({ table_id: z.string(), title: z.string(), host: z.string(), present: z.number(), seats: z.number(), door: z.string() })), door: z.string() }),
     annotations: READS,
   }, async () => {
     const [offers, hall] = await Promise.all([rpcAs(env, me, 'my_yes_offers'), rpcAs(env, me, 'the_hall')]);
@@ -396,7 +398,7 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
     title: 'The family saying yes',
     description: 'The yeses believers have opened to the Body (shared yeses only, never private ones), the ones that said "heavier than I thought" first, each with who said it, the verse they held, how many stand with it, and the room where the signed-in believer can stand with it too. Read only. People ask: "what is the family saying yes to", "who needs someone to stand with them today".',
     inputSchema: { limit: z.number().int().min(1).max(40).default(10) },
-    outputSchema: out({ count: z.number(), yeses: z.array(z.object({ id: z.string(), from: z.string(), words: z.string(), verse_ref: z.string().nullable(), state: z.string(), with: z.number(), i_am_with: z.boolean(), when: z.string(), door: z.string() })), door: z.string() }),
+    outputSchema: out({ count: z.number(), yeses: z.array(z.looseObject({ id: z.string(), from: z.string(), words: z.string(), verse_ref: z.string().nullable(), state: z.string(), with: z.number(), i_am_with: z.boolean(), when: z.string(), door: z.string() })), door: z.string() }),
     annotations: READS,
   }, async ({ limit }) => {
     const r = await rpcAs(env, me, 'family_yeses', { p_limit: limit });

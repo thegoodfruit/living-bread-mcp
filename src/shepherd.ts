@@ -54,8 +54,8 @@ export function registerShepherd(server: McpServer, env: Env, me: Believer, past
     description: `For a shepherd: the people who asked to pray with them, meet online or meet nearby (their open care requests, newest first, with the note each person left) and the prayer requests their church shares with its members (the church layer of the prayer wall). Pastors ask: "who asked to meet me this week", "what is my church praying for", "did anyone ask for prayer today". ${SHEPHERD}`,
     inputSchema: { limit: z.number().int().min(1).max(40).default(12) },
     outputSchema: out({
-      requests: z.array(z.object({ id: z.string(), from: z.string(), kind: z.string(), note: z.string().nullable(), status: z.string(), preferred_at: z.string().nullable(), when: z.string() })),
-      church_prayers: z.array(z.object({ id: z.string(), from: z.string(), title: z.string().nullable(), body: z.string(), urgent: z.boolean(), prayed: z.number(), when: z.string() })),
+      requests: z.array(z.looseObject({ id: z.string(), from: z.string(), kind: z.string(), note: z.string().nullable(), status: z.string(), preferred_at: z.string().nullable(), when: z.string() })),
+      church_prayers: z.array(z.looseObject({ id: z.string(), from: z.string(), title: z.string().nullable(), body: z.string(), urgent: z.boolean(), prayed: z.number(), when: z.string() })),
       church_id: z.string().nullable(), door: z.string(),
     }),
     annotations: READS,

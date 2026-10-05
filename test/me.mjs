@@ -160,6 +160,25 @@ if (!givenToken) {
   const yesId = y1.structuredContent?.yes_id;
   check('say_yes with confirmed writes', !y1.isError && typeof yesId === 'string', textOf(y1).slice(0, 200));
   console.log(`       ${textOf(y1).slice(0, 220)}`);
+  // 1.2.0 duplicate protection: the identical confirmed request again is answered from the first result, never written twice
+  const yDup = await client.callTool({ name: 'say_yes', arguments: { words: 'MCP proof yes, to be deleted', verse_ref: 'John 3:16', confirmed: true } });
+  check('an identical confirmed say_yes is replayed, not written twice', yDup.structuredContent?.replayed === true && yDup.structuredContent?.yes_id === yesId, textOf(yDup).slice(0, 160));
+  const key = `mcp-proof-${Date.now()}`;
+  const yK1 = await client.callTool({ name: 'say_yes', arguments: { words: 'MCP proof keyed yes, to be deleted', confirmed: true, idempotency_key: key } });
+  const yK2 = await client.callTool({ name: 'say_yes', arguments: { words: 'MCP proof keyed yes, to be deleted (retry)', confirmed: true, idempotency_key: key } });
+  const keyedId = yK1.structuredContent?.yes_id;
+  check('a retry with the same idempotency_key returns the first result', typeof keyedId === 'string' && yK2.structuredContent?.replayed === true && yK2.structuredContent?.yes_id === keyedId, textOf(yK2).slice(0, 160));
+  const keyedRows = await sb('GET', `/rest/v1/my_yes?user_id=eq.${houseId}&words=like.MCP%20proof%20keyed*&select=id`, SERVICE);
+  check('exactly one keyed yes row exists', keyedRows.length === 1, JSON.stringify(keyedRows));
+  for (const r of keyedRows) await sb('DELETE', `/rest/v1/my_yes?id=eq.${r.id}`, SERVICE, undefined, 'return=representation');
+  // presence and the router, read as the believer
+  const avail = await client.callTool({ name: 'who_is_available_now', arguments: {} });
+  check('who_is_available_now answers with honest freshness', !avail.isError && (avail.structuredContent?.statuses ?? []).every((s) => s.people === 0 ? s.freshness?.available_now === false : s.freshness?.kind === 'recently_observed'), textOf(avail).slice(0, 200));
+  const route = await client.callTool({ name: 'find_help_for_my_need', arguments: { need: 'prayer' } });
+  check('find_help_for_my_need returns at most five doors that resolve to living-bread.org', !route.isError && (route.structuredContent?.doors ?? []).length <= 5 && (route.structuredContent?.doors ?? []).every((d) => /^https:\/\/living-bread\.org/.test(d.door)), textOf(route).slice(0, 200));
+  console.log(`       ${textOf(route).slice(0, 260)}`);
+  const danger = await client.callTool({ name: 'find_help_for_my_need', arguments: { need: 'talk', danger: true } });
+  check('with danger, the crisis door is first', danger.structuredContent?.doors?.[0]?.layer === 'crisis', JSON.stringify(danger.structuredContent?.doors?.[0] ?? {}).slice(0, 160));
   if (yesId) {
     const row = await sb('GET', `/rest/v1/my_yes?id=eq.${yesId}&select=id,user_id,words,verse_ref,share_words,state`, SERVICE);
     check('my_yes row exists, private, open', row.length === 1 && row[0].user_id === houseId && row[0].share_words === false && row[0].verse_ref === 'John 3:16', JSON.stringify(row).slice(0, 200));

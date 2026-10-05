@@ -22,12 +22,14 @@
     "bindings": [{ "name": "MCP_OBJECT", "class_name": "LivingBreadMCP" }]
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["LivingBreadMCP"] }],
-  // The bundled King James Version, the SAME 66 files the app reads (assets/bible/books), served
-  // to the Worker by book through the ASSETS binding and never to the public by path, because
-  // run_worker_first routes every request through the Worker. Scripture is never typed here, it
+  // The bundled King James Version, the SAME 66 files the app reads (assets/bible/books, read as
+  // /books/<id>.json), and the OpenBible.info cross-references split by book (assets/bible/xref,
+  // written by scripts/build-corpus.py), served to the Worker through the ASSETS binding and never
+  // to the public by path, because run_worker_first routes every request through the Worker.
+  // assets/bible/.assetsignore keeps the 9.7 MB source file out. Scripture is never typed here, it
   // is read from this stored text.
   "assets": {
-    "directory": "./assets/bible/books",
+    "directory": "./assets/bible",
     "binding": "ASSETS",
     "run_worker_first": true
   },
@@ -42,6 +44,10 @@
     // Learn from the asks (migration 0680): "1" writes one scrubbed row per public discovery ask,
     // "0" is the kill switch. Never a user id, IP or personal-tool input either way.
     "MCP_ASK_LOG": "1",
+    // The funnel counters (migration 0840, src/metrics.ts): "1" counts, per day and client NAME only,
+    // sessions and useful/empty/error calls. Keep "0" until 0840 is applied: a call to a function
+    // that does not exist yet is held by PostgREST for minutes.
+    "MCP_METRICS": "0",
     "SUPABASE_URL": "https://eiekmrbmscorzjogpbzf.supabase.co",
     // The public anon key, already shipped in the app's web bundle and in render-service. RLS and
     // the anon-granted ai_* functions decide what it can read: city-level church data, public

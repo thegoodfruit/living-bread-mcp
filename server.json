@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "org.living-bread.mcp/living-bread",
   "title": "The Living Bread",
-  "description": "Scripture, the gospel, prayers, crisis lines, real churches, gatherings and Tables. Jesus is Lord.",
-  "version": "1.1.1",
+  "description": "Scripture with evidence labels, churches and prayer near you, crisis lines first. Jesus is Lord.",
+  "version": "1.2.0",
   "websiteUrl": "https://mcp.living-bread.org/",
   "remotes": [
     {

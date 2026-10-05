@@ -11,6 +11,7 @@
    This file is pure: no bindings, no fetch, so it can be tested anywhere.
    ============================================================ */
 import WEB from './data/web.json';
+import { noteReading } from './evidence';
 
 export interface BookMeta {
   id: string;
@@ -213,6 +214,7 @@ export function webPassage(p: Omit<ParsedReference, 'ref'>): { ref: string; text
   const k = refKey(p);
   if (!k) return null;
   const hit = WEB_CACHE[k];
+  if (hit) noteReading({ ref: hit.ref, translation: 'WEB', text: hit.text });
   return hit ? { ref: hit.ref, text: hit.text } : null;
 }
 

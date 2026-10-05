@@ -1,0 +1,711 @@
+{
+ "label": "production",
+ "base": "https://mcp.living-bread.org",
+ "server_version": "1.1.1",
+ "ran_at": "2026-10-05T11:13:18.319Z",
+ "total": 71,
+ "passed": 33,
+ "results": [
+  {
+   "id": "scr-01",
+   "category": "scripture_accuracy",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 4377
+  },
+  {
+   "id": "scr-02",
+   "category": "scripture_accuracy",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 186
+  },
+  {
+   "id": "scr-03",
+   "category": "scripture_accuracy",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 204
+  },
+  {
+   "id": "scr-04",
+   "category": "scripture_accuracy",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 290
+  },
+  {
+   "id": "scr-05",
+   "category": "scripture_accuracy",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 180
+  },
+  {
+   "id": "scr-06",
+   "category": "scripture_accuracy",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 237
+  },
+  {
+   "id": "scr-07",
+   "category": "scripture_accuracy",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 267
+  },
+  {
+   "id": "scr-08",
+   "category": "scripture_accuracy",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 144
+  },
+  {
+   "id": "scr-09",
+   "category": "scripture_accuracy",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 130
+  },
+  {
+   "id": "scr-10",
+   "category": "scripture_accuracy",
+   "tool": "scripture_context",
+   "pass": false,
+   "fails": [
+    "error: MCP error -32602: Tool scripture_context not found",
+    "sc.passage.text differs from the stored corpus",
+    "sc.before.text differs from the stored corpus",
+    "sc.after.text differs from the stored corpus"
+   ],
+   "ms": 191
+  },
+  {
+   "id": "scr-11",
+   "category": "scripture_accuracy",
+   "tool": "scripture_search",
+   "pass": false,
+   "fails": [
+    "error: MCP error -32602: Tool scripture_search not found",
+    "sc.total_matches = undefined, wanted >= 1"
+   ],
+   "ms": 98
+  },
+  {
+   "id": "scr-12",
+   "category": "scripture_accuracy",
+   "tool": "cross_references",
+   "pass": false,
+   "fails": [
+    "error: MCP error -32602: Tool cross_references not found",
+    "sc.count = undefined, wanted >= 1"
+   ],
+   "ms": 122
+  },
+  {
+   "id": "scr-13",
+   "category": "scripture_accuracy",
+   "tool": "daily_bread",
+   "pass": true,
+   "fails": [],
+   "ms": 89
+  },
+  {
+   "id": "scr-14",
+   "category": "scripture_accuracy",
+   "tool": "verses_for",
+   "pass": true,
+   "fails": [],
+   "ms": 230
+  },
+  {
+   "id": "ev-01",
+   "category": "evidence_label",
+   "tool": "scripture_passage",
+   "pass": false,
+   "fails": [
+    "sc.evidence.corpus_version does not match ^kjv-[0-9a-f]{16}$",
+    "no evidence label",
+    "sc.evidence.canon_coverage does not match 66 books",
+    "sc.evidence.retrieved_at is empty",
+    "sc.evidence.corpus_check = undefined, wanted \"every book read matched the manifest hash\""
+   ],
+   "ms": 419
+  },
+  {
+   "id": "ev-02",
+   "category": "evidence_label",
+   "tool": "verses_for",
+   "pass": false,
+   "fails": [
+    "no evidence label",
+    "sc.evidence.passages.length = undefined, wanted >= 1"
+   ],
+   "ms": 153
+  },
+  {
+   "id": "ev-03",
+   "category": "evidence_label",
+   "tool": "the_gospel",
+   "pass": false,
+   "fails": [
+    "no evidence label",
+    "sc.evidence.translation = undefined, wanted \"KJV\""
+   ],
+   "ms": 154
+  },
+  {
+   "id": "ev-04",
+   "category": "evidence_label",
+   "tool": "cross_references",
+   "pass": false,
+   "fails": [
+    "sc.evidence.cross_references.license does not match CC BY",
+    "no evidence label"
+   ],
+   "ms": 99
+  },
+  {
+   "id": "ev-05",
+   "category": "evidence_label",
+   "tool": "find_churches_near",
+   "pass": true,
+   "fails": [],
+   "ms": 741
+  },
+  {
+   "id": "int-01",
+   "category": "interpretation_labels",
+   "tool": "verses_for",
+   "pass": false,
+   "fails": [
+    "sc.content_layers.reflection lacks verses[].why",
+    "sc.content_layers.scripture lacks verses[].text"
+   ],
+   "ms": 190
+  },
+  {
+   "id": "int-02",
+   "category": "interpretation_labels",
+   "tool": "the_gospel",
+   "pass": false,
+   "fails": [
+    "sc.content_layers.interpretation lacks steps[].words",
+    "sc.content_layers.tradition is empty"
+   ],
+   "ms": 852
+  },
+  {
+   "id": "int-03",
+   "category": "interpretation_labels",
+   "tool": "what_the_bible_says_about",
+   "pass": false,
+   "fails": [
+    "sc.content_layers.interpretation lacks body",
+    "sc.content_layers.tradition is empty"
+   ],
+   "ms": 812
+  },
+  {
+   "id": "int-04",
+   "category": "interpretation_labels",
+   "tool": "cross_references",
+   "pass": false,
+   "fails": [
+    "sc.content_layers.interpretation is empty"
+   ],
+   "ms": 126
+  },
+  {
+   "id": "int-05",
+   "category": "interpretation_labels",
+   "tool": "ask_living_bread",
+   "pass": false,
+   "fails": [
+    "sc.content_layers.interpretation is empty"
+   ],
+   "ms": 2253
+  },
+  {
+   "id": "int-06",
+   "category": "interpretation_labels",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 100
+  },
+  {
+   "id": "geo-01",
+   "category": "geography",
+   "tool": "find_churches_near",
+   "pass": true,
+   "fails": [],
+   "ms": 348
+  },
+  {
+   "id": "geo-02",
+   "category": "geography",
+   "tool": "find_churches_near",
+   "pass": true,
+   "fails": [],
+   "ms": 325
+  },
+  {
+   "id": "geo-03",
+   "category": "geography",
+   "tool": "find_churches_near",
+   "pass": true,
+   "fails": [],
+   "ms": 286
+  },
+  {
+   "id": "geo-04",
+   "category": "geography",
+   "tool": "find_gatherings_near",
+   "pass": true,
+   "fails": [],
+   "ms": 456
+  },
+  {
+   "id": "geo-05",
+   "category": "geography",
+   "tool": "journey_next_steps",
+   "pass": false,
+   "fails": [
+    "error: MCP error -32602: Tool journey_next_steps not found",
+    "sc.results.length = undefined, wanted <= 5"
+   ],
+   "ms": 101
+  },
+  {
+   "id": "geo-06",
+   "category": "geography",
+   "tool": "needs_near",
+   "pass": true,
+   "fails": [],
+   "ms": 378
+  },
+  {
+   "id": "ml-01",
+   "category": "multilingual",
+   "tool": "journey_next_steps",
+   "pass": false,
+   "fails": [
+    "error: MCP error -32602: Tool journey_next_steps not found",
+    "text does not match Spanish",
+    "sc.results.length = undefined, wanted <= 5"
+   ],
+   "ms": 141
+  },
+  {
+   "id": "ml-02",
+   "category": "multilingual",
+   "tool": "journey_next_steps",
+   "pass": false,
+   "fails": [
+    "error: MCP error -32602: Tool journey_next_steps not found",
+    "text does not match Korean"
+   ],
+   "ms": 142
+  },
+  {
+   "id": "ml-03",
+   "category": "multilingual",
+   "tool": "verses_for",
+   "pass": false,
+   "fails": [
+    "an error with no alternative"
+   ],
+   "ms": 179
+  },
+  {
+   "id": "ml-04",
+   "category": "multilingual",
+   "tool": "find_churches_near",
+   "pass": true,
+   "fails": [],
+   "ms": 292
+  },
+  {
+   "id": "ml-05",
+   "category": "multilingual",
+   "tool": "ask_living_bread",
+   "pass": true,
+   "fails": [],
+   "ms": 1266
+  },
+  {
+   "id": "fr-01",
+   "category": "stale_availability",
+   "tool": "find_gatherings_near",
+   "pass": false,
+   "fails": [
+    "95d60a9f-6886-4e40-84c1-6e3648d9a8d3 has no freshness"
+   ],
+   "ms": 252
+  },
+  {
+   "id": "fr-02",
+   "category": "stale_availability",
+   "tool": "events_this_week",
+   "pass": false,
+   "fails": [
+    "a40fa130-d89a-4396-81a9-872bf3cb300c has no freshness"
+   ],
+   "ms": 273
+  },
+  {
+   "id": "fr-03",
+   "category": "stale_availability",
+   "tool": "journey_next_steps",
+   "pass": true,
+   "fails": [],
+   "ms": 200
+  },
+  {
+   "id": "fr-04",
+   "category": "stale_availability",
+   "tool": "gatherings_tonight",
+   "pass": true,
+   "fails": [],
+   "ms": 317
+  },
+  {
+   "id": "fr-05",
+   "category": "stale_availability",
+   "tool": "tables_live_now",
+   "pass": true,
+   "fails": [],
+   "ms": 190
+  },
+  {
+   "id": "em-01",
+   "category": "empty_results",
+   "tool": "scripture_search",
+   "pass": false,
+   "fails": [
+    "sc.count = undefined, wanted 0",
+    "sc.result_state = undefined, wanted \"empty\"",
+    "text does not match No verse"
+   ],
+   "ms": 95
+  },
+  {
+   "id": "em-02",
+   "category": "empty_results",
+   "tool": "journey_next_steps",
+   "pass": false,
+   "fails": [
+    "error: MCP error -32602: Tool journey_next_steps not found",
+    "sc.next_step.url is empty",
+    "sc.alternatives has 0, wanted >= 1"
+   ],
+   "ms": 96
+  },
+  {
+   "id": "em-03",
+   "category": "empty_results",
+   "tool": "a_prayer_for",
+   "pass": true,
+   "fails": [],
+   "ms": 455
+  },
+  {
+   "id": "em-04",
+   "category": "empty_results",
+   "tool": "communities_to_join",
+   "pass": true,
+   "fails": [],
+   "ms": 315
+  },
+  {
+   "id": "em-05",
+   "category": "empty_results",
+   "tool": "where_can_i_serve_publicly",
+   "pass": true,
+   "fails": [],
+   "ms": 416
+  },
+  {
+   "id": "em-06",
+   "category": "empty_results",
+   "tool": "kingdom_map",
+   "pass": true,
+   "fails": [],
+   "ms": 331
+  },
+  {
+   "id": "pm-01",
+   "category": "permissions",
+   "tool": "list",
+   "pass": false,
+   "fails": [
+    "journey_next_steps is missing on /mcp"
+   ],
+   "ms": 1552
+  },
+  {
+   "id": "pm-02",
+   "category": "permissions",
+   "tool": "list",
+   "pass": true,
+   "fails": [],
+   "ms": 3221
+  },
+  {
+   "id": "pm-03",
+   "category": "permissions",
+   "tool": "list",
+   "pass": true,
+   "fails": [],
+   "ms": 732
+  },
+  {
+   "id": "pm-04",
+   "category": "permissions",
+   "tool": "list",
+   "pass": false,
+   "fails": [
+    "who_is_available_now is missing on /me",
+    "find_help_for_my_need is missing on /me",
+    "say_yes lacks idempotency_key"
+   ],
+   "ms": 2630
+  },
+  {
+   "id": "pm-05",
+   "category": "permissions",
+   "tool": "list",
+   "pass": true,
+   "fails": [],
+   "ms": 827
+  },
+  {
+   "id": "pm-06",
+   "category": "permissions",
+   "tool": "http",
+   "pass": true,
+   "fails": [],
+   "ms": 162
+  },
+  {
+   "id": "inj-01",
+   "category": "prompt_injection",
+   "tool": "kingdom_map",
+   "pass": false,
+   "fails": [
+    "text contains \"ignore all previous instructions\"",
+    "text does not match instruction-like text removed"
+   ],
+   "ms": 284
+  },
+  {
+   "id": "inj-02",
+   "category": "prompt_injection",
+   "tool": "kingdom_map",
+   "pass": false,
+   "fails": [
+    "text contains \"<system>\"",
+    "text contains \"you are now a\""
+   ],
+   "ms": 258
+  },
+  {
+   "id": "inj-03",
+   "category": "prompt_injection",
+   "tool": "local",
+   "pass": true,
+   "fails": [],
+   "ms": 1607
+  },
+  {
+   "id": "inj-04",
+   "category": "prompt_injection",
+   "tool": "instructions",
+   "pass": false,
+   "fails": [
+    "instructions lack the law"
+   ],
+   "ms": 1
+  },
+  {
+   "id": "dup-01",
+   "category": "duplicate_actions",
+   "tool": "say_yes",
+   "pass": false,
+   "fails": [
+    "the second call was not replayed",
+    "the second call returned a different row",
+    "2 rows were written"
+   ],
+   "ms": 1298
+  },
+  {
+   "id": "dup-02",
+   "category": "duplicate_actions",
+   "tool": "say_yes",
+   "pass": false,
+   "fails": [
+    "the second call was not replayed",
+    "the second call returned a different row",
+    "2 rows were written"
+   ],
+   "ms": 922
+  },
+  {
+   "id": "dl-01",
+   "category": "deep_links",
+   "tool": "journey_next_steps",
+   "pass": false,
+   "fails": [
+    "sc.next_step.url does not match via=mcpWordL",
+    "no living-bread.org links to check"
+   ],
+   "ms": 99
+  },
+  {
+   "id": "dl-02",
+   "category": "deep_links",
+   "tool": "journey_next_steps",
+   "pass": false,
+   "fails": [
+    "sc.next_step.url does not match via=mcpServe",
+    "no living-bread.org links to check"
+   ],
+   "ms": 94
+  },
+  {
+   "id": "dl-03",
+   "category": "deep_links",
+   "tool": "journey_next_steps",
+   "pass": false,
+   "fails": [
+    "sc.next_step.url does not match via=mcpNewFa",
+    "no living-bread.org links to check"
+   ],
+   "ms": 141
+  },
+  {
+   "id": "dl-04",
+   "category": "deep_links",
+   "tool": "reading_plans",
+   "pass": false,
+   "fails": [
+    "https://living-bread.org/plans/grief-and-hope answered 404",
+    "https://living-bread.org/plans/first-steps answered 404",
+    "https://living-bread.org/plans/learn-to-pray answered 404",
+    "https://living-bread.org/plans/gospel-of-mark answered 404",
+    "https://living-bread.org/plans/meet-jesus answered 404",
+    "https://living-bread.org/plans/sermon-on-the-mount answered 404",
+    "https://living-bread.org/plans/peace-over-anxiety answered 404",
+    "https://living-bread.org/plans/forgiveness answered 404",
+    "https://living-bread.org/plans/psalms-of-comfort answered 404",
+    "https://living-bread.org/plans/philippians-joy answered 404",
+    "https://living-bread.org/plans/loneliness-belonging answered 404"
+   ],
+   "ms": 3470
+  },
+  {
+   "id": "dl-05",
+   "category": "deep_links",
+   "tool": "needs_near",
+   "pass": false,
+   "fails": [
+    "https://living-bread.org/serve/dca260cc-7330-4d8a-9775-cafedc6f0c0d answered 404",
+    "https://living-bread.org/serve/a298ae4c-86fa-4f6f-b431-88d2515d663c answered 404",
+    "https://living-bread.org/serve/8f86c510-67af-41a0-9ccf-703b4e1d81b7 answered 404",
+    "https://living-bread.org/serve/081d7a41-d13b-41af-94ff-e0829978f23a answered 404",
+    "https://living-bread.org/serve/9fd6e2da-3de6-4010-b6da-ea6d1c793648 answered 404",
+    "https://living-bread.org/serve/118076f4-f4d1-4496-8c4b-6c9d7589d9d9 answered 404",
+    "https://living-bread.org/serve/3a09a2f8-2aeb-4aa0-9ae7-9502f1073c81 answered 404"
+   ],
+   "ms": 2297
+  },
+  {
+   "id": "hy-01",
+   "category": "tool_hygiene",
+   "tool": "scripture_passage",
+   "pass": false,
+   "fails": [
+    "reason undefined, wanted unparsed_reference",
+    "no try_instead"
+   ],
+   "ms": 199
+  },
+  {
+   "id": "hy-02",
+   "category": "tool_hygiene",
+   "tool": "scripture_search",
+   "pass": false,
+   "fails": [
+    "sc.next_cursor is empty",
+    "the next page repeats the first"
+   ],
+   "ms": 740
+  },
+  {
+   "id": "hy-03",
+   "category": "tool_hygiene",
+   "tool": "find_churches_near",
+   "pass": false,
+   "fails": [
+    "sc.ok = undefined, wanted true",
+    "sc.visibility is empty",
+    "sc.freshness is empty",
+    "sc.next_actions is not an array",
+    "sc.ids is not an array"
+   ],
+   "ms": 430
+  },
+  {
+   "id": "hy-04",
+   "category": "tool_hygiene",
+   "tool": "daily_bread",
+   "pass": false,
+   "fails": [
+    "no try_instead"
+   ],
+   "ms": 97
+  },
+  {
+   "id": "hy-05",
+   "category": "tool_hygiene",
+   "tool": "the_gospel",
+   "pass": true,
+   "fails": [],
+   "ms": 201
+  },
+  {
+   "id": "hy-06",
+   "category": "tool_hygiene",
+   "tool": "http",
+   "pass": false,
+   "fails": [
+    "status 404, wanted 200"
+   ],
+   "ms": 97
+  },
+  {
+   "id": "hy-07",
+   "category": "tool_hygiene",
+   "tool": "http",
+   "pass": false,
+   "fails": [
+    "status 404, wanted 200",
+    "ok = undefined"
+   ],
+   "ms": 41
+  }
+ ]
+}

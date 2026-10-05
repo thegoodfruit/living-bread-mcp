@@ -76,7 +76,8 @@ export function logAsk(env: Env, server: McpServer, toolName: string, ask: strin
       body: JSON.stringify({ p_tool: toolName, p_ask: text, p_lang: guessLanguage(text), p_client: client ? String(client).slice(0, 80) : null, p_answered: answered }),
       signal: AbortSignal.timeout(4000),
     });
-    p.then(() => undefined, () => undefined);
+    // Release the connection: an unread body holds one of the six a Worker may have open.
+    p.then((r) => r.body?.cancel(), () => undefined).then(() => undefined, () => undefined);
   } catch {
     /* learning never costs an answer */
   }

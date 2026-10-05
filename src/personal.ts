@@ -100,7 +100,7 @@ export function registerPersonal(server: McpServer, env: Env, me: Believer): voi
     title: 'Prayers prayed over me',
     description: `The prayers, encouragement and blessings real people have prayed over this believer, newest first: who (or "someone in the family" when they chose not to be named), what kind, how long, their written words when they wrote any, and whether it has been heard. Each one has the exact door where the believer hears the voice; an assistant cannot play the audio itself. ${CONSENT}`,
     inputSchema: { limit: z.number().int().min(1).max(40).default(12), only_unheard: z.boolean().default(false) },
-    outputSchema: out({ count: z.number(), prayers: z.array(z.object({ id: z.string(), from: z.string(), kind: z.string(), seconds: z.number(), words: z.string().nullable(), heard: z.boolean(), amen: z.boolean(), when: z.string(), hear_url: z.string() })) }),
+    outputSchema: out({ count: z.number(), prayers: z.array(z.looseObject({ id: z.string(), from: z.string(), kind: z.string(), seconds: z.number(), words: z.string().nullable(), heard: z.boolean(), amen: z.boolean(), when: z.string(), hear_url: z.string() })) }),
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     _meta: widgetMeta('prayer-card', 'Looking at the prayers over you', 'The prayers waiting for you'),
   }, async ({ limit, only_unheard }) => {
@@ -121,7 +121,7 @@ export function registerPersonal(server: McpServer, env: Env, me: Believer): voi
     title: 'Prayers I gave',
     description: `The prayers this believer prayed for others, newest first, each with its honest state: waiting for their morning, delivered, heard, they said Amen, they said thank you, or taken back. Never a count of how many were heard; a mirror, not a score. ${CONSENT}`,
     inputSchema: { limit: z.number().int().min(1).max(40).default(12) },
-    outputSchema: out({ count: z.number(), prayers: z.array(z.object({ id: z.string(), for: z.string(), kind: z.string(), seconds: z.number(), words: z.string().nullable(), state: z.string(), when: z.string() })) }),
+    outputSchema: out({ count: z.number(), prayers: z.array(z.looseObject({ id: z.string(), for: z.string(), kind: z.string(), seconds: z.number(), words: z.string().nullable(), state: z.string(), when: z.string() })) }),
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   }, async ({ limit }) => {
     const r = await rpcAs(env, me, 'prayers_i_offered', { p_limit: limit });
@@ -152,7 +152,7 @@ export function registerPersonal(server: McpServer, env: Env, me: Believer): voi
     title: 'My walk: what I said yes to',
     description: `What this believer has said yes to Christ about, in their own words, with the verse they held and whether they have lived it yet. Never a streak, never a score. ${CONSENT}`,
     inputSchema: { limit: z.number().int().min(1).max(40).default(10) },
-    outputSchema: out({ count: z.number(), entries: z.array(z.object({ id: z.string(), words: z.string(), verse_ref: z.string().nullable(), state: z.string(), when: z.string(), lived_at: z.string().nullable(), reflection: z.string().nullable() })) }),
+    outputSchema: out({ count: z.number(), entries: z.array(z.looseObject({ id: z.string(), words: z.string(), verse_ref: z.string().nullable(), state: z.string(), when: z.string(), lived_at: z.string().nullable(), reflection: z.string().nullable() })) }),
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   }, async ({ limit }) => {
     const r = await rpcAs(env, me, 'my_walk', { p_limit: limit });
@@ -167,7 +167,7 @@ export function registerPersonal(server: McpServer, env: Env, me: Believer): voi
     title: 'My family in Christ',
     description: `The circles and prayer groups this believer belongs to, and the next gatherings on their calendar (title, when in the group's time zone, host, how many are going, whether they said they are coming), each with the room to open. ${CONSENT}`,
     inputSchema: { gatherings: z.number().int().min(0).max(20).default(6) },
-    outputSchema: out({ families: z.array(z.object({ id: z.string(), name: z.string(), members: z.number(), i_lead: z.boolean(), url: z.string() })), gatherings: z.array(z.object({ id: z.string(), title: z.string(), community: z.string().nullable(), when: z.string(), when_local: z.string(), host: z.string(), going: z.number(), i_am_going: z.boolean(), scripture_ref: z.string().nullable(), url: z.string() })) }),
+    outputSchema: out({ families: z.array(z.looseObject({ id: z.string(), name: z.string(), members: z.number(), i_lead: z.boolean(), url: z.string() })), gatherings: z.array(z.looseObject({ id: z.string(), title: z.string(), community: z.string().nullable(), when: z.string(), when_local: z.string(), host: z.string(), going: z.number(), i_am_going: z.boolean(), scripture_ref: z.string().nullable(), url: z.string() })) }),
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   }, async ({ gatherings }) => {
     const [f, g] = await Promise.all([rpcAs(env, me, 'my_families'), gatherings ? rpcAs(env, me, 'my_group_gatherings', { p_limit: gatherings }) : Promise.resolve({ data: [], error: null })]);

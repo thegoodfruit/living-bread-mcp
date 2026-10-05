@@ -20,10 +20,13 @@ import { allNeeds, findNeed, needBySlug, type Need } from './needs';
 import { km, list, paragraph, placeOf, slugify, whenUTC } from './render';
 import { parseReference, verseSlug, webPassage, webPassageCount } from './scripture';
 import { logAsk } from './asks';
-import { absolute, ATTRIBUTION, fail, ok, out, tool, unavailable, type Structured } from './shared';
+import { absolute, ATTRIBUTION, cursorInput, fail, ok, out, page, tool, unavailable, type Structured } from './shared';
+import { layers } from './evidence';
+import { record, scheduled } from './freshness';
 import { widgetMeta } from './widgets';
 
 const NEAR_KM = 250;
+const SCRIPTURE_ONLY = layers({ scripture: ['text', 'verses[].text'] });
 
 async function resolveVerses(env: Env, need: Need, max: number) {
   const found: { ref: string; text: string; why?: string }[] = [];
@@ -61,7 +64,7 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
       },
       outputSchema: out({
         ref: z.string(), translation: z.string(), text: z.string(), book: z.string(), chapter: z.number(),
-        verses: z.array(z.object({ verse: z.number(), text: z.string() })), source: z.string(), read_more: z.string(), note: z.string().optional(),
+        verses: z.array(z.looseObject({ verse: z.number(), text: z.string() })), source: z.string(), read_more: z.string(), note: z.string().optional(),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       _meta: widgetMeta('verse-card', 'Reading the stored text', 'Read from the King James Version'),
@@ -69,7 +72,7 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
     async ({ reference, translation }) => {
       const p = parseReference(reference);
       if (!p) {
-        return fail(paragraph([`"${reference}" is not a reference we can read with certainty. Try the book, chapter and verse, like "John 3:16" or "Psalm 23"`]), { error: 'unparsed', example: 'John 3:16' });
+        return fail(paragraph([`"${reference}" is not a reference we can read with certainty. Try the book, chapter and verse, like "John 3:16" or "Psalm 23"`]), { reason: 'unparsed_reference', try_instead: ['scripture_passage with "John 3:16"', 'scripture_search for a phrase'] });
       }
       const kjv = await kjvPassage(env, p);
       if (!kjv) return unavailable('the stored Bible text', `${DOORS.bible}`);
@@ -79,13 +82,13 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
         if (web) {
           return ok(paragraph([`${web.ref} (World English Bible): "${web.text}"`]), {
             ref: web.ref, translation: 'WEB', text: web.text, book: p.book, chapter: p.chapter,
-            verses: kjv.verses.length === 1 ? [{ verse: kjv.verses[0].verse, text: web.text }] : kjv.verses, source: 'World English Bible, public domain (stored cache)', read_more: DOORS.bible,
+            verses: kjv.verses.length === 1 ? [{ verse: kjv.verses[0].verse, text: web.text }] : kjv.verses, source: 'World English Bible, public domain (stored cache)', read_more: DOORS.bible, content_layers: SCRIPTURE_ONLY,
           });
         }
         const note = `The World English Bible is held here for ${webPassageCount()} passages and this is not one of them, so these are the King James words.`;
-        return ok(paragraph([passageText(kjv, 'KJV'), note]), { ...kjv, translation: 'KJV', source: 'King James Version, public domain (the text the app ships)', read_more: DOORS.bible, note });
+        return ok(paragraph([passageText(kjv, 'KJV'), note]), { ...kjv, translation: 'KJV', source: 'King James Version, public domain (the text the app ships)', read_more: DOORS.bible, note, content_layers: SCRIPTURE_ONLY });
       }
-      return ok(passageText(kjv, 'KJV'), { ...kjv, translation: 'KJV', source: 'King James Version, public domain (the text the app ships)', read_more: p.from !== undefined ? read_more : DOORS.bible });
+      return ok(passageText(kjv, 'KJV'), { ...kjv, translation: 'KJV', source: 'King James Version, public domain (the text the app ships)', read_more: p.from !== undefined ? read_more : DOORS.bible, content_layers: SCRIPTURE_ONLY });
     },
   );
 
@@ -102,7 +105,7 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
       },
       outputSchema: out({
         need: z.string(), label: z.string(), lead: z.string().optional(), matched: z.string(),
-        verses: z.array(z.object({ ref: z.string(), text: z.string(), why: z.string().optional() })), translation: z.string(), page: z.string(), pray_with_the_family: z.string(),
+        verses: z.array(z.looseObject({ ref: z.string(), text: z.string(), why: z.string().optional() })), translation: z.string(), page: z.string(), pray_with_the_family: z.string(),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       _meta: widgetMeta('verse-card', 'Finding the verses the house pairs with this', 'Verses read from the stored text'),
@@ -114,7 +117,7 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
         const some = allNeeds().map((n) => n.slug).slice(0, 40);
         return fail(
           paragraph([`We do not hold a verse set for "${need}" by that name`, `Needs we do hold include ${list(some.slice(0, 14), 14)}`, `For a specific verse use scripture_passage, and ask_living_bread can answer by meaning`]),
-          { error: 'no_match', needs: allNeeds().map((n) => n.slug) },
+          { reason: 'no_matching_need', try_instead: ['ask_living_bread with the same words', 'scripture_search for a word', 'verses_for with one of: ' + allNeeds().map((n) => n.slug).slice(0, 20).join(', ')] },
         );
       }
       const verses = await resolveVerses(env, m.need, limit);
@@ -124,7 +127,10 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
         ...verses.map((v) => `${v.ref}: "${v.text}"${v.why ? ` (${v.why})` : ''}`),
         `Real believers pray over this need by name at ${m.need.page}`,
       ]);
-      return ok(text, { need: m.need.slug, label: m.need.label, lead: m.need.lead || undefined, matched: m.matched, verses, translation: 'KJV', page: m.need.page, pray_with_the_family: DOORS.prayer, ...ATTRIBUTION });
+      return ok(text, {
+        need: m.need.slug, label: m.need.label, lead: m.need.lead || undefined, matched: m.matched, verses, translation: 'KJV', page: m.need.page, pray_with_the_family: DOORS.prayer, ...ATTRIBUTION,
+        content_layers: layers({ scripture: ['verses[].text'], reflection: ['lead', 'verses[].why'] }, 'The pairing of verses with a need, and each one-line why, are the house\'s own words, not Scripture.'),
+      });
     },
   );
 
@@ -148,7 +154,7 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
       if (!p) return unavailable('the stored Bible text', DOORS.daily);
       const shared = 'Everyone on The Living Bread receives this same verse on this morning, so a person who reads it is reading with the whole family.';
       return ok(paragraph([`The Daily Bread for ${day} is ${p.ref}: "${p.text}"`, shared, `Today's bread, with a reflection and a prayer, is at ${DOORS.daily}`]), {
-        date: day, ref: p.ref, text: p.text, translation: 'KJV', page: DOORS.daily, shared,
+        date: day, ref: p.ref, text: p.text, translation: 'KJV', page: DOORS.daily, shared, content_layers: layers({ scripture: ['text'], navigation: ['shared', 'page'] }),
       });
     },
   );
@@ -162,9 +168,9 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
         'A grounded answer from the Christian Knowledge API: real, sourced entities (denominations, saints, sacred sites, biblical figures, Bible places, churches), the Scripture topic the question resonates with (with verses read from the stored KJV), the road to Christ, and honest next steps. Use for any question about Christianity, a tradition, a person of Scripture, a place, or a feeling with no clean keyword. People ask: "what is a Methodist", "who was Augustine", "where is Bethlehem", "how do I forgive my brother", "are there churches in Kenya". Nothing is invented; when we do not know, the answer says so.',
       inputSchema: { question: z.string().min(2).max(300).describe('The question, in the person\'s own words.') },
       outputSchema: out({
-        question: z.string(), entities: z.array(z.object({ id: z.string(), type: z.string(), name: z.string(), url: z.string(), source: z.string().nullable().optional() })),
-        answer: z.string().nullable(), scripture: z.object({ topic: z.string(), url: z.string(), verses: z.array(z.object({ ref: z.string(), text: z.string() })) }).nullable(),
-        road_to_christ: z.array(z.object({ name: z.string(), url: z.string() })), next_steps: z.array(z.object({ label: z.string(), url: z.string() })), grounding: z.string(),
+        question: z.string(), entities: z.array(z.looseObject({ id: z.string(), type: z.string(), name: z.string(), url: z.string(), source: z.string().nullable().optional() })),
+        answer: z.string().nullable(), scripture: z.looseObject({ topic: z.string(), url: z.string(), verses: z.array(z.looseObject({ ref: z.string(), text: z.string() })) }).nullable(),
+        road_to_christ: z.array(z.looseObject({ name: z.string(), url: z.string() })), next_steps: z.array(z.looseObject({ label: z.string(), url: z.string() })), grounding: z.string(),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
@@ -191,7 +197,10 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
         road.length ? `The road to Christ from here: ${list(road.map((x) => `${x.name} (${x.url})`), 4)}` : null,
         steps.length ? `Next steps: ${list(steps.map((s) => `${s.label}: ${s.url}`), 4)}` : null,
       ]);
-      return ok(text, { question: r.question ?? question, entities, answer: r.answer ?? null, scripture, road_to_christ: road, next_steps: steps, grounding, ...ATTRIBUTION });
+      return ok(text, {
+        question: r.question ?? question, entities, answer: r.answer ?? null, scripture, road_to_christ: road, next_steps: steps, grounding, ...ATTRIBUTION,
+        content_layers: layers({ scripture: ['scripture.verses[].text'], interpretation: ['answer (the Christian Knowledge API\'s grounded summary)'], navigation: ['entities', 'road_to_christ', 'next_steps'] }),
+      });
     },
   );
 
@@ -214,7 +223,7 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
       },
       outputSchema: out({
         searched: z.string(), count: z.number(),
-        churches: z.array(z.object({ name: z.string(), where: z.string(), distance_km: z.number().nullable(), denomination: z.string().nullable(), on_living_bread: z.boolean(), url: z.string().nullable(), id: z.string() })),
+        churches: z.array(z.looseObject({ name: z.string(), where: z.string(), distance_km: z.number().nullable(), denomination: z.string().nullable(), on_living_bread: z.boolean(), url: z.string().nullable(), id: z.string() })),
         honest: z.string().optional(), nearest_we_hold: z.string().nullable().optional(), find_a_church: z.string(), gatherings: z.string(),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
@@ -301,24 +310,28 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
         days: z.number().int().min(1).max(60).default(14).describe('How many days ahead to look.'),
         online: z.boolean().optional().describe('True for gatherings joinable from anywhere.'),
         limit: z.number().int().min(1).max(20).default(8),
+        cursor: cursorInput,
       },
       outputSchema: out({
         searched: z.string(), count: z.number(),
-        gatherings: z.array(z.object({ id: z.string(), title: z.string(), when_utc: z.string(), where: z.string(), distance_km: z.number().nullable(), kind: z.string().nullable(), online: z.boolean(), good_for_a_first_visit: z.boolean().nullable() })),
-        honest: z.string().optional(), gatherings_page: z.string(),
+        gatherings: z.array(z.looseObject({ id: z.string(), title: z.string(), when_utc: z.string(), where: z.string(), distance_km: z.number().nullable(), kind: z.string().nullable(), online: z.boolean(), good_for_a_first_visit: z.boolean().nullable() })),
+        honest: z.string().optional(), gatherings_page: z.string(), next_cursor: z.string().nullable().optional(),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async ({ lat, lng, city, days, online, limit }) => {
+    async ({ lat, lng, city, days, online, limit, cursor }) => {
       let geo = lat !== undefined && lng !== undefined ? { lat, lon: lng, label: city ?? `${lat.toFixed(2)}, ${lng.toFixed(2)}` } : null;
       if (!geo && city) geo = await geocode(env, city);
       const rows = await findGatherings(env, { lat: geo?.lat ?? null, lon: geo?.lon ?? null, place: geo ? null : city ?? null, online: online ?? null, limit: 25 });
       if (rows === null) return unavailable('the gatherings', DOORS.events);
       const horizon = Date.now() + days * 86_400_000;
       const near = rows.filter((g) => Date.parse(g.starts_at) <= horizon && (online === true || !geo || g.is_online || (g.distance_km !== null && g.distance_km <= NEAR_KM)));
-      const shown = near.slice(0, limit).map((g) => ({
-        id: g.id, title: g.title, when_utc: whenUTC(g.starts_at), where: g.is_online ? 'online, joinable from anywhere' : placeOf(g), distance_km: g.distance_km, kind: g.category, online: g.is_online, good_for_a_first_visit: g.beginner_friendly,
+      const pg = page(near, cursor, limit, `${city ?? ''}|${online ?? ''}|${days}`);
+      const shown = pg.items.map((g) => ({
+        id: g.id, title: g.title, when_utc: whenUTC(g.starts_at), starts_at: g.starts_at, where: g.is_online ? 'online, joinable from anywhere' : placeOf(g), distance_km: g.distance_km, kind: g.category, online: g.is_online, good_for_a_first_visit: g.beginner_friendly,
+        freshness: scheduled(g.starts_at),
       }));
+      const next_cursor = pg.next_cursor;
       const searched = geo?.label ?? city ?? (online ? 'online' : 'anywhere');
       learn('find_gatherings_near', city ?? (online ? 'online' : 'coordinates'), shown.length > 0);
       if (!shown.length) {
@@ -330,7 +343,7 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
         'Times are UTC, so convert to the person\'s local time before telling them',
         `Details and more at ${DOORS.events}`,
       ]);
-      return ok(text, { searched, count: shown.length, gatherings: shown, gatherings_page: DOORS.events, ...ATTRIBUTION });
+      return ok(text, { searched, count: shown.length, gatherings: shown, gatherings_page: DOORS.events, next_cursor, freshness: scheduled(null, 'Times the hosts posted; none of these is confirmed as happening now.'), ...ATTRIBUTION });
     },
   );
 
@@ -341,24 +354,28 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
       title: 'Communities a person can join',
       description:
         'The discoverable communities on The Living Bread a person can join today: prayer groups, study groups, city and interest communities, with how to join (open or by request) and their next gathering. Family rooms are private and never listed. Use when someone wants people to pray or walk with, or asks "is there a prayer group".',
-      inputSchema: { query: z.string().max(120).optional().describe('Optional: a word, a city, or a kind ("prayer", "study", "Atlanta").') },
+      inputSchema: { query: z.string().max(120).optional().describe('Optional: a word, a city, or a kind ("prayer", "study", "Atlanta").'), limit: z.number().int().min(1).max(20).default(10), cursor: cursorInput },
       outputSchema: out({
         count: z.number(),
-        communities: z.array(z.object({ id: z.string(), name: z.string(), kind: z.string(), description: z.string().nullable(), where: z.string(), people: z.number(), join: z.string(), next_gathering: z.string().nullable(), verified: z.boolean() })),
-        join_here: z.string(),
+        communities: z.array(z.looseObject({ id: z.string(), name: z.string(), kind: z.string(), description: z.string().nullable(), where: z.string(), people: z.number(), join: z.string(), next_gathering: z.string().nullable(), verified: z.boolean() })),
+        join_here: z.string(), next_cursor: z.string().nullable().optional(),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ query }) => {
+    async ({ query, limit, cursor }) => {
       const rows = await communities(env);
       if (rows === null) return unavailable('the communities', DOORS.communities);
       const q = (query ?? '').toLowerCase().trim();
       const hay = (c: Community) => [c.name, c.description, c.kind, c.city, c.country].filter(Boolean).join(' ').toLowerCase();
-      const picked = (q ? rows.filter((c) => q.split(/\s+/).some((w) => w && hay(c).includes(w))) : rows).slice(0, 20);
+      const all = q ? rows.filter((c) => q.split(/\s+/).some((w) => w && hay(c).includes(w))) : rows;
+      const pg = page(all, cursor, limit ?? 10, q);
+      const picked = pg.items;
+      const next_cursor = pg.next_cursor;
       const shown = picked.map((c) => ({
         id: c.id, name: c.name, kind: c.kind, description: c.description, where: c.is_global ? 'everywhere' : placeOf(c) === 'place not given' ? 'everywhere' : placeOf(c),
         people: c.member_count ?? 0, join: c.join_policy === 'open' ? 'open: anyone may join' : c.join_policy === 'request' ? 'by request to its leaders' : c.join_policy ?? 'see the community page',
         next_gathering: c.next_gathering_title ? `${c.next_gathering_title}${c.next_gathering_at ? `, ${whenUTC(c.next_gathering_at)}` : ''}` : null, verified: Boolean(c.is_verified),
+        freshness: c.next_gathering_at ? scheduled(c.next_gathering_at, 'The community\'s next posted gathering; not a statement that anyone is gathered now.') : record(null, 'A community on record; membership counts are read live, not who is present now.'),
       }));
       if (!shown.length) {
         return ok(paragraph([q ? `No discoverable community matches "${query}" yet` : 'No discoverable community is listed yet', 'Quiet here for now. Anyone may start one, and the family prays for anyone by name', `Communities: ${DOORS.communities}. Prayer: ${DOORS.prayer}`]), { count: 0, communities: [], join_here: DOORS.communities, ...ATTRIBUTION });
@@ -367,7 +384,7 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
         `${shown.length} ${shown.length === 1 ? 'community' : 'communities'} a person can join: ${list(shown.map((c) => `${c.name} (${c.kind}, ${c.where}, ${c.people} ${c.people === 1 ? 'person' : 'people'}, ${c.join}${c.next_gathering ? `, next: ${c.next_gathering}` : ''})`), 8)}`,
         `Join at ${DOORS.communities} (free; Begin, then open the community by name)`,
       ]);
-      return ok(text, { count: shown.length, communities: shown, join_here: DOORS.communities, ...ATTRIBUTION });
+      return ok(text, { count: shown.length, total: all.length, communities: shown, join_here: DOORS.communities, next_cursor, ...ATTRIBUTION });
     },
   );
 
@@ -463,7 +480,7 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
       title: 'Search The Living Bread',
       description: 'Search across Scripture for a need, a Bible reference, churches, gatherings, communities and sourced entities. Returns results with ids that fetch reads in full. Provided for connector clients.',
       inputSchema: { query: z.string().min(1).max(300) },
-      outputSchema: out({ results: z.array(z.object({ id: z.string(), title: z.string(), text: z.string(), url: z.string() })) }),
+      outputSchema: out({ results: z.array(z.looseObject({ id: z.string(), title: z.string(), text: z.string(), url: z.string() })) }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
     async ({ query }) => {

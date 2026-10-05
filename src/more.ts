@@ -16,6 +16,8 @@ import plansData from './data/plans.json';
 import { DOORS, KNOWLEDGE_API, SITE } from './doors';
 import { CONFESSION, GOSPEL_STEPS, THE_YES, WHO_IS_JESUS } from './gospel';
 import { housePage, hubEntries, pickEntry, prose, versesNamedIn, type HouseLink } from './house';
+import { HOUSE_TRADITION, layers } from './evidence';
+import { liveNow, record, scheduled } from './freshness';
 import { kjvByRef } from './kjv';
 import { findEntity, findGatherings, geocode } from './knowledge';
 import { km, list, paragraph, placeOf, slugify, whenUTC } from './render';
@@ -87,8 +89,8 @@ function registerPageFamily(server: McpServer, env: Env, f: PageFamily): void {
     inputSchema: { [f.arg]: z.string().min(1).max(120).describe(f.argDescription) },
     outputSchema: out({
       matched: z.string().nullable(), exact: z.boolean().optional(), title: z.string().optional(), url: z.string().optional(), summary: z.string().optional(), body: z.string().optional(),
-      verses: z.array(z.object({ ref: z.string(), text: z.string() })).optional(), related: z.array(z.object({ title: z.string(), url: z.string() })).optional(),
-      suggestions: z.array(z.object({ title: z.string(), url: z.string() })).optional(), hub: z.string(), door: z.string(),
+      verses: z.array(z.looseObject({ ref: z.string(), text: z.string() })).optional(), related: z.array(z.looseObject({ title: z.string(), url: z.string() })).optional(),
+      suggestions: z.array(z.looseObject({ title: z.string(), url: z.string() })).optional(), hub: z.string(), door: z.string(),
     }),
     annotations: READS_WORLD,
   }, async (args) => {
@@ -110,7 +112,7 @@ function registerPageFamily(server: McpServer, env: Env, f: PageFamily): void {
       `${page.title || pick.entry.label}${pick.exact ? '' : ` (the closest page to "${query}")`}: ${body}`,
       verses.length ? `Scripture on it, read from the stored text: ${list(verses.map((v) => `${v.ref} "${v.text}"`), 4)}` : null,
       `The page itself is ${page.url}; ${f.door === page.url ? '' : `the door is ${f.door}`}`,
-    ]), { matched: pick.entry.href, exact: pick.exact, title: page.title, url: page.url, summary: page.description ?? undefined, body, verses, related, hub: `${SITE}${f.hub}`, door: f.door, ...ATTRIBUTION });
+    ]), { matched: pick.entry.href, exact: pick.exact, title: page.title, url: page.url, summary: page.description ?? undefined, body, verses, related, hub: `${SITE}${f.hub}`, door: f.door, ...ATTRIBUTION, content_layers: layers({ scripture: ['verses[].text'], interpretation: ['summary', 'body'] }, HOUSE_TRADITION) });
   });
 }
 
@@ -124,7 +126,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'The Gospel, in the house\'s words',
     description: `The good news as The Living Bread tells it on living-bread.org/the-gospel and /who-is-jesus: God made you and loves you; we are separated from Him by sin; Jesus died and rose to bring us back; new life is a free gift received by faith. The house confesses Jesus Christ as God and Lord. Every verse is read from the stored King James text; nothing is composed. People ask: "what is the gospel", "what do Christians actually believe about Jesus", "how do I become a Christian", "is Jesus God". Ends with the door where a person says yes.`,
     inputSchema: {},
-    outputSchema: out({ confession: z.string(), steps: z.array(z.object({ heading: z.string(), words: z.string(), ref: z.string(), text: z.string().nullable() })), who_is_jesus: z.string(), confess: z.string(), verses: z.array(z.object({ ref: z.string(), text: z.string() })), the_yes: z.string(), doors: z.record(z.string(), z.string()) }),
+    outputSchema: out({ confession: z.string(), steps: z.array(z.looseObject({ heading: z.string(), words: z.string(), ref: z.string(), text: z.string().nullable() })), who_is_jesus: z.string(), confess: z.string(), verses: z.array(z.looseObject({ ref: z.string(), text: z.string() })), the_yes: z.string(), doors: z.record(z.string(), z.string()) }),
     annotations: READS,
   }, async () => {
     const steps = await Promise.all(GOSPEL_STEPS.map(async (s) => ({ ...s, text: (await kjvByRef(env, s.ref))?.text ?? null })));
@@ -135,7 +137,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
       ...steps.map((s) => `${s.heading}: ${s.words}${s.text ? ` "${s.text}" (${s.ref})` : ` (${s.ref})`}`),
       WHO_IS_JESUS.confess,
       `${THE_YES.what} The door is ${doors.say_yes}; the Gospel page is ${doors.gospel}; who Jesus is, ${doors.who_is_jesus}`,
-    ]), { confession: CONFESSION, steps, who_is_jesus: WHO_IS_JESUS.short, confess: WHO_IS_JESUS.confess, verses, the_yes: THE_YES.what, doors, ...ATTRIBUTION });
+    ]), { confession: CONFESSION, steps, who_is_jesus: WHO_IS_JESUS.short, confess: WHO_IS_JESUS.confess, verses, the_yes: THE_YES.what, doors, ...ATTRIBUTION, content_layers: layers({ scripture: ['steps[].text', 'verses[].text'], interpretation: ['confession', 'steps[].heading', 'steps[].words', 'who_is_jesus', 'confess', 'the_yes'] }, HOUSE_TRADITION) });
   });
 
   // ---- come_and_see ----------------------------------------------------------------------
@@ -143,7 +145,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'Come and See: for a seeker from another faith, or none',
     description: `For a person from another faith or none who is curious about Jesus: the house's Come and See pages (Christianity alongside Islam, Judaism, Buddhism, Hindu traditions, Sikhi, Taoism, Confucianism, the Baha'i Faith, Jainism, Zoroastrianism, Shinto, Stoicism, New Age spirituality, the occult), read at call time: honest, respectful, pointing to Christ and to a real conversation, never an argument. People ask: "I'm Muslim, what do Christians believe about Isa", "I grew up Hindu, how is Jesus different", "I'm Jewish, why do Christians say Jesus is the Messiah", "I'm into astrology, is that a problem". Ends with a door to a real person: a Table, a shepherd, the family.`,
     inputSchema: { background: z.string().min(2).max(80).describe('Their background in their own words: "Muslim", "Hindu", "Jewish", "Buddhist", "Sikh", "Stoic", "new age", "nothing really".') },
-    outputSchema: out({ matched: z.string().nullable(), title: z.string().optional(), url: z.string().optional(), body: z.string().optional(), questions: z.array(z.object({ title: z.string(), url: z.string() })).optional(), verses: z.array(z.object({ ref: z.string(), text: z.string() })).optional(), suggestions: z.array(z.object({ title: z.string(), url: z.string() })).optional(), posture: z.string(), doors: z.record(z.string(), z.string()) }),
+    outputSchema: out({ matched: z.string().nullable(), title: z.string().optional(), url: z.string().optional(), body: z.string().optional(), questions: z.array(z.looseObject({ title: z.string(), url: z.string() })).optional(), verses: z.array(z.looseObject({ ref: z.string(), text: z.string() })).optional(), suggestions: z.array(z.looseObject({ title: z.string(), url: z.string() })).optional(), posture: z.string(), doors: z.record(z.string(), z.string()) }),
     annotations: READS_WORLD,
   }, async ({ background }) => {
     const posture = 'Come and see (John 1:46): the house does not argue anyone into the Kingdom. It tells the truth about Jesus with respect for the person in front of it, and offers a real conversation with real people.';
@@ -208,7 +210,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'Crisis lines for a country (first, before anything else)',
     description: 'When a person speaks of harming themselves or someone else, or is in danger, THIS COMES FIRST: the real emergency number and crisis line for THEIR country, from the dataset the app ships for 53 countries (never a United States number by default). Then the Word and the family, never instead. Pass the country (name or ISO code); if it is not known, ask the person before giving any number. Honest when a country is not held: it says so and gives the general rule (local emergency number). People say: "I want to die", "I am going to hurt myself", "my friend is suicidal", "he hits me". Point to Christ only after the line is given.',
     inputSchema: { country: z.string().max(60).optional().describe('Country name or ISO 3166-1 alpha-2 code ("Nigeria", "GB", "Brazil"). Ask the person if unknown.') },
-    outputSchema: out({ country: z.object({ code: z.string(), name: z.string() }).nullable(), emergency: z.array(z.string()), crisis_line: z.looseObject({ name: z.string(), number: z.string() }).nullable(), text_line: z.looseObject({ name: z.string(), number: z.string() }).nullable(), domestic_violence: z.looseObject({ name: z.string(), number: z.string() }).nullable(), child_help: z.looseObject({ name: z.string(), number: z.string() }).nullable(), source: z.string().nullable(), verified_at: z.string().nullable(), confidence: z.string().nullable(), countries_held: z.array(z.string()).optional(), rule: z.string(), door: z.string() }),
+    outputSchema: out({ country: z.looseObject({ code: z.string(), name: z.string() }).nullable(), emergency: z.array(z.string()), crisis_line: z.looseObject({ name: z.string(), number: z.string() }).nullable(), text_line: z.looseObject({ name: z.string(), number: z.string() }).nullable(), domestic_violence: z.looseObject({ name: z.string(), number: z.string() }).nullable(), child_help: z.looseObject({ name: z.string(), number: z.string() }).nullable(), source: z.string().nullable(), verified_at: z.string().nullable(), confidence: z.string().nullable(), countries_held: z.array(z.string()).optional(), rule: z.string(), door: z.string() }),
     annotations: READS,
   }, async ({ country }) => {
     const rule = 'Give the real number first and plainly. Stay with the person. Only then the Word, and the family who will pray for them by name. Never a Scripture in place of a phone number.';
@@ -247,14 +249,15 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'Tables open now',
     description: `The Living Bread Tables open right now: who is hosting (first name), what they gather around, seats and who is present, the Scripture on the table. The hall is seen from inside the family, so on the public endpoint this tool gives the door and says so honestly; connected as yourself (${'/me'}) it reads the live hall as you. People ask: "is anyone gathered right now", "where can I sit with believers tonight", "a table about the Psalms".`,
     inputSchema: {},
-    outputSchema: out({ signed_in: z.boolean(), count: z.number(), tables: z.array(z.object({ id: z.string(), title: z.string(), host: z.string(), physics: z.string(), seats: z.number(), present: z.number(), family_here: z.number(), scripture_ref: z.string().nullable(), where: z.string().nullable(), scheduled_at: z.string().nullable(), saved_for_me: z.boolean(), door: z.string() })), take_a_seat: z.string(), door: z.string() }),
+    outputSchema: out({ signed_in: z.boolean(), count: z.number(), tables: z.array(z.looseObject({ id: z.string(), title: z.string(), host: z.string(), physics: z.string(), seats: z.number(), present: z.number(), family_here: z.number(), scripture_ref: z.string().nullable(), where: z.string().nullable(), scheduled_at: z.string().nullable(), saved_for_me: z.boolean(), door: z.string() })), take_a_seat: z.string(), door: z.string() }),
     annotations: READS,
   }, async () => {
     const take = 'Take a seat: open the Table and sit; the host and the family see you arrive.';
     if (!me) return ok(paragraph(['The Tables are seen from inside the family, so this public connection cannot list who is sitting right now, and will not pretend to', `The hall is at ${DOORS.theTable}; connect as yourself at https://mcp.living-bread.org/me and tables_live_now reads it for you`, take]), { signed_in: false, count: 0, tables: [], take_a_seat: take, door: DOORS.theTable });
     const r = await rpcAs(env, me, 'the_hall');
     if (r.error) return fail(`The hall could not be read just now (${r.error}). It is at ${DOORS.theTable}.`);
-    const tables = (Array.isArray(r.data) ? (r.data as HallRow[]) : []).map((t) => ({ id: t.id, title: t.title, host: firstName(t.host_name), physics: t.physics, seats: t.seats, present: t.present, family_here: t.family_here, scripture_ref: t.scripture_ref, where: [t.city, t.country].filter(Boolean).join(', ') || null, scheduled_at: t.scheduled_at, saved_for_me: t.saved_for_me, door: `${SITE}/the-table/${t.id}` }));
+    const tables = (Array.isArray(r.data) ? (r.data as HallRow[]) : []).map((t) => ({ id: t.id, title: t.title, host: firstName(t.host_name), physics: t.physics, seats: t.seats, present: t.present, family_here: t.family_here, scripture_ref: t.scripture_ref, where: [t.city, t.country].filter(Boolean).join(', ') || null, scheduled_at: t.scheduled_at, saved_for_me: t.saved_for_me, door: `${SITE}/the-table/${t.id}`,
+      freshness: t.present > 0 ? liveNow('Someone was seen at this Table in the last two minutes (the hall\'s own presence window).') : t.scheduled_at ? scheduled(t.scheduled_at, 'A Table set for this time; nobody is seated yet.') : record(null, 'Open, but nobody was seen seated in the last two minutes.') }));
     if (!tables.length) return ok(paragraph(['No Table is open this minute', `Anyone may set one; the hall is at ${DOORS.theTable}`, take]), { signed_in: true, count: 0, tables: [], take_a_seat: take, door: DOORS.theTable });
     return ok(paragraph([`${tables.length} ${tables.length === 1 ? 'Table is' : 'Tables are'} open: ${list(tables.slice(0, 8).map((t) => `"${t.title}" (${t.host} hosting, ${t.present} of ${t.seats} seats${t.family_here ? `, ${t.family_here} of your family here` : ''}${t.scripture_ref ? `, ${t.scripture_ref}` : ''}${t.saved_for_me ? ', a seat saved for you' : ''})`), 8)}`, take, `The hall is at ${DOORS.theTable}`]), { signed_in: true, count: tables.length, tables, take_a_seat: take, door: DOORS.theTable });
   });
@@ -265,7 +268,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'Prayers left near a place (Prayer in Place)',
     description: 'Prayers real believers have left at places (Prayer in Place): a street, a hospital, a school, a church, a town. Public prayers only, with the approximate centre of the cell they were left in (never the exact spot), the kind (voice or written), the words when written, the Scripture named, who left it (first name, or "someone") and how many prayed with it. People ask: "has anyone prayed near this hospital", "prayers left in my town", "pray where others have prayed". Nothing invented; honest when none are near.',
     inputSchema: { ...placeInput, radius_km: z.number().min(0.1).max(50).default(5), limit: z.number().int().min(1).max(30).default(8) },
-    outputSchema: out({ searched: z.string(), count: z.number(), prayers: z.array(z.object({ id: z.string(), cell: z.string(), approx: z.object({ lat: z.number(), lon: z.number() }).nullable(), place: z.string().nullable(), kind: z.string(), voice: z.boolean(), words: z.string().nullable(), scripture_ref: z.string().nullable(), from: z.string(), heard: z.number(), prayed_with: z.number(), when: z.string(), distance_km: z.number(), door: z.string() })), totals: z.object({ prayers: z.number(), places: z.number(), places_today: z.number() }).nullable(), door: z.string() }),
+    outputSchema: out({ searched: z.string(), count: z.number(), prayers: z.array(z.looseObject({ id: z.string(), cell: z.string(), approx: z.looseObject({ lat: z.number(), lon: z.number() }).nullable(), place: z.string().nullable(), kind: z.string(), voice: z.boolean(), words: z.string().nullable(), scripture_ref: z.string().nullable(), from: z.string(), heard: z.number(), prayed_with: z.number(), when: z.string(), distance_km: z.number(), door: z.string() })), totals: z.looseObject({ prayers: z.number(), places: z.number(), places_today: z.number() }).nullable(), door: z.string() }),
     annotations: READS_WORLD,
   }, async ({ lat, lng, city, radius_km, limit }) => {
     let geo = lat !== undefined && lng !== undefined ? { lat, lon: lng, label: city ?? `${lat.toFixed(2)}, ${lng.toFixed(2)}` } : null;
@@ -290,14 +293,14 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'Open Serve needs near a place',
     description: 'Open, verified needs on The Living Bread Serve network that the app shows publicly: posted by verified partner organisations, with an approximate place only (never a home address), what is needed, whether it can be met locally, remotely or by funding, and the partner behind it. People ask: "how can I help in my city", "is there a need I can meet this week", "who needs groceries near Kigali", "something I can fund". Honest when none is near; remote and fundable needs are offered then. Whoever is kind to the poor lends to the LORD (Proverbs 19:17).',
     inputSchema: { ...placeInput, country: z.string().max(80).optional().describe('A country, to list its needs without coordinates.'), limit: z.number().int().min(1).max(20).default(8) },
-    outputSchema: out({ searched: z.string(), count: z.number(), needs: z.array(z.object({ id: z.string(), title: z.string(), description: z.string().nullable(), category: z.string(), urgency: z.string(), where: z.string(), distance_km: z.number().nullable(), partner: z.string().nullable(), ways: z.array(z.string()), estimated_cost: z.string().nullable(), pilot: z.boolean(), door: z.string() })), honest: z.string().optional(), door: z.string() }),
+    outputSchema: out({ searched: z.string(), count: z.number(), needs: z.array(z.looseObject({ id: z.string(), title: z.string(), description: z.string().nullable(), category: z.string(), urgency: z.string(), where: z.string(), distance_km: z.number().nullable(), partner: z.string().nullable(), ways: z.array(z.string()), estimated_cost: z.string().nullable(), pilot: z.boolean(), door: z.string() })), honest: z.string().optional(), door: z.string() }),
     annotations: READS_WORLD,
   }, async ({ lat, lng, city, country, limit }) => {
     let geo = lat !== undefined && lng !== undefined ? { lat, lon: lng, label: city ?? `${lat.toFixed(2)}, ${lng.toFixed(2)}` } : null;
     if (!geo && city) geo = await geocode(env, city);
     const rows = await anonSelect<NeedRow>(env, 'serve_needs', 'status=eq.open&verification_status=eq.verified&select=id,title,description,category,urgency,country,region,city,approx_lat,approx_lng,local_eligible,remote_eligible,funding_eligible,estimated_cost,currency,is_pilot,partner:serve_partners!inner(name,slug,verified_level)&partner.verified_level=in.(organization_verified,living_bread_partner)&order=urgency.asc,created_at.desc&limit=80');
     if (rows === null) return unavailable('the Serve network', DOORS.serve);
-    const shape = (n: NeedRow, distance_km: number | null) => ({ id: n.id, title: n.title, description: n.description, category: n.category, urgency: n.urgency, where: [n.city, n.region, n.country].filter(Boolean).join(', ') || 'place not given', distance_km, partner: n.partner?.name ?? null, ways: [n.local_eligible ? 'in person' : null, n.remote_eligible ? 'remotely' : null, n.funding_eligible ? 'by funding' : null].filter((x): x is string => Boolean(x)), estimated_cost: n.estimated_cost != null ? `${n.estimated_cost} ${n.currency}` : null, pilot: n.is_pilot, door: `${SITE}/serve/${n.id}` });
+    const shape = (n: NeedRow, distance_km: number | null) => ({ id: n.id, title: n.title, description: n.description, category: n.category, urgency: n.urgency, where: [n.city, n.region, n.country].filter(Boolean).join(', ') || 'place not given', distance_km, partner: n.partner?.name ?? null, ways: [n.local_eligible ? 'in person' : null, n.remote_eligible ? 'remotely' : null, n.funding_eligible ? 'by funding' : null].filter((x): x is string => Boolean(x)), estimated_cost: n.estimated_cost != null ? `${n.estimated_cost} ${n.currency}` : null, pilot: n.is_pilot, door: DOORS.serve, app_link: `${SITE}/serve/${n.id}` });  // serve/<id> opens in the app; its web shell 404s (verified 2026-10-05), so the door is /serve
     let searched = geo?.label ?? country ?? city ?? 'anywhere';
     let picked: ReturnType<typeof shape>[] = [];
     if (geo) {
@@ -327,7 +330,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'The Body today',
     description: 'What the whole family has done today, as a mirror and never a leaderboard: how many people were prayed for, encouraged, offered a talk or help through the response layer (body_responding_today); what the family is carrying today, by feeling and count only (family_carrying_today); prayers resting at places across the earth (prayer_in_place_totals); and, when connected as yourself, the Tables gathered today. People ask: "what is the family doing today", "is anyone praying right now", "what are people carrying".',
     inputSchema: {},
-    outputSchema: out({ responding: z.object({ prayed: z.number(), encouraged: z.number(), talk: z.number(), help: z.number(), met: z.number() }).nullable(), carrying: z.array(z.object({ feeling: z.string(), people: z.number(), prayed_for: z.number() })), places: z.object({ prayers: z.number(), places: z.number(), places_today: z.number(), countries_hint: z.number() }).nullable(), tables: z.object({ gathered_today: z.number(), tables_set: z.number(), gathered_now: z.number() }).nullable(), door: z.string() }),
+    outputSchema: out({ responding: z.looseObject({ prayed: z.number(), encouraged: z.number(), talk: z.number(), help: z.number(), met: z.number() }).nullable(), carrying: z.array(z.looseObject({ feeling: z.string(), people: z.number(), prayed_for: z.number() })), places: z.looseObject({ prayers: z.number(), places: z.number(), places_today: z.number(), countries_hint: z.number() }).nullable(), tables: z.looseObject({ gathered_today: z.number(), tables_set: z.number(), gathered_now: z.number() }).nullable(), door: z.string() }),
     annotations: READS,
   }, async () => {
     const [resp, carry, place, tables] = await Promise.all([rpc('body_responding_today'), rpc('family_carrying_today'), rpc('prayer_in_place_totals'), signedIn ? rpc('table_signals_today') : Promise.resolve(null)]);
@@ -355,7 +358,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'Worship now',
     description: 'The worship room of The Living Bread: what the house offers for this hour (the catalogue\'s shelves for morning, day, evening or night, each with its songs and why it is there), the public-domain hymns a person can sing outright, and the two doors: Worship, and Worship Together (a live room where everyone is on the same song). What a live room is playing travels over Realtime presence and is not readable here; the tool says so rather than guess. People ask: "something to worship to tonight", "a hymn for the morning", "is anyone worshipping together right now".',
     inputSchema: { local_hour: z.number().int().min(0).max(23).optional().describe('The person\'s own hour (0 to 23). Defaults to the UTC hour.'), language: z.string().max(12).optional(), mood: z.string().max(40).optional().describe('A word for how they are: "weary", "thankful", "grieving".') },
-    outputSchema: out({ part_of_day: z.string().nullable(), greeting: z.string().nullable(), shelves: z.array(z.object({ title: z.string(), reason: z.string(), songs: z.array(z.object({ title: z.string(), artist: z.string().nullable(), hymn: z.boolean(), door: z.string() })) })), live_room: z.string(), doors: z.record(z.string(), z.string()) }),
+    outputSchema: out({ part_of_day: z.string().nullable(), greeting: z.string().nullable(), shelves: z.array(z.looseObject({ title: z.string(), reason: z.string(), songs: z.array(z.looseObject({ title: z.string(), artist: z.string().nullable(), hymn: z.boolean(), door: z.string() })) })), live_room: z.string(), doors: z.record(z.string(), z.string()) }),
     annotations: READS,
   }, async ({ local_hour, language, mood }) => {
     const home = (await rpc('worship_home', { p_local_hour: local_hour ?? new Date().getUTCHours(), p_language: language ?? null, p_mood: mood ?? null })) as { part_of_day?: string; greeting?: string; shelves?: Shelf[] } | null;
@@ -391,7 +394,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'Saint of the day',
     description: 'Who the church around the world remembers on a given day, from the house\'s Saint of the Day pages (sourced from Wikidata and the calendar): the saints and blesseds of that date in short, what a feast day is, and the cloud of witnesses. Defaults to today (UTC). People ask: "whose feast day is it today", "saint of the day for October 4", "who is remembered on my birthday". Nothing invented; the house\'s page is read at call time.',
     inputSchema: { date: z.string().optional().describe('YYYY-MM-DD or "October 4". Defaults to today.') },
-    outputSchema: out({ date: z.string(), title: z.string().optional(), url: z.string(), body: z.string().optional(), remembered: z.array(z.string()).optional(), verses: z.array(z.object({ ref: z.string(), text: z.string() })).optional(), door: z.string() }),
+    outputSchema: out({ date: z.string(), title: z.string().optional(), url: z.string(), body: z.string().optional(), remembered: z.array(z.string()).optional(), verses: z.array(z.looseObject({ ref: z.string(), text: z.string() })).optional(), door: z.string() }),
     annotations: READS_WORLD,
   }, async ({ date }) => {
     let month: number | null = null;
@@ -415,7 +418,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'Two traditions, side by side, charitably',
     description: 'Two Christian denominations or traditions from the Knowledge API, side by side: each one\'s family tree (parent and branches), its sourced page and links, and the house\'s posture: one Body, many rooms, Christ the head of all. Never a ranking, never an argument. People ask: "what is the difference between Baptists and Methodists", "Catholic vs Orthodox", "are Pentecostals Protestant".',
     inputSchema: { a: z.string().min(2).max(80).describe('First tradition: "Methodism", "Baptists", "Catholic Church".'), b: z.string().min(2).max(80).describe('Second tradition.') },
-    outputSchema: out({ a: z.object({ id: z.string(), name: z.string(), url: z.string(), parent: z.unknown().optional(), branches: z.array(z.string()).optional(), sameAs: z.array(z.string()).optional() }).nullable(), b: z.object({ id: z.string(), name: z.string(), url: z.string(), parent: z.unknown().optional(), branches: z.array(z.string()).optional(), sameAs: z.array(z.string()).optional() }).nullable(), shared_root: z.string().nullable(), posture: z.string(), door: z.string() }),
+    outputSchema: out({ a: z.looseObject({ id: z.string(), name: z.string(), url: z.string(), parent: z.unknown().optional(), branches: z.array(z.string()).optional(), sameAs: z.array(z.string()).optional() }).nullable(), b: z.looseObject({ id: z.string(), name: z.string(), url: z.string(), parent: z.unknown().optional(), branches: z.array(z.string()).optional(), sameAs: z.array(z.string()).optional() }).nullable(), shared_root: z.string().nullable(), posture: z.string(), door: z.string() }),
     annotations: READS_WORLD,
   }, async ({ a, b }) => {
     const posture = 'One Body, many rooms: these traditions differ in real ways (how the church is ordered, how the sacraments are understood, how worship sounds) and share the confession that Jesus Christ is Lord, died and rose. The house describes them with respect and lets a person come and see; it ranks nobody.';
@@ -442,7 +445,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'Gatherings this week near a place',
     description: 'Real gatherings in the next seven days near a city: services, prayer nights, studies, meals, online rooms, with when (UTC) and where (city level). The same live data as find_gatherings_near, bounded to one week so a person can pick a day. People ask: "what is happening this week near Austin", "anything tonight in Lagos", "a service I can walk into this Sunday".',
     inputSchema: { ...placeInput, limit: z.number().int().min(1).max(20).default(10) },
-    outputSchema: out({ searched: z.string(), count: z.number(), gatherings: z.array(z.object({ id: z.string(), title: z.string(), when_utc: z.string(), where: z.string(), distance_km: z.number().nullable(), kind: z.string().nullable(), online: z.boolean() })), door: z.string() }),
+    outputSchema: out({ searched: z.string(), count: z.number(), gatherings: z.array(z.looseObject({ id: z.string(), title: z.string(), when_utc: z.string(), where: z.string(), distance_km: z.number().nullable(), kind: z.string().nullable(), online: z.boolean() })), door: z.string() }),
     annotations: READS_WORLD,
   }, async ({ lat, lng, city, limit }) => {
     let geo = lat !== undefined && lng !== undefined ? { lat, lon: lng, label: city ?? `${lat.toFixed(2)}, ${lng.toFixed(2)}` } : null;
@@ -450,7 +453,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     const rows = await findGatherings(env, { lat: geo?.lat ?? null, lon: geo?.lon ?? null, place: geo ? null : city ?? null, online: null, limit: 40 });
     if (rows === null) return unavailable('the gatherings', DOORS.events);
     const horizon = Date.now() + 7 * 86_400_000;
-    const shown = rows.filter((g) => Date.parse(g.starts_at) <= horizon && (!geo || g.is_online || (g.distance_km !== null && g.distance_km <= 250))).slice(0, limit).map((g) => ({ id: g.id, title: g.title, when_utc: whenUTC(g.starts_at), where: g.is_online ? 'online, joinable from anywhere' : placeOf(g), distance_km: g.distance_km, kind: g.category, online: g.is_online }));
+    const shown = rows.filter((g) => Date.parse(g.starts_at) <= horizon && (!geo || g.is_online || (g.distance_km !== null && g.distance_km <= 250))).slice(0, limit).map((g) => ({ id: g.id, title: g.title, when_utc: whenUTC(g.starts_at), where: g.is_online ? 'online, joinable from anywhere' : placeOf(g), distance_km: g.distance_km, kind: g.category, online: g.is_online, starts_at: g.starts_at, freshness: scheduled(g.starts_at) }));
     const searched = geo?.label ?? city ?? 'anywhere';
     if (!shown.length) return ok(paragraph([`No gathering is held near ${searched} in the next seven days; that means none is posted, not that none exists`, `Churches near them: find_churches_near; every gathering: ${DOORS.events}`]), { searched, count: 0, gatherings: [], door: DOORS.events, ...ATTRIBUTION });
     return ok(paragraph([`${shown.length} ${shown.length === 1 ? 'gathering' : 'gatherings'} this week near ${searched}: ${list(shown.map((g) => `${g.title} (${g.when_utc}, ${g.where}${g.distance_km !== null ? `, ${km(g.distance_km)}` : ''})`), limit)}`, 'Times are UTC; convert for the person', `Details at ${DOORS.events}`]), { searched, count: shown.length, gatherings: shown, door: DOORS.events, ...ATTRIBUTION });
@@ -462,7 +465,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'The Kingdom map: believers by city',
     description: 'Privacy-safe counts of believers on The Living Bread by city and country (kingdom_map: city-level, counts only, never a name), so a person can see they would not be alone where they live. Optional filter by a city or country word. People ask: "are there believers on Living Bread in Nairobi", "how many are in Brazil", "where is the family".',
     inputSchema: { place: z.string().max(80).optional().describe('A city or country word to filter by.'), limit: z.number().int().min(1).max(50).default(12) },
-    outputSchema: out({ count: z.number(), places: z.array(z.object({ city: z.string(), country: z.string(), believers: z.number(), actions: z.number() })), total_believers_shown: z.number(), door: z.string() }),
+    outputSchema: out({ count: z.number(), places: z.array(z.looseObject({ city: z.string(), country: z.string(), believers: z.number(), actions: z.number() })), total_believers_shown: z.number(), door: z.string() }),
     annotations: READS,
   }, async ({ place, limit }) => {
     const rows = (await rpc('kingdom_map')) as MapRow[] | null;
@@ -480,7 +483,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'Real testimonies shared with the Body',
     description: 'Testimonies real believers chose to share with the whole Body (get_testimony_wall: the excerpt they shared, their journey word, their city when they gave it; never a name they did not choose to show). People ask: "has anyone found faith after addiction", "real stories of people meeting Jesus", "someone who came back after years away".',
     inputSchema: { limit: z.number().int().min(1).max(30).default(8), word: z.string().max(60).optional().describe('A word to look for in the excerpts: "addiction", "grief", "prison", "doubt".') },
-    outputSchema: out({ count: z.number(), testimonies: z.array(z.object({ id: z.string(), excerpt: z.string(), journey: z.string().nullable(), city: z.string().nullable(), when: z.string() })), door: z.string() }),
+    outputSchema: out({ count: z.number(), testimonies: z.array(z.looseObject({ id: z.string(), excerpt: z.string(), journey: z.string().nullable(), city: z.string().nullable(), when: z.string() })), door: z.string() }),
     annotations: READS,
   }, async ({ limit, word }) => {
     const rows = (await rpc('get_testimony_wall', { p_limit: word ? 60 : limit })) as Testimony[] | null;
@@ -496,7 +499,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'Christian community at a university',
     description: 'The University Kingdom Network pages: Christian community at universities by country and region (thousands of campuses, churches near campus, students, a path to follow Jesus), read from the house\'s pages at call time. Pass a country, a US state or a city. People ask: "Christian groups at universities in Japan", "churches near campus in California", "is there Christian community at universities in Kenya".',
     inputSchema: { place: z.string().min(2).max(80).describe('A country, a US state, or a city.') },
-    outputSchema: out({ matched: z.string().nullable(), title: z.string().optional(), url: z.string().optional(), summary: z.string().optional(), entries: z.array(z.object({ title: z.string(), url: z.string() })).optional(), suggestions: z.array(z.object({ title: z.string(), url: z.string() })).optional(), door: z.string() }),
+    outputSchema: out({ matched: z.string().nullable(), title: z.string().optional(), url: z.string().optional(), summary: z.string().optional(), entries: z.array(z.looseObject({ title: z.string(), url: z.string() })).optional(), suggestions: z.array(z.looseObject({ title: z.string(), url: z.string() })).optional(), door: z.string() }),
     annotations: READS_WORLD,
   }, async ({ place }) => {
     const door = `${SITE}/universities`;
@@ -531,11 +534,11 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     title: 'Reading plans: a daily rhythm in the Word',
     description: `The Living Bread's reading plans (the app's own catalogue, ${PLANS.length} plans: Meet Jesus, First Steps, Learn to Pray, the Gospel of Mark, the Sermon on the Mount, Peace over Anxiety, Grief and Hope, Forgiveness, Psalms of Comfort, Philippians, Loneliness and Belonging, Purpose, Waiting on God, the Gospel of John, Generosity): each day's title, reference, a short word and one step. With a name or a need it returns that plan with day one read from the stored text; alone it lists them. People ask: "a reading plan for anxiety", "how do I start reading the Bible", "a plan to know Jesus", "something for grief".`,
     inputSchema: { plan: z.string().max(80).optional().describe('A plan name, or a need: "anxious", "new to the Bible", "grief", "learn to pray".'), day: z.number().int().min(1).max(31).optional().describe('Which day to read in full (default 1).') },
-    outputSchema: out({ plans: z.array(z.object({ id: z.string(), title: z.string(), subtitle: z.string(), days: z.number(), for_whom: z.string(), door: z.string() })), plan: z.object({ id: z.string(), title: z.string(), subtitle: z.string(), for_whom: z.string(), days: z.array(z.object({ day: z.number(), title: z.string(), ref: z.string() })), reading: z.object({ day: z.number(), title: z.string(), ref: z.string(), text: z.string().nullable(), word: z.string(), step: z.string() }).nullable(), door: z.string() }).nullable(), door: z.string() }),
+    outputSchema: out({ plans: z.array(z.looseObject({ id: z.string(), title: z.string(), subtitle: z.string(), days: z.number(), for_whom: z.string(), door: z.string() })), plan: z.looseObject({ id: z.string(), title: z.string(), subtitle: z.string(), for_whom: z.string(), days: z.array(z.looseObject({ day: z.number(), title: z.string(), ref: z.string() })), reading: z.looseObject({ day: z.number(), title: z.string(), ref: z.string(), text: z.string().nullable(), word: z.string(), step: z.string() }).nullable(), door: z.string() }).nullable(), door: z.string() }),
     annotations: READS,
   }, async ({ plan, day }) => {
     const door = `${SITE}/plans`;
-    const all = PLANS.map((p) => ({ id: p.id, title: p.title, subtitle: p.subtitle, days: p.days.length, for_whom: p.forWhom, door: `${door}/${p.id}` }));
+    const all = PLANS.map((p) => ({ id: p.id, title: p.title, subtitle: p.subtitle, days: p.days.length, for_whom: p.forWhom, door }));  // /plans/<id> has no web shell (404 on the web, verified 2026-10-05); the index opens every plan
     const q = (plan ?? '').toLowerCase().trim();
     let hit: Plan | undefined;
     if (q) {
@@ -546,7 +549,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     const n = Math.min(Math.max(day ?? 1, 1), hit.days.length);
     const d = hit.days[n - 1];
     const text = (await kjvByRef(env, d.ref))?.text ?? null;
-    const shaped = { id: hit.id, title: hit.title, subtitle: hit.subtitle, for_whom: hit.forWhom, days: hit.days.map((x, i) => ({ day: i + 1, title: x.title, ref: x.ref })), reading: { day: n, title: d.title, ref: d.ref, text, word: d.word, step: d.step }, door: `${door}/${hit.id}` };
-    return ok(paragraph([`${hit.title}: ${hit.subtitle} (${hit.days.length} days, ${hit.forWhom.toLowerCase()})`, `Day ${n}, ${d.title}, ${d.ref}${text ? `: "${text}"` : ''}`, `In the house's words: ${d.word}`, `One step: ${d.step}`, `The whole plan, with its days (${list(hit.days.slice(0, 6).map((x) => x.title), 6)}${hit.days.length > 6 ? ' and more' : ''}), is at ${shaped.door}; all plans at ${door}`]), { plans: all, plan: shaped, door, ...ATTRIBUTION });
+    const shaped = { id: hit.id, title: hit.title, subtitle: hit.subtitle, for_whom: hit.forWhom, days: hit.days.map((x, i) => ({ day: i + 1, title: x.title, ref: x.ref })), reading: { day: n, title: d.title, ref: d.ref, text, word: d.word, step: d.step }, door };
+    return ok(paragraph([`${hit.title}: ${hit.subtitle} (${hit.days.length} days, ${hit.forWhom.toLowerCase()})`, `Day ${n}, ${d.title}, ${d.ref}${text ? `: "${text}"` : ''}`, `In the house's words: ${d.word}`, `One step: ${d.step}`, `The whole plan, with its days (${list(hit.days.slice(0, 6).map((x) => x.title), 6)}${hit.days.length > 6 ? ' and more' : ''}), is at ${shaped.door}; all plans at ${door}`]), { plans: all, plan: shaped, door, ...ATTRIBUTION, content_layers: layers({ scripture: ['plan.reading.text'], reflection: ['plan.reading.word', 'plan.reading.step'] }, HOUSE_TRADITION) });
   });
 }

@@ -1,3 +1,4 @@
+import { PRIVACY_HTML } from './privacy.generated';
 /* ============================================================
    THE LIVING BREAD MCP, the Worker.
 
@@ -19,6 +20,24 @@ import { landingHTML, mcpLlmsTxt, PROMPTS, RESOURCES, TOOL_SUMMARY } from './lan
 import { PERSONAL_TOOL_SUMMARY } from './personal';
 import { SHEPHERD_TOOL_SUMMARY } from './shepherd';
 import serverJson from '../server.json';
+import distribution from './data/distribution.json';
+import versions from './data/versions.json';
+import { count } from './metrics';
+import { status } from './status';
+
+/** Count an MCP initialize by the client name it announces. Reads at most 64 KB of a JSON body; never blocks the request. */
+async function countInitialize(env: Env, req: Request, path: string): Promise<void> {
+  try {
+    const len = Number(req.headers.get('content-length') ?? '0');
+    if (len > 65_536 || !/json/.test(req.headers.get('content-type') ?? '')) return;
+    const body = await req.text();
+    if (!body.includes('"initialize"')) return;
+    const msgs = (() => { try { const v = JSON.parse(body); return Array.isArray(v) ? v : [v]; } catch { return []; } })() as { method?: string; params?: { clientInfo?: { name?: string } } }[];
+    for (const m of msgs) if (m?.method === 'initialize') await count(env, m.params?.clientInfo?.name, 'connection', path.replace(/^\//, '').replace('/message', ''));
+  } catch {
+    /* counting never costs an answer */
+  }
+}
 
 /** Public half of the Ed25519 key that proves mcp.living-bread.org to the MCP Registry. */
 const REGISTRY_PROOF = 'v=MCPv1; k=ed25519; p=8NsHPj7k8Cjmqt2Lde8DBBhj8PY4jAQyVpCqUUxozEU=';
@@ -63,12 +82,21 @@ export default {
       }
     }
 
+    // The funnel's first step: an MCP initialize, counted by client name and endpoint (src/metrics.ts). Never the body.
+    // (/me and /app are counted only after their token is verified, below.)
+    if (request.method === 'POST' && /^\/(mcp|sse)(\/message)?$/.test(p)) ctx.waitUntil(countInitialize(env, request.clone(), p));
+
     if (p === '/mcp' || p.startsWith('/mcp/')) return mcpHandler.fetch(request, env, ctx);
+    // A Streamable HTTP client given the registry's /sse remote POSTs to /sse itself (366 such 404s on
+    // 2026-10-03..05). /sse alone never takes a POST in the SSE protocol (messages go to /sse/message),
+    // so it is answered as Streamable HTTP, exactly as /mcp would.
+    if (p === '/sse' && request.method === 'POST') return mcpHandler.fetch(new Request(`${url.origin}/mcp${url.search}`, request), env, ctx);
     if (p === '/sse' || p.startsWith('/sse/')) return sseHandler.fetch(request, env, ctx);
     if (p === APP_PATH || p.startsWith(APP_PATH + '/')) {
       const me = await verifyBearer(env, request.headers.get('authorization'));
       if (!me) return unauthorized('A signed-in connection needs a bearer token issued by The Living Bread.', APP_PATH);
       (ctx as ExecutionContext & { props?: unknown }).props = { ...me, profile: 'app' };
+      if (request.method === 'POST') ctx.waitUntil(countInitialize(env, request.clone(), p));
       return appHandler.fetch(request, env, ctx);
     }
     if (p === ME_PATH || p.startsWith(ME_PATH + '/')) {
@@ -77,6 +105,7 @@ export default {
       const me = await verifyBearer(env, request.headers.get('authorization'));
       if (!me) return unauthorized('A signed-in connection needs a bearer token issued by The Living Bread.');
       (ctx as ExecutionContext & { props?: unknown }).props = me;
+      if (request.method === 'POST') ctx.waitUntil(countInitialize(env, request.clone(), p));
       return meHandler.fetch(request, env, ctx);
     }
     // Some clients look for the authorization server's metadata on the resource host
@@ -90,6 +119,7 @@ export default {
       return text(JSON.stringify(protectedResourceMetadata(env, p.endsWith('/app') ? '/app' : '/me'), null, 2), 'application/json; charset=utf-8', 200, { 'cache-control': 'public, max-age=3600' });
     }
 
+    if (p === '/privacy' || p === '/privacy/') return text(PRIVACY_HTML, 'text/html; charset=utf-8', 200, { 'cache-control': 'public, max-age=600' });
     if (p === '/') return text(landingHTML(), 'text/html; charset=utf-8', 200, { 'cache-control': 'public, max-age=3600' });
     if (p === '/llms.txt') return text(mcpLlmsTxt(), 'text/plain; charset=utf-8', 200, { 'cache-control': 'public, max-age=86400' });
     if (p === '/openapi.json') return Response.redirect(`${KNOWLEDGE_API}/openapi.json`, 302);
@@ -113,6 +143,12 @@ export default {
       return token ? text(token, 'text/plain; charset=utf-8', 200, { 'cache-control': 'no-store' }) : text('not set', 'text/plain; charset=utf-8', 404);
     }
     if (p === '/robots.txt') return text('User-agent: *\nAllow: /\n', 'text/plain; charset=utf-8');
+    if (p === '/status') {
+      const s = await status(env);
+      return text(JSON.stringify(s, null, 2), 'application/json; charset=utf-8', s.ok ? 200 : 503, { 'cache-control': 'no-store' });
+    }
+    if (p === '/distribution.json') return text(JSON.stringify(distribution, null, 2), 'application/json; charset=utf-8', 200, { 'cache-control': 'public, max-age=3600' });
+    if (p === '/versions.json') return text(JSON.stringify(versions, null, 2), 'application/json; charset=utf-8', 200, { 'cache-control': 'public, max-age=3600' });
 
     return text(JSON.stringify({ error: 'not found', see: `${url.origin}/`, mcp: `${url.origin}/mcp` }), 'application/json; charset=utf-8', 404);
   },
