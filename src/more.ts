@@ -186,6 +186,24 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
   // ---- crisis_resources ------------------------------------------------------------------
   interface Crisis { countryCode: string; countryName: string; emergency: string[]; police?: string; ambulance?: string; fire?: string; suicideLine?: { name: string; number: string; hours?: string; url?: string; text?: string }; domesticViolence?: { name: string; number: string; hours?: string; url?: string }; childHelp?: { name: string; number: string; hours?: string; url?: string }; textLine?: { name: string; number: string; text?: string }; source: string; verifiedAt: string; confidence: string }
   const CRISIS = crisisData as Crisis[];
+  const CRISIS_ALIASES: Record<string, string> = {
+    'usa': 'US', 'united states': 'US', 'united states of america': 'US', 'america': 'US', 'u.s.': 'US', 'u.s.a.': 'US',
+    'uk': 'GB', 'united kingdom': 'GB', 'britain': 'GB', 'great britain': 'GB', 'england': 'GB', 'scotland': 'GB', 'wales': 'GB',
+    'south korea': 'KR', 'korea': 'KR', 'holland': 'NL', 'the netherlands': 'NL', 'uae': 'AE', 'ivory coast': 'CI', 'czechia': 'CZ',
+  };
+  function findCrisisCountry(raw: string) {
+    const q = raw.trim().toLowerCase().replace(/\.$/, '');
+    if (!q) return undefined;
+    const code = CRISIS_ALIASES[q] ?? (q.length === 2 ? q.toUpperCase() : null);
+    if (code) { const byCode = CRISIS.find((c) => c.countryCode.toUpperCase() === code); if (byCode) return byCode; }
+    const exact = CRISIS.find((c) => c.countryName.toLowerCase() === q);
+    if (exact) return exact;
+    if (q.length >= 4) {
+      const starts = CRISIS.filter((c) => c.countryName.toLowerCase().startsWith(q));
+      if (starts.length === 1) return starts[0];
+    }
+    return undefined;
+  }
   tool(server, 'crisis_resources', {
     title: 'Crisis lines for a country (first, before anything else)',
     description: 'When a person speaks of harming themselves or someone else, or is in danger, THIS COMES FIRST: the real emergency number and crisis line for THEIR country, from the dataset the app ships for 53 countries (never a United States number by default). Then the Word and the family, never instead. Pass the country (name or ISO code); if it is not known, ask the person before giving any number. Honest when a country is not held: it says so and gives the general rule (local emergency number). People say: "I want to die", "I am going to hurt myself", "my friend is suicidal", "he hits me". Point to Christ only after the line is given.',
@@ -196,7 +214,10 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     const rule = 'Give the real number first and plainly. Stay with the person. Only then the Word, and the family who will pray for them by name. Never a Scripture in place of a phone number.';
     const door = `${SITE}/sos`;
     const q = (country ?? '').trim().toLowerCase();
-    const hit = q ? CRISIS.find((c) => c.countryCode.toLowerCase() === q || c.countryName.toLowerCase() === q || c.countryName.toLowerCase().includes(q) || q.includes(c.countryName.toLowerCase())) : undefined;
+    // Strict, in order: the code, the exact name, a known alias, then a name that STARTS with
+    // four or more letters. Never a substring ("us" once matched aUStralia; a wrong crisis line
+    // is worse than none).
+    const hit = q ? findCrisisCountry(q) : undefined;
     if (!hit) {
       const names = CRISIS.map((c) => `${c.countryName} (${c.countryCode})`);
       return ok(paragraph([

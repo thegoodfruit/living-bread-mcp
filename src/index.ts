@@ -11,7 +11,7 @@
    The McpAgent (a Durable Object per session) does the rest.
    ============================================================ */
 import { LivingBreadMCP } from './agent';
-import { ME_PATH, protectedResourceMetadata, unauthorized, verifyBearer } from './auth';
+import { APP_PATH, ME_PATH, protectedResourceMetadata, unauthorized, verifyBearer } from './auth';
 import { KNOWLEDGE_API, MCP_URL, SSE_URL } from './doors';
 import { SERVER_NAME, SERVER_VERSION } from './instructions';
 import { ACT_TOOL_SUMMARY, SIGNED_IN_READ_SUMMARY } from './acts';
@@ -37,6 +37,7 @@ const mcpHandler = LivingBreadMCP.serve('/mcp', { binding: 'MCP_OBJECT', corsOpt
 const sseHandler = LivingBreadMCP.serveSSE('/sse', { binding: 'MCP_OBJECT', corsOptions: CORS });
 /* The signed-in path. Same agent; the Worker verifies the token first and hands the believer over as props. */
 const meHandler = LivingBreadMCP.serve(ME_PATH, { binding: 'MCP_OBJECT', corsOptions: CORS });
+const appHandler = LivingBreadMCP.serve(APP_PATH, { binding: 'MCP_OBJECT', corsOptions: CORS });
 
 function text(body: string, type: string, status = 200, extra: Record<string, string> = {}): Response {
   return new Response(body, { status, headers: { 'content-type': type, 'access-control-allow-origin': '*', ...extra } });
@@ -47,7 +48,7 @@ export default {
     const url = new URL(request.url);
     const p = url.pathname.replace(/\/+$/, '') || '/';
 
-    if (request.method === 'OPTIONS' && !p.startsWith('/mcp') && !p.startsWith('/sse') && !p.startsWith('/me')) {
+    if (request.method === 'OPTIONS' && !p.startsWith('/mcp') && !p.startsWith('/sse') && !p.startsWith('/me') && !p.startsWith('/app')) {
       return new Response(null, { status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-methods': CORS.methods, 'access-control-allow-headers': CORS.headers, 'access-control-max-age': String(CORS.maxAge) } });
     }
 
@@ -64,6 +65,12 @@ export default {
 
     if (p === '/mcp' || p.startsWith('/mcp/')) return mcpHandler.fetch(request, env, ctx);
     if (p === '/sse' || p.startsWith('/sse/')) return sseHandler.fetch(request, env, ctx);
+    if (p === APP_PATH || p.startsWith(APP_PATH + '/')) {
+      const me = await verifyBearer(env, request.headers.get('authorization'));
+      if (!me) return unauthorized('A signed-in connection needs a bearer token issued by The Living Bread.', APP_PATH);
+      (ctx as ExecutionContext & { props?: unknown }).props = { ...me, profile: 'app' };
+      return appHandler.fetch(request, env, ctx);
+    }
     if (p === ME_PATH || p.startsWith(ME_PATH + '/')) {
       // OAuth 2.1 resource server (RFC 9728): no valid token, one honest 401 that names the
       // authorization server; a valid token, the same MCP server acting as that believer.
@@ -72,7 +79,7 @@ export default {
       (ctx as ExecutionContext & { props?: unknown }).props = me;
       return meHandler.fetch(request, env, ctx);
     }
-    if (p === '/.well-known/oauth-protected-resource' || p === '/.well-known/oauth-protected-resource/me') {
+    if (p === '/.well-known/oauth-protected-resource' || p === '/.well-known/oauth-protected-resource/me' || p === '/.well-known/oauth-protected-resource/app') {
       return text(JSON.stringify(protectedResourceMetadata(env), null, 2), 'application/json; charset=utf-8', 200, { 'cache-control': 'public, max-age=3600' });
     }
 

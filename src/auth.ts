@@ -12,6 +12,9 @@
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose';
 
 export const ME_PATH = '/me';
+/** The ChatGPT app profile: the same sign-in, a narrower, read-only set of tools (OpenAI's app review
+    declines care matching, crisis services and most writes; the Claude directory keeps the full /me). */
+export const APP_PATH = '/app';
 export const ME_URL = 'https://mcp.living-bread.org/me';
 export const RESOURCE_METADATA_URL = 'https://mcp.living-bread.org/.well-known/oauth-protected-resource/me';
 
@@ -23,6 +26,8 @@ export interface Believer {
   clientId: string | null;
   /** The raw token, forwarded to PostgREST so RLS sees the believer. */
   token: string;
+  /** 'app' narrows the tool set for the ChatGPT app directory. */
+  profile?: 'app';
 }
 
 const jwksCache = new Map<string, ReturnType<typeof createRemoteJWKSet>>();
@@ -73,14 +78,14 @@ export function protectedResourceMetadata(env: Env) {
 }
 
 /** The 401 that starts the OAuth dance (RFC 9728 section 5.1). */
-export function unauthorized(detail: string): Response {
+export function unauthorized(detail: string, path: string = ME_PATH): Response {
   return new Response(JSON.stringify({ error: 'unauthorized', detail, sign_in: 'Connect this URL in your assistant and it will ask you to sign in to The Living Bread.' }), {
     status: 401,
     headers: {
       'content-type': 'application/json; charset=utf-8',
       'access-control-allow-origin': '*',
       'access-control-expose-headers': 'WWW-Authenticate',
-      'www-authenticate': `Bearer realm="The Living Bread", resource_metadata="${RESOURCE_METADATA_URL}"`,
+      'www-authenticate': `Bearer realm="The Living Bread", resource_metadata="https://mcp.living-bread.org/.well-known/oauth-protected-resource${path}"`,
     },
   });
 }
