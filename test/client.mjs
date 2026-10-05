@@ -26,8 +26,8 @@ const { tools } = await client.listTools();
 const names = tools.map((t) => t.name).sort();
 say(`tools (${names.length}): ${names.join(', ')}`);
 for (const want of ['scripture_passage', 'verses_for', 'daily_bread', 'ask_living_bread', 'find_churches_near', 'church', 'find_gatherings_near', 'communities_to_join', 'heritage_lookup', 'pray_for_someone', 'hear_the_kingdom_pray', 'begin', 'search', 'fetch',
-  'the_gospel', 'come_and_see', 'crisis_resources', 'tables_live_now', 'prayers_left_near', 'needs_near', 'body_today', 'worship_now',
-  'a_prayer_for', 'what_the_bible_says_about', 'parable', 'miracle', 'teaching_of_jesus', 'belief', 'hymn', 'name_meaning', 'threshold', 'saint_of_the_day',
+  'the_gospel', 'christianity_and_other_faiths', 'crisis_resources', 'tables_live_now', 'prayers_left_near', 'needs_near', 'body_today', 'worship_now',
+  'a_prayer_for', 'what_the_bible_says_about', 'parable', 'miracle', 'teaching_of_jesus', 'belief', 'hymn', 'name_meaning', 'faith_in_a_hard_season', 'saint_of_the_day',
   'denomination_compare', 'events_this_week', 'kingdom_map', 'testimonies', 'universities', 'reading_plans']) {
   check(`tool ${want} listed`, names.includes(want));
 }
@@ -71,8 +71,8 @@ const calls = [
   ['fetch', { id: 'lb:denomination:methodism' }, (r) => /Methodism/.test(r.structuredContent?.title ?? '')],
   // the wider doors (every one real: a function, a page family, a dataset, or the Knowledge API)
   ['the_gospel', {}, (r) => /God and Lord/.test(r.content?.[0]?.text ?? '') && (r.structuredContent?.steps?.length ?? 0) === 4 && /For God so loved/.test(r.structuredContent?.steps?.[0]?.text ?? '')],
-  ['come_and_see', { background: 'Muslim' }, (r) => /christianity-and-islam/.test(r.structuredContent?.url ?? '') && (r.structuredContent?.questions?.length ?? 0) > 0],
-  ['come_and_see', { background: 'nothing really' }, (r) => r.structuredContent?.matched === null && /who-is-jesus/.test(r.content?.[0]?.text ?? '')],
+  ['christianity_and_other_faiths', { background: 'Muslim' }, (r) => /christianity-and-islam/.test(r.structuredContent?.url ?? '') && (r.structuredContent?.questions?.length ?? 0) > 0],
+  ['christianity_and_other_faiths', { background: 'nothing really' }, (r) => r.structuredContent?.matched === null && /who-is-jesus/.test(r.content?.[0]?.text ?? '')],
   ['crisis_resources', { country: 'United Kingdom' }, (r) => r.structuredContent?.country?.code === 'GB' && (r.structuredContent?.emergency?.length ?? 0) > 0 && r.structuredContent?.crisis_line?.number],
   ['crisis_resources', { country: 'Nigeria' }, (r) => (r.structuredContent?.country?.code === 'NG') || Array.isArray(r.structuredContent?.countries_held)],
   ['crisis_resources', {}, (r) => r.structuredContent?.country === null && /Ask the person/.test(r.content?.[0]?.text ?? '') && !/988/.test((r.structuredContent?.emergency ?? []).join(''))],
@@ -90,7 +90,7 @@ const calls = [
   ['belief', { topic: 'grace' }, (r) => /what-is-grace/.test(r.structuredContent?.url ?? '')],
   ['hymn', { title: 'Amazing Grace' }, (r) => /hymns\/amazing-grace/.test(r.structuredContent?.url ?? '')],
   ['name_meaning', { name: 'Adam' }, (r) => /name-meanings\/adam/.test(r.structuredContent?.url ?? '')],
-  ['threshold', { life_event: 'grief' }, (r) => /grief/.test(r.structuredContent?.url ?? '')],
+  ['faith_in_a_hard_season', { life_event: 'grief' }, (r) => /grief/.test(r.structuredContent?.url ?? '')],
   ['a_prayer_for', { situation: 'zzyzx nonsense' }, (r) => r.structuredContent?.matched === null && (r.structuredContent?.suggestions?.length ?? 0) > 0],
   ['saint_of_the_day', { date: 'October 4' }, (r) => /saint-of-the-day\/october-4/.test(r.structuredContent?.url ?? '') && /Francis/.test(r.structuredContent?.body ?? '')],
   ['denomination_compare', { a: 'Methodism', b: 'Baptists' }, (r) => r.structuredContent?.a?.id === 'lb:denomination:methodism' && /One Body/.test(r.structuredContent?.posture ?? '')],

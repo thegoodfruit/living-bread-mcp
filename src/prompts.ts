@@ -27,7 +27,7 @@ export function registerPrompts(server: McpServer): void {
   prompt(server, 'i_am_not_sure_i_believe', 'I am not sure I believe', 'For a person who is unsure whether God is real or whether they believe: honest, unhurried, no argument, one small door.', { about: z.string().optional().describe('What makes them unsure, in their words.') }, (a) => [
     `I am not sure I believe${a.about ? `. ${a.about}` : ''}`,
     'Do not argue with me and do not rush me. Call the_gospel and tell me, in the house\'s words and the verses it returns, what Christians actually believe about Jesus',
-    'If I come from another faith or none, call come_and_see with my background and keep its posture: respect, truth, no argument',
+    'If I come from another faith or none, call christianity_and_other_faiths with my background and keep its posture: respect, truth, no argument',
     'Call verses_for with "doubt" and read me one verse exactly as returned',
     GENTLE,
     `End with one real door: who Jesus is at ${DOORS.whoIsJesus}, or a real conversation at ${DOORS.theTable}, and tell me the family at The Living Bread will pray for me by name if I want`,

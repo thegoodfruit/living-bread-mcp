@@ -90,7 +90,7 @@ function registerPageFamily(server: McpServer, env: Env, f: PageFamily): void {
       verses: z.array(z.object({ ref: z.string(), text: z.string() })).optional(), related: z.array(z.object({ title: z.string(), url: z.string() })).optional(),
       suggestions: z.array(z.object({ title: z.string(), url: z.string() })).optional(), hub: z.string(), door: z.string(),
     }),
-    annotations: READS,
+    annotations: READS_WORLD,
   }, async (args) => {
     const query = String((args as Record<string, string>)[f.arg] ?? '').trim();
     const entries = await hubEntries(f.hub, f.accept);
@@ -139,12 +139,12 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
   });
 
   // ---- come_and_see ----------------------------------------------------------------------
-  tool(server, 'come_and_see', {
+  tool(server, 'christianity_and_other_faiths', {
     title: 'Come and See: for a seeker from another faith, or none',
     description: `For a person from another faith or none who is curious about Jesus: the house's Come and See pages (Christianity alongside Islam, Judaism, Buddhism, Hindu traditions, Sikhi, Taoism, Confucianism, the Baha'i Faith, Jainism, Zoroastrianism, Shinto, Stoicism, New Age spirituality, the occult), read at call time: honest, respectful, pointing to Christ and to a real conversation, never an argument. People ask: "I'm Muslim, what do Christians believe about Isa", "I grew up Hindu, how is Jesus different", "I'm Jewish, why do Christians say Jesus is the Messiah", "I'm into astrology, is that a problem". Ends with a door to a real person: a Table, a shepherd, the family.`,
     inputSchema: { background: z.string().min(2).max(80).describe('Their background in their own words: "Muslim", "Hindu", "Jewish", "Buddhist", "Sikh", "Stoic", "new age", "nothing really".') },
     outputSchema: out({ matched: z.string().nullable(), title: z.string().optional(), url: z.string().optional(), body: z.string().optional(), questions: z.array(z.object({ title: z.string(), url: z.string() })).optional(), verses: z.array(z.object({ ref: z.string(), text: z.string() })).optional(), suggestions: z.array(z.object({ title: z.string(), url: z.string() })).optional(), posture: z.string(), doors: z.record(z.string(), z.string()) }),
-    annotations: READS,
+    annotations: READS_WORLD,
   }, async ({ background }) => {
     const posture = 'Come and see (John 1:46): the house does not argue anyone into the Kingdom. It tells the truth about Jesus with respect for the person in front of it, and offers a real conversation with real people.';
     const doors = { come_and_see: DOORS.comeAndSee, who_is_jesus: DOORS.whoIsJesus, a_table: DOORS.theTable, a_shepherd: DOORS.pastors, talk: `${SITE}/talk` };
@@ -381,7 +381,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     { name: 'belief', title: 'What Christians believe', description: 'One of the house\'s What Christians Believe pages, in short and in full: grace, sin, repentance, faith, salvation, the Holy Spirit, the Trinity, baptism, communion, heaven, prayer, the church and more. People ask: "what is grace", "what do Christians mean by salvation", "what is repentance", "who is the Holy Spirit".', hub: '/what-christians-believe', accept: (h) => /^\/(what|who)-is-[a-z-]+$/.test(h), arg: 'topic', argDescription: 'The belief: "grace", "sin", "repentance", "faith", "salvation", "the Holy Spirit", "the Trinity".', door: `${SITE}/what-christians-believe`, christ: 'Every belief here is held because of Jesus Christ, who is God and Lord.' },
     { name: 'hymn', title: 'A hymn and its story', description: 'One of the great public-domain hymns from the house\'s pages: who wrote it and when, the story behind it, the words, the Scripture behind it, and why it still moves us. People ask: "the story of Amazing Grace", "words of It Is Well With My Soul", "a hymn about trusting Jesus".', hub: '/hymns', accept: (h) => h.startsWith('/hymns/'), arg: 'title', argDescription: 'The hymn\'s title or a line of it: "Amazing Grace", "It Is Well", "What a Friend We Have in Jesus".', door: `${SITE}/hymns`, christ: 'Every hymn here sings of Jesus Christ; the worship room is where the family sings them together.' },
     { name: 'name_meaning', title: 'The meaning of a biblical name', description: 'The meaning, origin and Bible story of a biblical name (about two hundred held: Adam, Eve, Noah, Abraham, Sarah, Isaac, Jacob, Joseph, Moses, Ruth, David, Elijah, Mary, John, Peter, Paul and more), with a verse for the name, from the house\'s pages. People ask: "what does the name Elijah mean", "meaning of Hannah in the Bible", "is Caleb a biblical name".', hub: '/name-meanings', accept: (h) => h.startsWith('/name-meanings/'), arg: 'name', argDescription: 'The name: "Elijah", "Hannah", "Caleb".', door: `${SITE}/name-meanings`, christ: 'God gives and changes names in Scripture; in Christ a person is given a new name (Revelation 2:17).' },
-    { name: 'threshold', title: 'Christ at a threshold of life', description: 'The house\'s pages for the thresholds people stand at: grief and loss, loneliness, church hurt, starting out, missing God, needing prayer and the rest: a page that meets the moment honestly and opens one real door. People say: "I just lost my dad", "I feel so alone", "the church hurt me", "I used to believe", "I don\'t know where to start".', hub: '/thresholds', accept: (h) => !['/thresholds', '/find-a-church', '/prayer', '/bible', '/get-the-app', '/the-gospel', '/jesus', '/who-is-jesus', '/who-is-jesus-christ', '/'].includes(h) && !h.startsWith('/scripture/'), arg: 'life_event', argDescription: 'The moment in their words: "grief", "lonely", "church hurt", "starting out", "I miss God".', door: `${SITE}/thresholds`, christ: 'At every threshold Christ is already standing; the page opens the door beside Him.', labelFromHref: true },
+    { name: 'faith_in_a_hard_season', title: 'Christ in a hard season of life', description: 'The house\'s pages for the thresholds people stand at: grief and loss, loneliness, church hurt, starting out, missing God, needing prayer and the rest: a page that meets the moment honestly and opens one real door. People say: "I just lost my dad", "I feel so alone", "the church hurt me", "I used to believe", "I don\'t know where to start".', hub: '/thresholds', accept: (h) => !['/thresholds', '/find-a-church', '/prayer', '/bible', '/get-the-app', '/the-gospel', '/jesus', '/who-is-jesus', '/who-is-jesus-christ', '/'].includes(h) && !h.startsWith('/scripture/'), arg: 'life_event', argDescription: 'The moment in their words: "grief", "lonely", "church hurt", "starting out", "I miss God".', door: `${SITE}/thresholds`, christ: 'At every threshold Christ is already standing; the page opens the door beside Him.', labelFromHref: true },
   ];
   for (const f of families) registerPageFamily(server, env, f);
 
@@ -392,7 +392,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     description: 'Who the church around the world remembers on a given day, from the house\'s Saint of the Day pages (sourced from Wikidata and the calendar): the saints and blesseds of that date in short, what a feast day is, and the cloud of witnesses. Defaults to today (UTC). People ask: "whose feast day is it today", "saint of the day for October 4", "who is remembered on my birthday". Nothing invented; the house\'s page is read at call time.',
     inputSchema: { date: z.string().optional().describe('YYYY-MM-DD or "October 4". Defaults to today.') },
     outputSchema: out({ date: z.string(), title: z.string().optional(), url: z.string(), body: z.string().optional(), remembered: z.array(z.string()).optional(), verses: z.array(z.object({ ref: z.string(), text: z.string() })).optional(), door: z.string() }),
-    annotations: READS,
+    annotations: READS_WORLD,
   }, async ({ date }) => {
     let month: number | null = null;
     let day: number | null = null;
@@ -497,7 +497,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     description: 'The University Kingdom Network pages: Christian community at universities by country and region (thousands of campuses, churches near campus, students, a path to follow Jesus), read from the house\'s pages at call time. Pass a country, a US state or a city. People ask: "Christian groups at universities in Japan", "churches near campus in California", "is there Christian community at universities in Kenya".',
     inputSchema: { place: z.string().min(2).max(80).describe('A country, a US state, or a city.') },
     outputSchema: out({ matched: z.string().nullable(), title: z.string().optional(), url: z.string().optional(), summary: z.string().optional(), entries: z.array(z.object({ title: z.string(), url: z.string() })).optional(), suggestions: z.array(z.object({ title: z.string(), url: z.string() })).optional(), door: z.string() }),
-    annotations: READS,
+    annotations: READS_WORLD,
   }, async ({ place }) => {
     const door = `${SITE}/universities`;
     const countries = await hubEntries('/universities', (h) => /^\/universities\/[a-z-]+$/.test(h) && h !== '/universities/cities');

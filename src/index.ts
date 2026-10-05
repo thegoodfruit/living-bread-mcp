@@ -79,6 +79,13 @@ export default {
       (ctx as ExecutionContext & { props?: unknown }).props = me;
       return meHandler.fetch(request, env, ctx);
     }
+    // Some clients look for the authorization server's metadata on the resource host
+    // (RFC 8414 path-insensitive fallbacks). Mirror Supabase's document so a scan never dead-ends.
+    if (p === '/.well-known/oauth-authorization-server' || p.startsWith('/.well-known/oauth-authorization-server/') || p === '/.well-known/openid-configuration' || p.startsWith('/.well-known/openid-configuration/')) {
+      const upstream = await fetch(`${env.SUPABASE_URL}/.well-known/oauth-authorization-server/auth/v1`, { cf: { cacheTtl: 300 } } as RequestInit);
+      if (!upstream.ok) return text('{"error":"authorization server metadata unavailable"}', 'application/json; charset=utf-8', 502);
+      return text(await upstream.text(), 'application/json; charset=utf-8', 200, { 'cache-control': 'public, max-age=300' });
+    }
     if (p === '/.well-known/oauth-protected-resource' || p === '/.well-known/oauth-protected-resource/me' || p === '/.well-known/oauth-protected-resource/app') {
       return text(JSON.stringify(protectedResourceMetadata(env, p.endsWith('/app') ? '/app' : '/me'), null, 2), 'application/json; charset=utf-8', 200, { 'cache-control': 'public, max-age=3600' });
     }
