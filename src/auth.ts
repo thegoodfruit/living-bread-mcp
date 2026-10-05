@@ -66,9 +66,9 @@ export async function verifyBearer(env: Env, authorization: string | null): Prom
 }
 
 /** RFC 9728: where an assistant learns how to sign a believer in. */
-export function protectedResourceMetadata(env: Env) {
+export function protectedResourceMetadata(env: Env, path: string = ME_PATH) {
   return {
-    resource: ME_URL,
+    resource: path === APP_PATH ? ME_URL.replace(ME_PATH, APP_PATH) : ME_URL,
     authorization_servers: [issuer(env)],
     bearer_methods_supported: ['header'],
     scopes_supported: ['openid', 'email', 'profile', 'offline_access'],

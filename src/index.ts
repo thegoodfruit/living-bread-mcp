@@ -80,7 +80,7 @@ export default {
       return meHandler.fetch(request, env, ctx);
     }
     if (p === '/.well-known/oauth-protected-resource' || p === '/.well-known/oauth-protected-resource/me' || p === '/.well-known/oauth-protected-resource/app') {
-      return text(JSON.stringify(protectedResourceMetadata(env), null, 2), 'application/json; charset=utf-8', 200, { 'cache-control': 'public, max-age=3600' });
+      return text(JSON.stringify(protectedResourceMetadata(env, p.endsWith('/app') ? '/app' : '/me'), null, 2), 'application/json; charset=utf-8', 200, { 'cache-control': 'public, max-age=3600' });
     }
 
     if (p === '/') return text(landingHTML(), 'text/html; charset=utf-8', 200, { 'cache-control': 'public, max-age=3600' });
