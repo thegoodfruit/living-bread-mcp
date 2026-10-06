@@ -52,7 +52,8 @@ export const DOORS = {
   followJesus: `${SITE}/follow-jesus`,
   shepherdCare: `${SITE}/shepherd/care`,
   pastors: `${SITE}/pastors`,
-  prayerPlace: `${SITE}/prayer-place`,
+  /* Prayer in Place, around me. (/prayer-place alone answered 404 on the web host on 2026-10-06; only /prayer-place/<cell> exists.) */
+  prayerPlace: `${SITE}/place-prayers`,
 } as const;
 
 /** The honest state of recording, in one sentence. Version 1.3.7 is the first store build that carries the recorder. */

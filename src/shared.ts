@@ -27,6 +27,7 @@ import { z } from 'zod';
 
 import { SITE } from './doors';
 import { callStore, evidenceFor, sha256Hex, type CallContext } from './evidence';
+import { citeUs } from './citations';
 import { record } from './freshness';
 import { count } from './metrics';
 import { paragraph } from './render';
@@ -34,9 +35,24 @@ import { cleanDeep, REMOVED } from './sanitize';
 
 export type Structured = Record<string, unknown>;
 
-/* Every output schema is open (additional properties allowed) so attribution, license, the envelope and a
-   tool's extra facts never fail a strict client validator; the declared keys are the promise. */
-export const out = <T extends z.ZodRawShape>(shape: T) => z.looseObject(shape);
+/* Every output schema is open (additional properties allowed) so a tool's extra facts never fail a strict
+   client validator; the declared keys are the promise. The envelope `finish` adds to every successful answer
+   is declared (and described) here once, so every tool's output schema documents it; a tool's own keys win. */
+const ENVELOPE = {
+  ok: z.boolean().optional().describe('Always true on a successful answer (errors come back as isError, never here).'),
+  result_state: z.enum(['useful', 'empty']).optional().describe('"empty" when nothing matched (count 0, no results); the text then says so plainly.'),
+  ids: z.array(z.string()).optional().describe('Up to 25 ids found in this answer, for follow-up calls.'),
+  source_url: z.string().nullable().optional().describe('The first public web page this answer came from or points to.'),
+  freshness: z.looseObject({}).optional().describe('How current the answer is: kind (scheduled | recently_observed | verified_live | record), retrieved_at, available_now (true only when activity was verified live).'),
+  visibility: z.string().optional().describe('"public" for shared data, "yours" for the signed-in believer\'s own data.'),
+  next_actions: z.array(z.looseObject({ label: z.string(), url: z.string() })).optional().describe('Up to 4 links the person can open next.'),
+  evidence: z.looseObject({}).optional().describe('Present when Scripture was read: translation, canon, corpus version, attribution, and a SHA-256 per passage.'),
+  content_layers: z.looseObject({}).optional().describe('Which fields are Scripture and which are human interpretation or reflection.'),
+  content_flags: z.array(z.string()).optional().describe('["instruction_like_text_removed"] when retrieved text was withheld.'),
+  attribution: z.string().optional().describe('Credit line for the data: The Living Bread (living-bread.org).'),
+  license: z.string().optional().describe('License URL of the returned data (CC BY 4.0 unless stated).'),
+};
+export const out = <T extends z.ZodRawShape>(shape: T) => z.looseObject({ ...ENVELOPE, ...shape });
 
 export function ok(text: string, structured: Structured) {
   return { content: [{ type: 'text' as const, text }], structuredContent: structured };
@@ -213,8 +229,10 @@ async function remember(storage: DurableObjectStorage, name: string, input: Stru
 async function finish(r: AnyResult, ctx: CallContext, visibility: string): Promise<AnyResult> {
   const state = resultState(r);
   let flagged = false;
+  // Scripture this call read from the stored corpus is never altered by the cleaning (longest first)
+  const keep = [...new Set(ctx.readings.map((x) => x.text).filter((x) => x.length >= 8))].sort((a, b) => b.length - a.length);
   if (Array.isArray(r.content)) {
-    const c = cleanDeep(r.content);
+    const c = cleanDeep(r.content, 0, keep);
     r.content = c.value;
     flagged ||= c.flagged;
   }
@@ -222,7 +240,7 @@ async function finish(r: AnyResult, ctx: CallContext, visibility: string): Promi
     const evidence = await evidenceFor(ctx);
     const merged: Structured = { ...envelopeOf(r.structuredContent, visibility, state), ...r.structuredContent };
     if (evidence) merged.evidence = evidence;
-    const c = cleanDeep(merged);
+    const c = cleanDeep(merged, 0, keep);
     flagged ||= c.flagged;
     r.structuredContent = c.value;
     if (flagged) r.structuredContent.content_flags = ['instruction_like_text_removed'];
@@ -245,7 +263,10 @@ export function tool<OutputArgs extends ZodRawShapeCompat | AnySchema, InputArgs
   cb: ToolCallback<InputArgs>,
 ): RegisteredTool {
   const writes = config.annotations.readOnlyHint === false;
-  const full: ToolConfig<InputArgs, OutputArgs> & { annotations: ToolAnnotations } = { ...config, annotations: { title: config.title, ...config.annotations } };
+  /* One honest line on access and limits that annotations cannot carry, true for every tool on this endpoint. */
+  const profile = CONTEXTS.get(server.server)?.profile ?? 'public';
+  const access = profile === 'public' ? 'Access: no sign-in; shared limit of 300 requests a minute per IP.' : 'Access: this signed-in connection (OAuth bearer token), within the believer\'s own permissions; shared limit of 300 requests a minute per IP.';
+  const full: ToolConfig<InputArgs, OutputArgs> & { annotations: ToolAnnotations } = { ...config, description: `${config.description} ${access}`, annotations: { title: config.title, ...config.annotations } };
   if (writes && full.inputSchema && typeof full.inputSchema === 'object' && !isZodSchema(full.inputSchema) && !('idempotency_key' in (full.inputSchema as object))) {
     full.inputSchema = {
       ...(full.inputSchema as object),
@@ -270,6 +291,7 @@ export function tool<OutputArgs extends ZodRawShapeCompat | AnySchema, InputArgs
     }
     const visibility = String((full._meta as Structured | undefined)?.['living-bread/visibility'] ?? 'public');
     r = await finish(r, ctx, visibility);
+    if (visibility === 'public') await citeUs(name, r);
     if (writes && sctx?.storage) await remember(sctx.storage, name, input, r);
     if (sctx) {
       void count(sctx.env, client, ['call', resultState(r)], name);
@@ -308,4 +330,4 @@ export function page<T>(rows: readonly T[], cursor: string | undefined | null, s
   const items = rows.slice(offset, offset + size);
   return { items, next_cursor: offset + size < rows.length ? encodeCursor(offset + size, salt) : null, offset };
 }
-export const cursorInput = z.string().max(200).optional().describe('Opaque cursor from a previous answer\'s next_cursor, for the next page.');
+export const cursorInput = z.string().max(200).optional().describe('Opaque paging token: the next_cursor value from the previous answer of this same call. Omit for the first page.');

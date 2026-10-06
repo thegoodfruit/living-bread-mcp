@@ -74,13 +74,21 @@ export const PERSONAL_TOOL_SUMMARY: ReadonlyArray<[string, string]> = [
 ];
 
 export function registerPersonal(server: McpServer, env: Env, me: Believer): void {
-  const CONSENT = 'This tool acts as the signed-in believer and reads only what they could see in the app themselves.';
+  const CONSENT = 'Runs as the signed-in believer under their own access rules: it sees only what they see in the app.';
 
   tool(server, 'who_am_i', {
     title: 'Who am I on The Living Bread',
-    description: `The believer this connection acts for: their name, where they are, their church if they named one, and what is waiting for them (prayers over them not yet heard). ${CONSENT}`,
+    description: `Identify the signed-in believer this connection acts for: user id, name, city and country from their profile, the church they named, and how many prayers over them are not yet heard. Use when you need their name or place, or to confirm whose account this is. For today's full picture use my_day; for their circles and gatherings use my_family; to read the prayers themselves use prayers_waiting_for_me. Read-only; profile fields are null when not filled in. ${CONSENT}`,
     inputSchema: {},
-    outputSchema: out({ user_id: z.string(), name: z.string().nullable(), city: z.string().nullable(), country: z.string().nullable(), church_name: z.string().nullable(), prayers_waiting: z.number(), doors: z.record(z.string(), z.string()) }),
+    outputSchema: out({
+      user_id: z.string().describe('The believer\'s user id.'),
+      name: z.string().nullable().describe('Their name as on their profile.'),
+      city: z.string().nullable().describe('Profile city, or null.'),
+      country: z.string().nullable().describe('Profile country, or null.'),
+      church_name: z.string().nullable().describe('The church they named, or null.'),
+      prayers_waiting: z.number().describe('Prayers over them not yet heard (among the latest 40).'),
+      doors: z.record(z.string(), z.string()).describe('Links: prayers_for_me, pray_for_someone, today, my_family.'),
+    }),
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   }, async () => {
     const rows = await selectAs<Profile>(env, me, 'users', `id=eq.${me.userId}&select=name,city,country,church_name&limit=1`);
@@ -98,9 +106,15 @@ export function registerPersonal(server: McpServer, env: Env, me: Believer): voi
 
   tool(server, 'prayers_waiting_for_me', {
     title: 'Prayers prayed over me',
-    description: `The prayers, encouragement and blessings real people have prayed over this believer, newest first: who (or "someone in the family" when they chose not to be named), what kind, how long, their written words when they wrote any, and whether it has been heard. Each one has the exact door where the believer hears the voice; an assistant cannot play the audio itself. ${CONSENT}`,
-    inputSchema: { limit: z.number().int().min(1).max(40).default(12), only_unheard: z.boolean().default(false) },
-    outputSchema: out({ count: z.number(), prayers: z.array(z.looseObject({ id: z.string(), from: z.string(), kind: z.string(), seconds: z.number(), words: z.string().nullable(), heard: z.boolean(), amen: z.boolean(), when: z.string(), hear_url: z.string() })) }),
+    description: `List prayers, encouragement and blessings other people sent to the signed-in believer, newest first: sender (or "someone in the family" if anonymous), kind, voice length, written words if any, and whether heard or answered with Amen. Use for "has anyone prayed for me". Audio cannot be played here; each item has a hear_url for the app. Reading marks nothing as heard. For prayers the believer sent to others use prayers_i_offered; to answer one use say_amen with its id. count 0 when none. ${CONSENT}`,
+    inputSchema: {
+      limit: z.number().int().min(1).max(40).default(12).describe('Maximum prayers, 1 to 40 (default 12).'),
+      only_unheard: z.boolean().default(false).describe('true: only prayers not yet heard. Default false.'),
+    },
+    outputSchema: out({
+      count: z.number().describe('Prayers returned.'),
+      prayers: z.array(z.looseObject({ id: z.string(), from: z.string(), kind: z.string(), seconds: z.number(), words: z.string().nullable(), heard: z.boolean(), amen: z.boolean(), when: z.string(), hear_url: z.string() })).describe('Each: id (for say_amen), sender, kind (prayer, encouragement, forgiveness, blessing, thanks), voice seconds (0 if written), written words, heard, Amen said, delivered time, link to hear it.'),
+    }),
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     _meta: widgetMeta('prayer-card', 'Looking at the prayers over you', 'The prayers waiting for you'),
   }, async ({ limit, only_unheard }) => {
@@ -119,9 +133,12 @@ export function registerPersonal(server: McpServer, env: Env, me: Believer): voi
 
   tool(server, 'prayers_i_offered', {
     title: 'Prayers I gave',
-    description: `The prayers this believer prayed for others, newest first, each with its honest state: waiting for their morning, delivered, heard, they said Amen, they said thank you, or taken back. Never a count of how many were heard; a mirror, not a score. ${CONSENT}`,
-    inputSchema: { limit: z.number().int().min(1).max(40).default(12) },
-    outputSchema: out({ count: z.number(), prayers: z.array(z.looseObject({ id: z.string(), for: z.string(), kind: z.string(), seconds: z.number(), words: z.string().nullable(), state: z.string(), when: z.string() })) }),
+    description: `List the prayers and blessings the signed-in believer sent to others, newest first, each with its delivery state: waiting for the recipient's morning, delivered, heard, Amen, thank you, or taken back. Use for "did my prayer for Maria arrive". No totals or scores are computed. For prayers others sent to the believer use prayers_waiting_for_me; to send a new one use pray_for_someone. count 0 when none. ${CONSENT}`,
+    inputSchema: { limit: z.number().int().min(1).max(40).default(12).describe('Maximum prayers, 1 to 40 (default 12).') },
+    outputSchema: out({
+      count: z.number().describe('Prayers returned.'),
+      prayers: z.array(z.looseObject({ id: z.string(), for: z.string(), kind: z.string(), seconds: z.number(), words: z.string().nullable(), state: z.string(), when: z.string() })).describe('Each: id, recipient name, kind, voice seconds (0 if written), written words, state in plain words, scheduled delivery time.'),
+    }),
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   }, async ({ limit }) => {
     const r = await rpcAs(env, me, 'prayers_i_offered', { p_limit: limit });
@@ -134,9 +151,19 @@ export function registerPersonal(server: McpServer, env: Env, me: Believer): voi
 
   tool(server, 'say_amen', {
     title: 'Say Amen to a prayer over me',
-    description: `Answer a prayer somebody prayed over this believer with Amen, and optionally thank you, which the one who prayed will see. Use an id from prayers_waiting_for_me, and only when the believer asked to say Amen to that prayer. Confirm with the person first: call with confirmed false (or omitted) to get a restatement of exactly what will be said and to whom; call again with confirmed true once they have said yes. ${CONSENT}`,
-    inputSchema: { prayer_id: z.string().uuid(), thank_them: z.boolean().default(false), confirmed: z.boolean().default(false).describe('True only after the believer confirmed, in their own words, that they want this Amen said.') },
-    outputSchema: out({ prayer_id: z.string(), said: z.boolean(), thanked: z.boolean(), needs_confirmation: z.boolean().optional(), would: z.string().optional() }),
+    description: `Answer one prayer someone sent to the signed-in believer with Amen, and optionally thank you; the sender sees it. Use only when the believer asks to answer a specific prayer, with its id from prayers_waiting_for_me. Repeating it is harmless (idempotent). To send a new prayer use pray_for_someone instead. Two-step consent: without confirmed it writes nothing and returns the act in \`would\`; call again with confirmed true after the believer says yes. An idempotency_key is accepted. ${CONSENT}`,
+    inputSchema: {
+      prayer_id: z.string().uuid().describe('Prayer UUID from prayers_waiting_for_me.'),
+      thank_them: z.boolean().default(false).describe('true: also say thank you to the sender. Default false.'),
+      confirmed: z.boolean().default(false).describe('false (default): write nothing, return the restatement. true: only after the believer confirmed this Amen.'),
+    },
+    outputSchema: out({
+      prayer_id: z.string().describe('The prayer answered.'),
+      said: z.boolean().describe('true when Amen was recorded.'),
+      thanked: z.boolean().describe('true when thank you was recorded too.'),
+      needs_confirmation: z.boolean().optional().describe('true when nothing was written yet.'),
+      would: z.string().optional().describe('The exact act that will happen on confirmation.'),
+    }),
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   }, async ({ prayer_id, thank_them, confirmed }) => {
     if (!confirmed) {
@@ -150,9 +177,12 @@ export function registerPersonal(server: McpServer, env: Env, me: Believer): voi
 
   tool(server, 'my_walk', {
     title: 'My walk: what I said yes to',
-    description: `What this believer has said yes to Christ about, in their own words, with the verse they held and whether they have lived it yet. Never a streak, never a score. ${CONSENT}`,
-    inputSchema: { limit: z.number().int().min(1).max(40).default(10) },
-    outputSchema: out({ count: z.number(), entries: z.array(z.looseObject({ id: z.string(), words: z.string(), verse_ref: z.string().nullable(), state: z.string(), when: z.string(), lived_at: z.string().nullable(), reflection: z.string().nullable() })) }),
+    description: `List the signed-in believer's own yeses (commitments written with say_yes or in the app), newest first: their words, the verse reference they held, state, when it was lived, and their reflection. Use for "what did I say yes to". No streaks or scores. To write a new one use say_yes; for yeses others shared use family_saying_yes. count 0 when none. ${CONSENT}`,
+    inputSchema: { limit: z.number().int().min(1).max(40).default(10).describe('Maximum entries, 1 to 40 (default 10).') },
+    outputSchema: out({
+      count: z.number().describe('Entries returned.'),
+      entries: z.array(z.looseObject({ id: z.string(), words: z.string(), verse_ref: z.string().nullable(), state: z.string(), when: z.string(), lived_at: z.string().nullable(), reflection: z.string().nullable() })).describe('Each yes: id, words, verse reference, state, created time, lived time or null, the believer\'s reflection or null.'),
+    }),
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   }, async ({ limit }) => {
     const r = await rpcAs(env, me, 'my_walk', { p_limit: limit });
@@ -165,9 +195,12 @@ export function registerPersonal(server: McpServer, env: Env, me: Believer): voi
 
   tool(server, 'my_family', {
     title: 'My family in Christ',
-    description: `The circles and prayer groups this believer belongs to, and the next gatherings on their calendar (title, when in the group's time zone, host, how many are going, whether they said they are coming), each with the room to open. ${CONSENT}`,
-    inputSchema: { gatherings: z.number().int().min(0).max(20).default(6) },
-    outputSchema: out({ families: z.array(z.looseObject({ id: z.string(), name: z.string(), members: z.number(), i_lead: z.boolean(), url: z.string() })), gatherings: z.array(z.looseObject({ id: z.string(), title: z.string(), community: z.string().nullable(), when: z.string(), when_local: z.string(), host: z.string(), going: z.number(), i_am_going: z.boolean(), scripture_ref: z.string().nullable(), url: z.string() })) }),
+    description: `List the circles and prayer groups the signed-in believer belongs to, and the next non-cancelled gatherings of those groups (time in the group's own time zone, host, how many are going, whether the believer RSVPed). Use for "what groups am I in" or "when is my next prayer night"; gathering ids work with going_to_gathering. For groups they could join use communities_to_join; for their church's events use my_church. Both lists empty when they are in no circle. ${CONSENT}`,
+    inputSchema: { gatherings: z.number().int().min(0).max(20).default(6).describe('How many upcoming gatherings to include, 0 to 20 (default 6; 0 skips them).') },
+    outputSchema: out({
+      families: z.array(z.looseObject({ id: z.string(), name: z.string(), members: z.number(), i_lead: z.boolean(), url: z.string() })).describe('Their circles: id, name, member count, whether they lead it, link.'),
+      gatherings: z.array(z.looseObject({ id: z.string(), title: z.string(), community: z.string().nullable(), when: z.string(), when_local: z.string(), host: z.string(), going: z.number(), i_am_going: z.boolean(), scripture_ref: z.string().nullable(), url: z.string() })).describe('Upcoming gatherings: id, title, circle, start (ISO UTC and local), host, going count, their RSVP, verse reference, link.'),
+    }),
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   }, async ({ gatherings }) => {
     const [f, g] = await Promise.all([rpcAs(env, me, 'my_families'), gatherings ? rpcAs(env, me, 'my_group_gatherings', { p_limit: gatherings }) : Promise.resolve({ data: [], error: null })]);

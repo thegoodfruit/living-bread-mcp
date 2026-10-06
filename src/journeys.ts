@@ -103,18 +103,23 @@ const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? 
 export function registerJourneys(server: McpServer, env: Env, me: Believer | null): void {
   tool(server, 'journey_next_steps', {
     title: 'Next steps for a faith journey (six journeys, end to end)',
-    description: `Run one of six journeys end to end and get at most five real, well-matched next steps, each with why it fits, how fresh it is (scheduled, recently observed or verified live; never "available now" from an old time), and its door, plus ONE next step link into The Living Bread. Journeys: community_near_me (place), someone_to_pray_with_tonight (place optional), serve_this_weekend (place or country), new_to_christianity (place optional), prayer_group_in_my_language (language), understand_and_live_a_passage (passage). Empty results say so plainly and offer a real alternative. People ask: "find me a church community in Leeds", "is there anyone to pray with tonight", "where can I volunteer this Saturday", "I'm new to faith, where do I start", "a prayer group in Spanish", "help me understand Romans 12:1-2 and live it". Scripture in the answer is read from the stored text with an evidence label.`,
+    description: `Run one of six common multi-step requests in a single call and return at most five ranked results across sources (churches, communities, gatherings, people available, Serve needs, plans, Scripture), each with why it fits and a freshness label, plus one next-step link. Journeys and their key input: community_near_me (place), someone_to_pray_with_tonight (place optional), serve_this_weekend (place), new_to_christianity (place optional), prayer_group_in_my_language (language), understand_and_live_a_passage (passage). Use when the request matches a journey and the person wants a short curated answer; for full lists use the single-purpose tools (find_churches_near, find_gatherings_near, needs_near, scripture_context). Empty journeys return empty true with alternatives. Reads live data and steps_taken lists every source consulted.`,
     inputSchema: {
-      journey: z.enum(JOURNEY_NAMES as [JourneyName, ...JourneyName[]]).describe('Which journey.'),
-      place: z.string().max(120).optional().describe('A city, region or country, as the person says it. Never an address.'),
-      language: z.string().max(40).optional().describe('For prayer_group_in_my_language: a language name or ISO code ("Spanish", "es", "Korean").'),
-      passage: z.string().max(80).optional().describe('For understand_and_live_a_passage: a Bible reference, e.g. "Romans 12:1-2".'),
+      journey: z.enum(JOURNEY_NAMES as [JourneyName, ...JourneyName[]]).describe('Which journey to run: community_near_me, someone_to_pray_with_tonight, serve_this_weekend, new_to_christianity, prayer_group_in_my_language, understand_and_live_a_passage.'),
+      place: z.string().max(120).optional().describe('City, region or country as the person says it ("Leeds", "Kenya"); never a street address. Used by the place-based journeys.'),
+      language: z.string().max(40).optional().describe('For prayer_group_in_my_language: language name or ISO 639-1 code ("Spanish", "es", "Korean").'),
+      passage: z.string().max(80).optional().describe('For understand_and_live_a_passage: a Bible reference ("Romans 12:1-2").'),
     },
     outputSchema: out({
-      journey: z.string(), title: z.string(), count: z.number(), empty: z.boolean(),
-      results: z.array(z.looseObject({ id: z.string(), kind: z.string(), title: z.string(), why: z.string(), source_url: z.string() })),
-      honest: z.string().nullable(), alternatives: z.array(z.looseObject({ label: z.string(), url: z.string() })),
-      next_step: z.looseObject({ label: z.string(), url: z.string() }), steps_taken: z.array(z.string()),
+      journey: z.string().describe('The journey run.'),
+      title: z.string().describe('Human title of the journey.'),
+      count: z.number().describe('Results returned, at most 5.'),
+      empty: z.boolean().describe('True when nothing fitting was found.'),
+      results: z.array(z.looseObject({ id: z.string(), kind: z.string(), title: z.string(), why: z.string(), source_url: z.string() })).describe('Ranked results: id, kind (church, community, gathering, people, need, reading_plan, scripture, page, door, act), title, why it fits, and source URL; each also carries freshness.'),
+      honest: z.string().nullable().describe('When empty or thin, a plain statement of what is missing; else null.'),
+      alternatives: z.array(z.looseObject({ label: z.string(), url: z.string() })).describe('Other links to try when results are thin.'),
+      next_step: z.looseObject({ label: z.string(), url: z.string() }).describe('The single recommended next link; give it exactly as returned.'),
+      steps_taken: z.array(z.string()).describe('The sources consulted, in order.'),
     }),
     annotations: READS_WORLD,
   }, async ({ journey, place, language, passage }) => {

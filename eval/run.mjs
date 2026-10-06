@@ -25,6 +25,8 @@ const argv = process.argv.slice(2);
 const base = (argv.find((a) => /^https?:\/\//.test(a)) ?? 'https://mcp.living-bread.org').replace(/\/$/, '');
 const label = argv.includes('--label') ? argv[argv.indexOf('--label') + 1] : /127\.0\.0\.1|localhost/.test(base) ? 'local' : 'production';
 const only = argv.includes('--only') ? argv[argv.indexOf('--only') + 1] : null;
+/* The discover worker (NLWeb /ask, /api/verify): --knowledge <url>, default production. */
+const knowledge = (argv.includes('--knowledge') ? argv[argv.indexOf('--knowledge') + 1] : 'https://discover.living-bread.org').replace(/\/$/, '');
 
 /* ---- the stored corpus, read here exactly as the server reads it ------------------------------ */
 const BOOKS_DIR = path.join(ROOT, 'assets', 'bible', 'books');
@@ -52,6 +54,29 @@ function refText(ref) {
   return corpusText(id, Number(m[2]), m[3] ? Number(m[3]) : undefined, m[4] ? Number(m[4]) : undefined);
 }
 const sha = (s) => createHash('sha256').update(s, 'utf8').digest('hex');
+/* Arguments that carry Scripture are never typed into a case: { "$corpus": { book, chapter, from, to },
+   "$replace": [word, other] } is read from the stored corpus here, and optionally altered by one word. */
+function derive(v) {
+  if (Array.isArray(v)) return v.map(derive);
+  if (!v || typeof v !== 'object') return v;
+  if (v.$corpus) {
+    let t = corpusText(v.$corpus.book, v.$corpus.chapter, v.$corpus.from, v.$corpus.to);
+    if (t && Array.isArray(v.$replace)) t = t.replace(new RegExp(`\\b${v.$replace[0]}\\b`), v.$replace[1]);
+    return t;
+  }
+  return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, derive(x)]));
+}
+
+/* ---- the shelf of translations (assets/bible/shelf/t/<id>/<book>.json), read as the server reads it ---- */
+const SHELF_DIR = path.join(ROOT, 'assets', 'bible', 'shelf', 't');
+function shelfText(id, book, chapter, from, to) {
+  const f = path.join(SHELF_DIR, id, `${book}.json`);
+  if (!existsSync(f)) return null;
+  const ch = JSON.parse(readFileSync(f, 'utf8')).c?.[chapter - 1];
+  if (!ch) return null;
+  const vs = ch.slice(from - 1, to ?? from).filter((x) => typeof x === 'string' && x.trim()).map((x) => x.trim());
+  return vs.length ? vs.join(' ').replace(/[,;:]\s*$/, '') : null;
+}
 
 /* ---- sessions ------------------------------------------------------------------------------------ */
 function envFile() {
@@ -159,6 +184,22 @@ async function runChecks(c, r, cs, tools) {
         for (const u of urls) { const s = await status200(u); if (s !== 200) f(`${u} answered ${s}`); }
         break;
       }
+      case 'source200': {
+        const u = r.structuredContent?.source_url;
+        if (typeof u !== 'string' || !/^https:\/\/(discover\.)?living-bread\.org(\/|$|\?)/.test(u)) { f(`source_url ${u} is not a page of ours`); break; }
+        const st = await status200(u); if (st !== 200) f(`source_url ${u} answered ${st}`);
+        break;
+      }
+      case 'tcorpus': { const want = shelfText(v.id, v.book, v.chapter, v.from, v.to); if (!want || val !== want) f(`${p} differs from the stored ${v.id} text`); break; }
+      case 'url200': { const s = typeof val === 'string' ? await status200(val) : 0; if (s !== 200) f(`${p} (${val}) answered ${s}`); break; }
+      case 'stableHash': {
+        const cl = await client(cs.endpoint);
+        const r2 = await cl.callTool({ name: cs.tool, arguments: derive(cs.args) });
+        const a = r.structuredContent?.evidence; const b = r2.structuredContent?.evidence;
+        if (!a?.content_hash || a.content_hash !== b?.content_hash) f('content_hash differs between two runs');
+        if (JSON.stringify(a?.corpus_version) !== JSON.stringify(b?.corpus_version)) f('corpus_version differs between two runs');
+        break;
+      }
       case 'noField': if ((val ?? []).some((x) => x && p && v in x)) f(`a row carries ${v}`); break;
       case 'allLte': if ((val ?? []).some((x) => x?.[v] != null && x[v] > c.checks.find((k) => k[0] === 'allLte')[3])) f(`a row has ${v} beyond the bound`); break;
       case 'everyField': if ((val ?? []).some((x) => !x?.[v])) f(`a row lacks ${v}`); break;
@@ -168,7 +209,7 @@ async function runChecks(c, r, cs, tools) {
       case 'noDash': if (/[\u2013\u2014]/.test(r.content?.map((x) => x.text).join(' ') ?? '')) f('a dash reached the text'); break;
       case 'paginates': {
         const cl = await client(cs.endpoint);
-        const r2 = await cl.callTool({ name: cs.tool, arguments: { ...cs.args, cursor: r.structuredContent?.next_cursor } });
+        const r2 = await cl.callTool({ name: cs.tool, arguments: { ...derive(cs.args), cursor: r.structuredContent?.next_cursor } });
         if (r2.structuredContent?.results?.[0]?.ref === r.structuredContent?.results?.[0]?.ref) f('the next page repeats the first');
         break;
       }
@@ -200,11 +241,30 @@ async function runHttp(cs) {
   const fails = [];
   const init = { method: cs.method, headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream' } };
   if (cs.method === 'POST') init.body = JSON.stringify(cs.body ?? {});
-  const r = await fetch(base + cs.path, init);
+  const r = await fetch((cs.host === 'knowledge' ? knowledge : base) + cs.path, init);
   const body = await r.text();
+  let j = null; try { j = JSON.parse(body); } catch { /* not JSON */ }
+  const at = (p) => { let x = j; for (const k of String(p).split('.')) { if (x === undefined || x === null) return undefined; x = x[k]; } return x; };
   for (const [op, a, b] of cs.checks) {
     if (op === 'status' && r.status !== a) fails.push(`status ${r.status}, wanted ${a}`);
-    if (op === 'jsonPath') { let j = null; try { j = JSON.parse(body); } catch { /* */ } if (j?.[a] !== b) fails.push(`${a} = ${j?.[a]}`); }
+    if (op === 'jsonPath' && at(a) !== b) fails.push(`${a} = ${JSON.stringify(at(a))}`);
+    if (op === 'contentType' && !new RegExp(a, 'i').test(r.headers.get('content-type') ?? '')) fails.push(`content-type ${r.headers.get('content-type')}`);
+    if (op === 'gteLen' && !((at(a)?.length ?? 0) >= b)) fails.push(`${a} has ${at(a)?.length ?? 0}, wanted >= ${b}`);
+    /* NLWeb: every result carries url, name, site, score and a schema.org JSON-LD schema_object */
+    if (op === 'nlwebJsonLd') {
+      const rs = j?.results;
+      if (!Array.isArray(rs) || !rs.length) fails.push('no results');
+      else for (const x of rs) { const o = x.schema_object; const one = Array.isArray(o) ? o[0] : o; if (!x.url || !x.name || !x.site || typeof x.score !== 'number' || !one || one['@context'] !== 'https://schema.org' || !one['@type']) { fails.push(`result ${x.name ?? '?'} is not NLWeb JSON-LD`); break; } }
+    }
+    /* A2A 1.0 AgentCard: the REQUIRED fields of specification/a2a.proto (test/a2a.mjs validates the whole schema) */
+    if (op === 'agentCard') {
+      const req = ['name', 'description', 'supportedInterfaces', 'version', 'capabilities', 'defaultInputModes', 'defaultOutputModes', 'skills'];
+      const miss = req.filter((k) => j?.[k] === undefined);
+      if (miss.length) fails.push(`card lacks ${miss.join(', ')}`);
+      if (!(j?.supportedInterfaces ?? []).every((i) => i.url && i.protocolBinding && i.protocolVersion)) fails.push('an interface lacks url, protocolBinding or protocolVersion');
+      if (!(j?.skills ?? []).every((k) => k.id && k.name && k.description && Array.isArray(k.tags))) fails.push('a skill lacks id, name, description or tags');
+    }
+    if (op === 'status200Of') { const u = at(a); const st = typeof u === 'string' ? await status200(u) : 0; if (st !== 200) fails.push(`${a} ${u} answered ${st}`); }
   }
   return fails;
 }
@@ -238,6 +298,21 @@ async function runLocal(cs) {
     for (const [id, b] of books) b.c.forEach((ch, ci) => ch.forEach((t, vi) => { n++; if (clean(t).text !== t) hit.push(`${id} ${ci + 1}:${vi + 1}`); }));
     return hit.length ? [`${hit.length} of ${n} verses would be altered: ${hit.slice(0, 5).join(', ')}`] : [];
   }
+  if (cs.check === 'shelfUntouched') {
+    // every verse of every stored translation, quoted in a sentence the way a tool quotes it, leaves the
+    // cleaning exactly as read (src/sanitize.ts cleanExcept, as src/shared.ts applies it)
+    const { cleanExcept } = await import('../src/sanitize.ts');
+    const clean = (t) => { const line = `X 1:1 (T): "${t}" Keep reading.`; const c = cleanExcept(line, [t]); return { text: c.text === line ? t : c.text }; };
+    let n = 0;
+    const hit = [];
+    for (const id of readdirSync(SHELF_DIR)) {
+      for (const f of readdirSync(path.join(SHELF_DIR, id)).filter((x) => x.endsWith('.json'))) {
+        const b = JSON.parse(readFileSync(path.join(SHELF_DIR, id, f), 'utf8'));
+        b.c.forEach((ch, ci) => ch.forEach((t, vi) => { if (typeof t !== 'string' || !t) return; n++; if (clean(t.trim()).text !== t.trim()) hit.push(`${id}/${f.replace('.json', '')} ${ci + 1}:${vi + 1}`); }));
+      }
+    }
+    return hit.length ? [`${hit.length} of ${n} verses would be altered: ${hit.slice(0, 5).join(', ')}`] : [];
+  }
   return [`unknown local check ${cs.check}`];
 }
 
@@ -258,7 +333,7 @@ for (const cs of cases) {
     else {
       const cl = await client(cs.endpoint);
       serverVersion ??= cl.getServerVersion()?.version;
-      const r = await cl.callTool({ name: cs.tool, arguments: cs.args });
+      const r = await cl.callTool({ name: cs.tool, arguments: derive(cs.args) });
       fails = await runChecks(cs, r, cs);
     }
   } catch (e) {

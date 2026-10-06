@@ -25,6 +25,8 @@ import { registerJourneyPrompts, registerJourneys } from './journeys';
 import { registerPresence } from './presence';
 import { asYours, bindServer } from './shared';
 import { registerWord } from './word';
+import { registerExcellence } from './excellence';
+import { registerShelf } from './shelf';
 
 /** Tools the ChatGPT app profile never registers: care access, crisis services and every write. */
 const APP_DENY = new Set(['crisis_resources', 'someone_to_talk_to', 'who_is_available_now', 'find_help_for_my_need', 'say_amen', 'pray_for_someone', 'speak_a_blessing', 'bring_what_i_carry', 'say_yes', 'going_to_gathering', 'set_a_table', 'offer_to_serve', 'shepherd_doors', 'who_has_gone_quiet', 'my_congregation']);
@@ -71,6 +73,8 @@ export class LivingBreadMCP extends McpAgent<Env, Record<string, never>, Partial
     registerMore(server, this.env, me);
     registerProtocol(server, this.env);
     registerWord(server, this.env);
+    registerExcellence(server, this.env);
+    registerShelf(server, this.env);
     registerJourneys(server, this.env, app ? null : me);
     registerWidgets(server);
     registerTemplates(server, this.env);

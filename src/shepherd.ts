@@ -47,16 +47,17 @@ interface Briefing { flock?: number; quiet_count?: number; quiet_names?: string[
 const KIND_WORD: Record<string, string> = { pray: 'asked to pray with you now', online: 'asked to meet online', nearby: 'asked to meet in person' };
 
 export function registerShepherd(server: McpServer, env: Env, me: Believer, pastor: PastorPage): void {
-  const SHEPHERD = 'Registered only because the app recognises this believer as a shepherd; it reads what their own Shepherd Console shows them, nothing more.';
+  const SHEPHERD = 'Exists only for a believer the app recognises as a pastor; read-only, showing exactly what their Shepherd Console shows.';
 
   tool(server, 'my_congregation', {
     title: 'My congregation: who asked, and what they are praying',
-    description: `For a shepherd: the people who asked to pray with them, meet online or meet nearby (their open care requests, newest first, with the note each person left) and the prayer requests their church shares with its members (the church layer of the prayer wall). Pastors ask: "who asked to meet me this week", "what is my church praying for", "did anyone ask for prayer today". ${SHEPHERD}`,
-    inputSchema: { limit: z.number().int().min(1).max(40).default(12) },
+    description: `List, for a pastor, the open care requests addressed to them (people asking to pray now, meet online or meet in person, with each person's note and preferred time) and the prayer requests their church shares with members. Use for "who asked to meet me this week" or "what is my church praying for". Accepting or answering happens in the console link, not here. For members who have stopped coming use who_has_gone_quiet; for the pastor's own room links use shepherd_doors. church_prayers is empty when no church is set in their console. ${SHEPHERD}`,
+    inputSchema: { limit: z.number().int().min(1).max(40).default(12).describe('Maximum items per list, 1 to 40 (default 12).') },
     outputSchema: out({
-      requests: z.array(z.looseObject({ id: z.string(), from: z.string(), kind: z.string(), note: z.string().nullable(), status: z.string(), preferred_at: z.string().nullable(), when: z.string() })),
-      church_prayers: z.array(z.looseObject({ id: z.string(), from: z.string(), title: z.string().nullable(), body: z.string(), urgent: z.boolean(), prayed: z.number(), when: z.string() })),
-      church_id: z.string().nullable(), door: z.string(),
+      requests: z.array(z.looseObject({ id: z.string(), from: z.string(), kind: z.string(), note: z.string().nullable(), status: z.string(), preferred_at: z.string().nullable(), when: z.string() })).describe('Open care requests, newest first: id, first name, kind (pray, online, nearby), note, status (requested or accepted), preferred time, created time.'),
+      church_prayers: z.array(z.looseObject({ id: z.string(), from: z.string(), title: z.string().nullable(), body: z.string(), urgent: z.boolean(), prayed: z.number(), when: z.string() })).describe('Church prayer requests: first name or "someone in the church", title, text, urgency, how many prayed, posted time.'),
+      church_id: z.string().nullable().describe('The church set in their console, or null.'),
+      door: z.string().describe('Link to the Shepherd Console.'),
     }),
     annotations: READS,
   }, async ({ limit }) => {
@@ -78,9 +79,19 @@ export function registerShepherd(server: McpServer, env: Env, me: Believer, past
 
   tool(server, 'shepherd_doors', {
     title: 'My three doors',
-    description: `For a shepherd: their three doors on The Living Bread with the exact routes. Pray with someone now opens their live voice prayer room; Meet online opens their video room; Meet nearby is answered from the requests in their console (kind nearby, with the seeker's preferred time). Also their public page and whether it is on and available. ${SHEPHERD}`,
+    description: `Return a pastor's own links and page status: their live voice prayer room, their video room, where in-person meeting requests wait, their public pastor page, and whether that page is on, marked available, and verified. Use for "what is my prayer room link" or "is my page on". Changes nothing (availability is toggled in the console). For the people who asked to meet them use my_congregation. ${SHEPHERD}`,
     inputSchema: {},
-    outputSchema: out({ pray_now: z.string(), meet_online: z.string(), meet_nearby: z.string(), public_page: z.string(), console: z.string(), page_on: z.boolean(), available: z.boolean(), verified: z.boolean(), role: z.string().nullable() }),
+    outputSchema: out({
+      pray_now: z.string().describe('Their live voice prayer room.'),
+      meet_online: z.string().describe('Their video room.'),
+      meet_nearby: z.string().describe('Console page where in-person requests wait.'),
+      public_page: z.string().describe('Their public pastor page.'),
+      console: z.string().describe('The Shepherd Console.'),
+      page_on: z.boolean().describe('Whether the public page is on.'),
+      available: z.boolean().describe('Whether they marked themselves available.'),
+      verified: z.boolean().describe('Whether The Living Bread verified them.'),
+      role: z.string().nullable().describe('Their stated role, e.g. Pastor, Priest, or null.'),
+    }),
     annotations: READS,
   }, async () => {
     const doors = { pray_now: `${SITE}/rooms/pastor-${me.userId}`, meet_online: `${SITE}/video/pastor-video-${me.userId}`, meet_nearby: DOORS.shepherdCare, public_page: `${SITE}/pastor/${me.userId}`, console: DOORS.shepherdCare };
@@ -95,9 +106,19 @@ export function registerShepherd(server: McpServer, env: Env, me: Believer, past
 
   tool(server, 'who_has_gone_quiet', {
     title: 'Who has gone quiet (the Pattern Shepherd)',
-    description: `For a shepherd of a church on The Living Bread: the Pattern Shepherd's weekly briefing (the Shepherd Console's own function), which names, by first name only, members who consented to shepherd signals and have not been seen in three weeks, the newest members still finding the door, and the week's prayer count; nothing about why anyone is away, and nothing private. Only the church's own admins may read it; the function refuses everyone else and this tool passes that on. Pastors ask: "who has gone quiet", "who have I not seen lately", "who joined this fortnight". ${SHEPHERD}`,
+    description: `Read a pastor's weekly church briefing: first names of members who consented to shepherd signals and have not been seen in three weeks, the newest members, the member count, and prayer counts this week and last. Nothing about why anyone is away, nothing private. Only the church's own admins may read it; others get the refusal as an error. Use for "who has gone quiet" or "who joined recently". For open care requests use my_congregation. Returns church_id null when no church is set in their console. ${SHEPHERD}`,
     inputSchema: {},
-    outputSchema: out({ church_id: z.string().nullable(), flock: z.number().optional(), quiet_count: z.number().optional(), quiet_names: z.array(z.string()).optional(), new_count: z.number().optional(), new_names: z.array(z.string()).optional(), prayers_this_week: z.number().optional(), prayers_prior_week: z.number().optional(), door: z.string() }),
+    outputSchema: out({
+      church_id: z.string().nullable().describe('The church read, or null when none is set.'),
+      flock: z.number().optional().describe('Member count.'),
+      quiet_count: z.number().optional().describe('Consenting members not seen in three weeks.'),
+      quiet_names: z.array(z.string()).optional().describe('Their first names.'),
+      new_count: z.number().optional().describe('Newest members.'),
+      new_names: z.array(z.string()).optional().describe('Their first names.'),
+      prayers_this_week: z.number().optional().describe('Prayers in the church this week.'),
+      prayers_prior_week: z.number().optional().describe('Prayers the week before.'),
+      door: z.string().describe('Link to the Shepherd Console.'),
+    }),
     annotations: READS,
   }, async () => {
     if (!pastor.church_id) return ok(paragraph(['They have not named their church in the Shepherd Console, so there is no congregation to read', `Set it at ${DOORS.shepherdCare}, and bring the church onto the platform at ${SITE}/churches`]), { church_id: null, door: DOORS.shepherdCare });

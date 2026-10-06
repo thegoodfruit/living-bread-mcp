@@ -1,0 +1,26 @@
+{
+  "name": "The Living Bread",
+  "description": "Meet Christ. Meet your family in Christ. Scripture read from a stored text (never from memory), checks for misquoted verses, real churches and gatherings near you, and real believers who pray for you by name. Free, no ads.",
+  "instructions_file": "instructions.md",
+  "conversation_starters": [
+    "Is this really in the Bible: \"God helps those who help themselves\"?",
+    "Read me Psalm 23",
+    "I need someone to pray for me",
+    "Find a church near me in Nairobi"
+  ],
+  "capabilities": {
+    "web_browsing": false,
+    "image_generation": false,
+    "code_interpreter": false
+  },
+  "actions": [
+    {
+      "schema_file": "openapi.json",
+      "authentication": "none",
+      "privacy_policy_url": "https://living-bread.org/privacy"
+    }
+  ],
+  "profile_image": "https://living-bread.org/logo.png",
+  "website": "https://living-bread.org",
+  "support": "https://living-bread.org/support"
+}

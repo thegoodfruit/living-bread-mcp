@@ -29,7 +29,8 @@ for (const want of ['scripture_passage', 'verses_for', 'daily_bread', 'ask_livin
   'the_gospel', 'christianity_and_other_faiths', 'crisis_resources', 'tables_live_now', 'prayers_left_near', 'needs_near', 'body_today', 'worship_now',
   'a_prayer_for', 'what_the_bible_says_about', 'parable', 'miracle', 'teaching_of_jesus', 'belief', 'hymn', 'name_meaning', 'faith_in_a_hard_season', 'saint_of_the_day',
   'denomination_compare', 'events_this_week', 'kingdom_map', 'testimonies', 'universities', 'reading_plans',
-  'gatherings_tonight', 'where_can_i_serve_publicly', 'kingdom_protocol_lookup', 'scripture_context', 'scripture_search', 'cross_references', 'journey_next_steps']) {
+  'gatherings_tonight', 'where_can_i_serve_publicly', 'kingdom_protocol_lookup', 'scripture_context', 'scripture_search', 'cross_references', 'journey_next_steps', 'verify_scripture_quote', 'real_people_will_pray',
+  'list_translations', 'compare_translations', 'original_words']) {
   check(`tool ${want} listed`, names.includes(want));
 }
 // the Anthropic directory checker reads annotations.title; every tool carries it, and an explicit destructiveHint
@@ -121,6 +122,16 @@ const calls = [
   ['find_gatherings_near', { online: true, days: 60, limit: 2 }, (r) => (r.structuredContent?.gatherings ?? []).every((g) => g.freshness?.kind === 'scheduled' && g.freshness.available_now === false)],
   ['communities_to_join', { limit: 1 }, (r) => r.structuredContent?.count <= 1 && 'next_cursor' in (r.structuredContent ?? {})],
   ['scripture_passage', { reference: 'Nothing 99:1' }, (r) => r.isError === true && JSON.parse(r.content?.[1]?.text ?? '{}').reason === 'unparsed_reference' && r._meta?.['living-bread/error']?.ok === false],
+  // 2026-10-06: verification and the human door. The quote is the stored text the first scripture_passage call returned, never typed here.
+  ['verify_scripture_quote', (ex) => ({ quote: ex.scripture_passage.structured.text, reference: 'John 3:16' }), (r) => r.structuredContent?.verdict === 'verbatim' && r.structuredContent?.best_match?.ref === 'John 3:16' && /^[0-9a-f]{64}$/.test(r.structuredContent?.best_match?.verses?.[0]?.sha256 ?? '') && r.structuredContent?.claimed_check?.match === 'verbatim'],
+  ['verify_scripture_quote', (ex) => ({ quote: ex.scripture_passage.structured.text.replace(/\beverlasting\b/, 'eternal') }), (r) => r.structuredContent?.verdict === 'close_but_differs' && r.structuredContent?.best_match?.diff?.some((d) => d.op === 'changed' && d.quoted === 'eternal')],
+  ['verify_scripture_quote', { quote: 'God helps those who help themselves' }, (r) => r.structuredContent?.verdict === 'not_found' && /not found in any held translation/.test(r.structuredContent?.not_found ?? '') && r.structuredContent?.best_match === null],
+  ['real_people_will_pray', {}, (r) => r.structuredContent?.this_tool_prays === false && r.structuredContent?.door === 'https://living-bread.org/i-need-prayer' && (r.structuredContent?.prayed_last_24h === null || typeof r.structuredContent?.prayed_last_24h?.people === 'number')],
+  // The shelf of translations: what is held, one verse side by side, and the original words.
+  ['list_translations', {}, (r) => !r.isError && (r.structuredContent?.count ?? 0) > 50 && r.structuredContent?.translations?.[0]?.id === 'kjv'],
+  ['compare_translations', { reference: 'John 1:1', translations: ['kjv', 'bsb', 'rv1909'] }, (r) => !r.isError && (r.structuredContent?.count ?? 0) >= 3 && r.structuredContent?.rows?.some((x) => x.translation_id === 'byz' && x.text)],
+  ['original_words', { reference: 'Genesis 1:1' }, (r) => !r.isError && r.structuredContent?.language === 'Biblical Hebrew' && r.structuredContent?.verses?.[0]?.words?.some((w) => w.strong === 'H1254')],
+  ['scripture_passage', { reference: 'John 3:16', language: 'es' }, (r) => !r.isError && r.structuredContent?.translation !== 'KJV' && typeof r.structuredContent?.translation_name === 'string'],
 ];
 
 const examples = {};

@@ -1,10 +1,10 @@
 {
  "label": "local",
- "base": "http://127.0.0.1:8791",
+ "base": "http://localhost:8797",
  "server_version": "1.2.0",
- "ran_at": "2026-10-05T11:10:49.951Z",
- "total": 71,
- "passed": 71,
+ "ran_at": "2026-10-06T12:27:47.306Z",
+ "total": 106,
+ "passed": 106,
  "results": [
   {
    "id": "scr-01",
@@ -12,7 +12,7 @@
    "tool": "scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 1570
+   "ms": 5222
   },
   {
    "id": "scr-02",
@@ -20,7 +20,7 @@
    "tool": "scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 109
+   "ms": 216
   },
   {
    "id": "scr-03",
@@ -28,7 +28,7 @@
    "tool": "scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 80
+   "ms": 242
   },
   {
    "id": "scr-04",
@@ -36,7 +36,7 @@
    "tool": "scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 154
+   "ms": 166
   },
   {
    "id": "scr-05",
@@ -44,7 +44,7 @@
    "tool": "scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 77
+   "ms": 142
   },
   {
    "id": "scr-06",
@@ -52,7 +52,7 @@
    "tool": "scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 84
+   "ms": 401
   },
   {
    "id": "scr-07",
@@ -60,7 +60,7 @@
    "tool": "scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 502
+   "ms": 245
   },
   {
    "id": "scr-08",
@@ -68,7 +68,7 @@
    "tool": "scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 907
+   "ms": 181
   },
   {
    "id": "scr-09",
@@ -76,7 +76,7 @@
    "tool": "scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 189
+   "ms": 130
   },
   {
    "id": "scr-10",
@@ -84,7 +84,7 @@
    "tool": "scripture_context",
    "pass": true,
    "fails": [],
-   "ms": 330
+   "ms": 129
   },
   {
    "id": "scr-11",
@@ -92,7 +92,7 @@
    "tool": "scripture_search",
    "pass": true,
    "fails": [],
-   "ms": 1418
+   "ms": 1546
   },
   {
    "id": "scr-12",
@@ -100,7 +100,7 @@
    "tool": "cross_references",
    "pass": true,
    "fails": [],
-   "ms": 261
+   "ms": 1135
   },
   {
    "id": "scr-13",
@@ -108,7 +108,7 @@
    "tool": "daily_bread",
    "pass": true,
    "fails": [],
-   "ms": 79
+   "ms": 257
   },
   {
    "id": "scr-14",
@@ -116,7 +116,7 @@
    "tool": "verses_for",
    "pass": true,
    "fails": [],
-   "ms": 261
+   "ms": 529
   },
   {
    "id": "ev-01",
@@ -124,7 +124,7 @@
    "tool": "scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 138
+   "ms": 232
   },
   {
    "id": "ev-02",
@@ -132,7 +132,7 @@
    "tool": "verses_for",
    "pass": true,
    "fails": [],
-   "ms": 67
+   "ms": 227
   },
   {
    "id": "ev-03",
@@ -140,7 +140,7 @@
    "tool": "the_gospel",
    "pass": true,
    "fails": [],
-   "ms": 78
+   "ms": 359
   },
   {
    "id": "ev-04",
@@ -148,7 +148,7 @@
    "tool": "cross_references",
    "pass": true,
    "fails": [],
-   "ms": 1829
+   "ms": 390
   },
   {
    "id": "ev-05",
@@ -156,7 +156,7 @@
    "tool": "find_churches_near",
    "pass": true,
    "fails": [],
-   "ms": 1024
+   "ms": 810
   },
   {
    "id": "int-01",
@@ -164,7 +164,7 @@
    "tool": "verses_for",
    "pass": true,
    "fails": [],
-   "ms": 155
+   "ms": 123
   },
   {
    "id": "int-02",
@@ -172,7 +172,7 @@
    "tool": "the_gospel",
    "pass": true,
    "fails": [],
-   "ms": 127
+   "ms": 86
   },
   {
    "id": "int-03",
@@ -180,7 +180,7 @@
    "tool": "what_the_bible_says_about",
    "pass": true,
    "fails": [],
-   "ms": 92
+   "ms": 135
   },
   {
    "id": "int-04",
@@ -188,7 +188,7 @@
    "tool": "cross_references",
    "pass": true,
    "fails": [],
-   "ms": 90
+   "ms": 100
   },
   {
    "id": "int-05",
@@ -196,7 +196,7 @@
    "tool": "ask_living_bread",
    "pass": true,
    "fails": [],
-   "ms": 3158
+   "ms": 1770
   },
   {
    "id": "int-06",
@@ -204,7 +204,7 @@
    "tool": "scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 173
+   "ms": 181
   },
   {
    "id": "geo-01",
@@ -212,7 +212,7 @@
    "tool": "find_churches_near",
    "pass": true,
    "fails": [],
-   "ms": 392
+   "ms": 383
   },
   {
    "id": "geo-02",
@@ -220,7 +220,7 @@
    "tool": "find_churches_near",
    "pass": true,
    "fails": [],
-   "ms": 264
+   "ms": 423
   },
   {
    "id": "geo-03",
@@ -228,7 +228,7 @@
    "tool": "find_churches_near",
    "pass": true,
    "fails": [],
-   "ms": 1112
+   "ms": 326
   },
   {
    "id": "geo-04",
@@ -236,7 +236,7 @@
    "tool": "find_gatherings_near",
    "pass": true,
    "fails": [],
-   "ms": 466
+   "ms": 1191
   },
   {
    "id": "geo-05",
@@ -244,7 +244,7 @@
    "tool": "journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 603
+   "ms": 1442
   },
   {
    "id": "geo-06",
@@ -252,7 +252,7 @@
    "tool": "needs_near",
    "pass": true,
    "fails": [],
-   "ms": 672
+   "ms": 430
   },
   {
    "id": "ml-01",
@@ -260,7 +260,7 @@
    "tool": "journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 277
+   "ms": 350
   },
   {
    "id": "ml-02",
@@ -268,7 +268,7 @@
    "tool": "journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 254
+   "ms": 335
   },
   {
    "id": "ml-03",
@@ -276,7 +276,7 @@
    "tool": "verses_for",
    "pass": true,
    "fails": [],
-   "ms": 442
+   "ms": 168
   },
   {
    "id": "ml-04",
@@ -284,7 +284,7 @@
    "tool": "find_churches_near",
    "pass": true,
    "fails": [],
-   "ms": 455
+   "ms": 427
   },
   {
    "id": "ml-05",
@@ -292,7 +292,7 @@
    "tool": "ask_living_bread",
    "pass": true,
    "fails": [],
-   "ms": 1725
+   "ms": 1290
   },
   {
    "id": "fr-01",
@@ -300,7 +300,7 @@
    "tool": "find_gatherings_near",
    "pass": true,
    "fails": [],
-   "ms": 505
+   "ms": 797
   },
   {
    "id": "fr-02",
@@ -308,7 +308,7 @@
    "tool": "events_this_week",
    "pass": true,
    "fails": [],
-   "ms": 253
+   "ms": 347
   },
   {
    "id": "fr-03",
@@ -316,7 +316,7 @@
    "tool": "journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 489
+   "ms": 296
   },
   {
    "id": "fr-04",
@@ -324,7 +324,7 @@
    "tool": "gatherings_tonight",
    "pass": true,
    "fails": [],
-   "ms": 449
+   "ms": 225
   },
   {
    "id": "fr-05",
@@ -332,7 +332,7 @@
    "tool": "tables_live_now",
    "pass": true,
    "fails": [],
-   "ms": 374
+   "ms": 189
   },
   {
    "id": "em-01",
@@ -340,7 +340,7 @@
    "tool": "scripture_search",
    "pass": true,
    "fails": [],
-   "ms": 550
+   "ms": 187
   },
   {
    "id": "em-02",
@@ -348,7 +348,7 @@
    "tool": "journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 283
+   "ms": 1161
   },
   {
    "id": "em-03",
@@ -356,7 +356,7 @@
    "tool": "a_prayer_for",
    "pass": true,
    "fails": [],
-   "ms": 102
+   "ms": 207
   },
   {
    "id": "em-04",
@@ -364,7 +364,7 @@
    "tool": "communities_to_join",
    "pass": true,
    "fails": [],
-   "ms": 389
+   "ms": 162
   },
   {
    "id": "em-05",
@@ -372,7 +372,7 @@
    "tool": "where_can_i_serve_publicly",
    "pass": true,
    "fails": [],
-   "ms": 386
+   "ms": 302
   },
   {
    "id": "em-06",
@@ -380,7 +380,7 @@
    "tool": "kingdom_map",
    "pass": true,
    "fails": [],
-   "ms": 392
+   "ms": 273
   },
   {
    "id": "pm-01",
@@ -388,7 +388,7 @@
    "tool": "list",
    "pass": true,
    "fails": [],
-   "ms": 2533
+   "ms": 957
   },
   {
    "id": "pm-02",
@@ -396,7 +396,7 @@
    "tool": "list",
    "pass": true,
    "fails": [],
-   "ms": 5688
+   "ms": 2209
   },
   {
    "id": "pm-03",
@@ -404,7 +404,7 @@
    "tool": "list",
    "pass": true,
    "fails": [],
-   "ms": 1062
+   "ms": 568
   },
   {
    "id": "pm-04",
@@ -412,7 +412,7 @@
    "tool": "list",
    "pass": true,
    "fails": [],
-   "ms": 3401
+   "ms": 1515
   },
   {
    "id": "pm-05",
@@ -420,7 +420,7 @@
    "tool": "list",
    "pass": true,
    "fails": [],
-   "ms": 1238
+   "ms": 609
   },
   {
    "id": "pm-06",
@@ -428,7 +428,7 @@
    "tool": "http",
    "pass": true,
    "fails": [],
-   "ms": 78
+   "ms": 43
   },
   {
    "id": "inj-01",
@@ -436,7 +436,7 @@
    "tool": "kingdom_map",
    "pass": true,
    "fails": [],
-   "ms": 706
+   "ms": 171
   },
   {
    "id": "inj-02",
@@ -444,7 +444,7 @@
    "tool": "kingdom_map",
    "pass": true,
    "fails": [],
-   "ms": 202
+   "ms": 176
   },
   {
    "id": "inj-03",
@@ -452,7 +452,7 @@
    "tool": "local",
    "pass": true,
    "fails": [],
-   "ms": 1317
+   "ms": 297
   },
   {
    "id": "inj-04",
@@ -460,7 +460,7 @@
    "tool": "instructions",
    "pass": true,
    "fails": [],
-   "ms": 10
+   "ms": 0
   },
   {
    "id": "dup-01",
@@ -468,7 +468,7 @@
    "tool": "say_yes",
    "pass": true,
    "fails": [],
-   "ms": 2110
+   "ms": 925
   },
   {
    "id": "dup-02",
@@ -476,7 +476,7 @@
    "tool": "say_yes",
    "pass": true,
    "fails": [],
-   "ms": 1065
+   "ms": 520
   },
   {
    "id": "dl-01",
@@ -484,7 +484,7 @@
    "tool": "journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 1770
+   "ms": 1269
   },
   {
    "id": "dl-02",
@@ -492,7 +492,7 @@
    "tool": "journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 2748
+   "ms": 1962
   },
   {
    "id": "dl-03",
@@ -500,7 +500,7 @@
    "tool": "journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 1731
+   "ms": 1225
   },
   {
    "id": "dl-04",
@@ -508,7 +508,7 @@
    "tool": "reading_plans",
    "pass": true,
    "fails": [],
-   "ms": 626
+   "ms": 558
   },
   {
    "id": "dl-05",
@@ -516,7 +516,7 @@
    "tool": "needs_near",
    "pass": true,
    "fails": [],
-   "ms": 945
+   "ms": 580
   },
   {
    "id": "hy-01",
@@ -524,7 +524,7 @@
    "tool": "scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 436
+   "ms": 169
   },
   {
    "id": "hy-02",
@@ -532,7 +532,7 @@
    "tool": "scripture_search",
    "pass": true,
    "fails": [],
-   "ms": 1006
+   "ms": 1057
   },
   {
    "id": "hy-03",
@@ -540,7 +540,7 @@
    "tool": "find_churches_near",
    "pass": true,
    "fails": [],
-   "ms": 1252
+   "ms": 210
   },
   {
    "id": "hy-04",
@@ -548,7 +548,7 @@
    "tool": "daily_bread",
    "pass": true,
    "fails": [],
-   "ms": 629
+   "ms": 62
   },
   {
    "id": "hy-05",
@@ -556,7 +556,7 @@
    "tool": "the_gospel",
    "pass": true,
    "fails": [],
-   "ms": 210
+   "ms": 85
   },
   {
    "id": "hy-06",
@@ -564,7 +564,7 @@
    "tool": "http",
    "pass": true,
    "fails": [],
-   "ms": 970
+   "ms": 215
   },
   {
    "id": "hy-07",
@@ -572,7 +572,287 @@
    "tool": "http",
    "pass": true,
    "fails": [],
-   "ms": 824
+   "ms": 639
+  },
+  {
+   "id": "ver-01",
+   "category": "scripture_verification",
+   "tool": "verify_scripture_quote",
+   "pass": true,
+   "fails": [],
+   "ms": 542
+  },
+  {
+   "id": "ver-02",
+   "category": "scripture_verification",
+   "tool": "verify_scripture_quote",
+   "pass": true,
+   "fails": [],
+   "ms": 213
+  },
+  {
+   "id": "ver-03",
+   "category": "scripture_verification",
+   "tool": "verify_scripture_quote",
+   "pass": true,
+   "fails": [],
+   "ms": 98
+  },
+  {
+   "id": "ver-04",
+   "category": "scripture_verification",
+   "tool": "verify_scripture_quote",
+   "pass": true,
+   "fails": [],
+   "ms": 131
+  },
+  {
+   "id": "ver-05",
+   "category": "scripture_verification",
+   "tool": "verify_scripture_quote",
+   "pass": true,
+   "fails": [],
+   "ms": 459
+  },
+  {
+   "id": "pray-01",
+   "category": "human_door",
+   "tool": "real_people_will_pray",
+   "pass": true,
+   "fails": [],
+   "ms": 909
+  },
+  {
+   "id": "cite-01",
+   "category": "citations",
+   "tool": "ask_living_bread",
+   "pass": true,
+   "fails": [],
+   "ms": 1671
+  },
+  {
+   "id": "cite-02",
+   "category": "citations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 330
+  },
+  {
+   "id": "cite-03",
+   "category": "citations",
+   "tool": "prayers_left_near",
+   "pass": true,
+   "fails": [],
+   "ms": 616
+  },
+  {
+   "id": "a2a-01",
+   "category": "agent_interop",
+   "tool": "http",
+   "pass": true,
+   "fails": [],
+   "ms": 117
+  },
+  {
+   "id": "a2a-02",
+   "category": "agent_interop",
+   "tool": "http",
+   "pass": true,
+   "fails": [],
+   "ms": 104
+  },
+  {
+   "id": "nlw-01",
+   "category": "agent_interop",
+   "tool": "http",
+   "pass": true,
+   "fails": [],
+   "ms": 4796
+  },
+  {
+   "id": "nlw-02",
+   "category": "agent_interop",
+   "tool": "http",
+   "pass": true,
+   "fails": [],
+   "ms": 1483
+  },
+  {
+   "id": "vapi-01",
+   "category": "scripture_verification",
+   "tool": "http",
+   "pass": true,
+   "fails": [],
+   "ms": 2723
+  },
+  {
+   "id": "tr-01",
+   "category": "translations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 2985
+  },
+  {
+   "id": "tr-02",
+   "category": "translations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 2919
+  },
+  {
+   "id": "tr-03",
+   "category": "translations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 1397
+  },
+  {
+   "id": "tr-04",
+   "category": "translations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 1074
+  },
+  {
+   "id": "tr-05",
+   "category": "translations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 867
+  },
+  {
+   "id": "tr-06",
+   "category": "translations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 424
+  },
+  {
+   "id": "tr-07",
+   "category": "translations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 287
+  },
+  {
+   "id": "tr-08",
+   "category": "translations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 435
+  },
+  {
+   "id": "tr-09",
+   "category": "translations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 550
+  },
+  {
+   "id": "tr-10",
+   "category": "translations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 125
+  },
+  {
+   "id": "tr-11",
+   "category": "translations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 119
+  },
+  {
+   "id": "tr-12",
+   "category": "translations",
+   "tool": "compare_translations",
+   "pass": true,
+   "fails": [],
+   "ms": 762
+  },
+  {
+   "id": "tr-13",
+   "category": "translations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 831
+  },
+  {
+   "id": "tr-14",
+   "category": "translations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 275
+  },
+  {
+   "id": "tr-15",
+   "category": "translations",
+   "tool": "original_words",
+   "pass": true,
+   "fails": [],
+   "ms": 101
+  },
+  {
+   "id": "tr-16",
+   "category": "translations",
+   "tool": "original_words",
+   "pass": true,
+   "fails": [],
+   "ms": 89
+  },
+  {
+   "id": "tr-17",
+   "category": "translations",
+   "tool": "scripture_search",
+   "pass": true,
+   "fails": [],
+   "ms": 1309
+  },
+  {
+   "id": "tr-18",
+   "category": "translations",
+   "tool": "list_translations",
+   "pass": true,
+   "fails": [],
+   "ms": 268
+  },
+  {
+   "id": "tr-19",
+   "category": "translations",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 393
+  },
+  {
+   "id": "tr-20",
+   "category": "translations",
+   "tool": "list",
+   "pass": true,
+   "fails": [],
+   "ms": 1681
+  },
+  {
+   "id": "tr-21",
+   "category": "translations",
+   "tool": "local",
+   "pass": true,
+   "fails": [],
+   "ms": 30205
   }
  ]
 }

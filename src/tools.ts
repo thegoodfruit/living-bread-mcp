@@ -18,7 +18,9 @@ import {
 } from './knowledge';
 import { allNeeds, findNeed, needBySlug, type Need } from './needs';
 import { km, list, paragraph, placeOf, slugify, whenUTC } from './render';
-import { parseReference, verseSlug, webPassage, webPassageCount } from './scripture';
+import { parseReference, verseSlug } from './scripture';
+import { isAny, isPick, languageInput, notesOf, pick, readAny, translationInput } from './shelf';
+import { describe, doorFor, parseLoose, type Choice } from './translations';
 import { logAsk } from './asks';
 import { absolute, ATTRIBUTION, cursorInput, fail, ok, out, page, tool, unavailable, type Structured } from './shared';
 import { layers } from './evidence';
@@ -28,10 +30,15 @@ import { widgetMeta } from './widgets';
 const NEAR_KM = 250;
 const SCRIPTURE_ONLY = layers({ scripture: ['text', 'verses[].text'] });
 
-async function resolveVerses(env: Env, need: Need, max: number) {
-  const found: { ref: string; text: string; why?: string }[] = [];
+async function resolveVerses(env: Env, need: Need, max: number, choice: Choice = { kind: 'kjv' }) {
+  const found: { ref: string; text: string; why?: string; own_ref?: string }[] = [];
   for (const r of need.refs) {
     if (found.length >= max) break;
+    if (choice.kind === 'shelf') {
+      const got = await readAny(env, choice, r.ref);
+      if (isAny(got)) found.push({ ref: got.ref, text: got.text, ...(got.own_ref && got.own_ref !== got.ref ? { own_ref: got.own_ref } : {}), ...(r.why ? { why: r.why } : {}) });
+      continue;
+    }
     const p = await kjvByRef(env, r.ref);
     if (p) found.push({ ref: p.ref, text: p.text, ...(r.why ? { why: r.why } : {}) });
   }
@@ -57,38 +64,58 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
     {
       title: 'Scripture passage',
       description:
-        'Read a Bible passage verbatim from a stored text: the King James Version the Living Bread app ships, or the World English Bible where held. Use for any verse, verse range or whole chapter ("John 3:16", "Psalm 23", "Romans 8:38-39", "1 Cor 13:4-7"). People ask: "what does John 3:16 say", "read me Psalm 23", "the verse about love being patient", "what is the whole of Romans 8". Never quote Scripture from memory when this tool is available. The Word points to Christ, who is its subject (John 5:39).',
+        'Read a Bible passage word for word from a stored text: one verse, a verse range, or a whole chapter, by reference. Default is the King James Version; translation (an id from list_translations) or language (BCP-47) reads the same passage from about sixty stored public domain or freely licensed Bibles in that translation\'s own numbering, with its license. Use when the person names or implies a reference ("John 3:16", "Psalm 23", "1 Cor 13:4-7"). Not for finding verses by wording (scripture_search) or by feeling or need (verses_for), for a verse with its surrounding verses (scripture_context), for linked passages (cross_references), for one passage in several Bibles side by side (compare_translations), or for the Hebrew or Greek words (original_words). reference takes one book and chapter with an optional verse or range inside that chapter; ranges across chapters are not supported. Deterministic. An unparseable reference returns an error suggesting scripture_search; an unknown translation or language, or a book a translation does not hold, returns an error naming list_translations and the translations that do hold it.',
       inputSchema: {
-        reference: z.string().min(2).max(80).describe('A Bible reference as a reader says it, e.g. "John 3:16", "Psalm 23", "Romans 8:38-39".'),
-        translation: z.enum(['KJV', 'WEB']).default('KJV').describe('KJV (whole Bible) or WEB (World English Bible, held for a limited set of passages; falls back to KJV and says so).'),
+        reference: z.string().min(2).max(80).describe('Book, chapter and optional verse or range, as a reader writes it: "John 3:16", "Psalm 23", "Romans 8:38-39", "1 Cor 13:4-7". Common abbreviations are accepted. Deuterocanonical books ("Tobit 1") need a translation that holds them, such as "dra".'),
+        translation: translationInput,
+        language: languageInput,
       },
       outputSchema: out({
-        ref: z.string(), translation: z.string(), text: z.string(), book: z.string(), chapter: z.number(),
-        verses: z.array(z.looseObject({ verse: z.number(), text: z.string() })), source: z.string(), read_more: z.string(), note: z.string().optional(),
+        ref: z.string().describe('Normalised reference, e.g. "John 3:16".'),
+        translation: z.string().describe('Code of the translation actually returned, e.g. KJV, WEB, BSB, RV1909.'),
+        translation_name: z.string().optional().describe('Full name of the translation, present when translation or language was given.'),
+        own_ref: z.string().optional().describe('The reference in that translation\'s own numbering when it differs (Psalm 23 is Psalm 22 in the Douay-Rheims).'),
+        text: z.string().describe('The whole passage, verbatim.'),
+        book: z.string().describe('Book name.'),
+        chapter: z.number().describe('Chapter number.'),
+        verses: z.array(z.looseObject({ verse: z.number(), text: z.string() })).describe('Each verse number with its verbatim text.'),
+        source: z.string().describe('Translation name and its license, copied from the source.'),
+        read_more: z.string().describe('Web page where the passage can be read in full.'),
+        note: z.string().optional().describe('Present when numbering differs or verses are missing or joined in the chosen translation.'),
+        missing_verses: z.array(z.string()).optional().describe('Verses the chosen translation does not have; never filled from another text.'),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       _meta: widgetMeta('verse-card', 'Reading the stored text', 'Read from the King James Version'),
     },
-    async ({ reference, translation }) => {
+    async ({ reference, translation, language }) => {
+      if (translation || language) {
+        const chosen = pick(translation, language);
+        if (!isPick(chosen)) return chosen;
+        if (chosen.choice.kind === 'shelf' || !parseReference(reference)) {
+          const got = await readAny(env, chosen.choice, reference);
+          if (!isAny(got)) return fail(got.message, { reason: got.reason, try_instead: got.reason === 'unparsed_reference' ? ['scripture_passage with "John 3:16"'] : ['list_translations', 'compare_translations with the same reference'] });
+          const notes = notesOf(got);
+          return ok(paragraph([`${got.own_ref ?? got.ref} (${got.translation_name}): "${got.text}"`, ...notes, `Keep reading: ${got.door}`]), {
+            ref: got.ref, own_ref: got.own_ref, translation: got.translation, translation_id: got.translation_id, translation_name: got.translation_name, text: got.text, book: got.book, chapter: got.chapter,
+            verses: got.verses, source: `${got.translation_name}, ${chosen.t?.license ?? 'Public domain'} (stored text)`, read_more: got.door, door: got.door, chosen_because: chosen.why,
+            ...(got.numbering_note ? { numbering_note: got.numbering_note } : {}), ...(got.missing ? { missing_verses: got.missing } : {}), ...(got.joined ? { joined_verses: got.joined } : {}),
+            ...(notes.length ? { note: notes.join('. ') } : {}), content_layers: SCRIPTURE_ONLY,
+          });
+        }
+      }
       const p = parseReference(reference);
       if (!p) {
+        const loose = parseLoose(reference);
+        if (loose) {
+          const got = await readAny(env, { kind: 'kjv' }, loose);
+          if (!isAny(got)) return fail(got.message, { reason: got.reason, try_instead: ['list_translations', 'compare_translations with the same reference'] });
+        }
         return fail(paragraph([`"${reference}" is not a reference we can read with certainty. Try the book, chapter and verse, like "John 3:16" or "Psalm 23"`]), { reason: 'unparsed_reference', try_instead: ['scripture_passage with "John 3:16"', 'scripture_search for a phrase'] });
       }
       const kjv = await kjvPassage(env, p);
       if (!kjv) return unavailable('the stored Bible text', `${DOORS.bible}`);
       const read_more = `${SITE}/${verseSlug(p)}`;
-      if (translation === 'WEB') {
-        const web = webPassage(p);
-        if (web) {
-          return ok(paragraph([`${web.ref} (World English Bible): "${web.text}"`]), {
-            ref: web.ref, translation: 'WEB', text: web.text, book: p.book, chapter: p.chapter,
-            verses: kjv.verses.length === 1 ? [{ verse: kjv.verses[0].verse, text: web.text }] : kjv.verses, source: 'World English Bible, public domain (stored cache)', read_more: DOORS.bible, content_layers: SCRIPTURE_ONLY,
-          });
-        }
-        const note = `The World English Bible is held here for ${webPassageCount()} passages and this is not one of them, so these are the King James words.`;
-        return ok(paragraph([passageText(kjv, 'KJV'), note]), { ...kjv, translation: 'KJV', source: 'King James Version, public domain (the text the app ships)', read_more: DOORS.bible, note, content_layers: SCRIPTURE_ONLY });
-      }
-      return ok(passageText(kjv, 'KJV'), { ...kjv, translation: 'KJV', source: 'King James Version, public domain (the text the app ships)', read_more: p.from !== undefined ? read_more : DOORS.bible, content_layers: SCRIPTURE_ONLY });
+      return ok(passageText(kjv, 'KJV'), { ...kjv, translation: 'KJV', source: 'King James Version, public domain (the text the app ships)', read_more: p.from !== undefined ? read_more : DOORS.bible, door: doorFor('en', p.bookId, p.chapter, p.from), content_layers: SCRIPTURE_ONLY });
     },
   );
 
@@ -98,19 +125,30 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
     {
       title: 'Verses for a need or feeling',
       description:
-        'The Scripture The Living Bread pairs with what a person is carrying: anxiety, fear, grief, loneliness, anger, guilt, doubt, money, marriage, healing, purpose, and about a hundred more. Pass the need in the person\'s own words ("I\'m scared about surgery", "my mother died", "lonely"). People ask: "a verse for anxiety", "what does the Bible say when you feel alone", "scripture for my friend who lost her dad", "a verse about forgiving someone". Returns the verses verbatim from the stored KJV with a one-line reflection in our words, and the page where real believers pray over that need by name; every one of them points to Christ, who carries it with us.',
+        'Return the short, hand-picked set of verses The Living Bread pairs with one of 99 needs or feelings (anxiety, fear, grief, loneliness, anger, guilt, doubt, money, marriage, healing and more), matched from the person\'s own words: need is scanned for a need name, then a synonym ("scared" finds fear, "my mother died" finds grief), so a whole sentence works. Use for "a verse for anxiety" or "scripture for my friend who lost her dad". Not for a topic explained verse by verse (what_the_bible_says_about), a written prayer (a_prayer_for), a known reference (scripture_passage), or literal wording (scripture_search). Verses are read verbatim from the stored KJV, or from the stored Bible chosen by translation or language (ids from list_translations); each one-line why is the house\'s words, not Scripture. No match returns an error listing the needs held; an unknown translation or language returns an error pointing to list_translations.',
       inputSchema: {
-        need: z.string().min(2).max(200).describe('The need or feeling, in the person\'s own words.'),
-        limit: z.number().int().min(1).max(12).default(5).describe('How many verses, at most.'),
+        need: z.string().min(2).max(200).describe('The need or feeling in the person\'s own words: "I\'m scared about surgery", "my mother died", "lonely", "anxiety".'),
+        limit: z.number().int().min(1).max(12).default(5).describe('Maximum verses to return, 1 to 12 (default 5).'),
+        translation: translationInput,
+        language: languageInput,
       },
       outputSchema: out({
-        need: z.string(), label: z.string(), lead: z.string().optional(), matched: z.string(),
-        verses: z.array(z.looseObject({ ref: z.string(), text: z.string(), why: z.string().optional() })), translation: z.string(), page: z.string(), pray_with_the_family: z.string(),
+        need: z.string().describe('Slug of the matched need, e.g. "anxiety".'),
+        label: z.string().describe('Display name of the matched need.'),
+        lead: z.string().optional().describe('One sentence introducing the set, in the house\'s words.'),
+        matched: z.string().describe('The word from the input that produced the match.'),
+        verses: z.array(z.looseObject({ ref: z.string(), text: z.string(), why: z.string().optional() })).describe('Verses in the house\'s order: reference, verbatim KJV text, and an optional one-line why (house words).'),
+        translation: z.string().describe('Translation code the verses were read from: KJV by default.'),
+        translation_name: z.string().optional().describe('Full name of that translation.'),
+        page: z.string().describe('Web page for this need, where believers pray over it.'),
+        pray_with_the_family: z.string().describe('Link where the person can ask the family to pray for them.'),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       _meta: widgetMeta('verse-card', 'Finding the verses the house pairs with this', 'Verses read from the stored text'),
     },
-    async ({ need, limit }) => {
+    async ({ need, limit, translation, language }) => {
+      const chosen = pick(translation, language);
+      if (!isPick(chosen)) return chosen;
       const m = findNeed(need);
       learn('verses_for', need, Boolean(m));
       if (!m) {
@@ -120,15 +158,16 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
           { reason: 'no_matching_need', try_instead: ['ask_living_bread with the same words', 'scripture_search for a word', 'verses_for with one of: ' + allNeeds().map((n) => n.slug).slice(0, 20).join(', ')] },
         );
       }
-      const verses = await resolveVerses(env, m.need, limit);
+      const verses = await resolveVerses(env, m.need, limit, chosen.choice);
       if (!verses.length) return unavailable('the stored Bible text', m.need.page);
+      const tr = describe(chosen.choice);
       const text = paragraph([
         m.need.lead || `Scripture for ${m.need.label.toLowerCase()}`,
-        ...verses.map((v) => `${v.ref}: "${v.text}"${v.why ? ` (${v.why})` : ''}`),
+        ...verses.map((v) => `${v.own_ref ?? v.ref}: "${v.text}"${v.why ? ` (${v.why})` : ''}`),
         `Real believers pray over this need by name at ${m.need.page}`,
       ]);
       return ok(text, {
-        need: m.need.slug, label: m.need.label, lead: m.need.lead || undefined, matched: m.matched, verses, translation: 'KJV', page: m.need.page, pray_with_the_family: DOORS.prayer, ...ATTRIBUTION,
+        need: m.need.slug, label: m.need.label, lead: m.need.lead || undefined, matched: m.matched, verses, translation: tr.code, translation_name: tr.name, page: m.need.page, pray_with_the_family: DOORS.prayer, door: doorFor(tr.language), ...ATTRIBUTION,
         content_layers: layers({ scripture: ['verses[].text'], reflection: ['lead', 'verses[].why'] }, 'The pairing of verses with a need, and each one-line why, are the house\'s own words, not Scripture.'),
       });
     },
@@ -140,21 +179,36 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
     {
       title: 'The Daily Bread',
       description:
-        'The one verse the whole Living Bread family receives on a given morning (the same verse the app delivers at each person\'s local 8am). Use for "verse of the day", "today\'s bread", or to pray the same word the family is praying. Words read verbatim from the stored KJV.',
-      inputSchema: { date: z.string().optional().describe('A calendar day as YYYY-MM-DD in the person\'s own time zone. Defaults to today (UTC).') },
-      outputSchema: out({ date: z.string(), ref: z.string(), text: z.string(), translation: z.string(), page: z.string(), shared: z.string() }),
+        'Return the single verse of the day that every Living Bread user receives on a given date (the app delivers it at each person\'s local 8am), verbatim from the stored KJV, or from the stored Bible chosen by translation or language (ids from list_translations). Use for "verse of the day" or "today\'s bread". Not for a verse on a theme (verses_for), a multi-day reading rhythm (reading_plans), or a chosen reference (scripture_passage). date is read as a calendar day only (no time zone math); pass the person\'s local date, since the verse is fixed per date and any past or future date works. An invalid date, an unknown translation or language, or a verse the chosen translation does not hold returns an error.',
+      inputSchema: {
+        date: z.string().optional().describe('Calendar day as YYYY-MM-DD, ideally in the person\'s own time zone, e.g. "2026-10-06". Omit for today (UTC).'),
+        translation: translationInput,
+        language: languageInput,
+      },
+      outputSchema: out({
+        date: z.string().describe('The date answered, YYYY-MM-DD.'),
+        ref: z.string().describe('Verse reference, in the chosen translation\'s own numbering.'),
+        text: z.string().describe('Verse text, verbatim from the chosen translation.'),
+        translation: z.string().describe('Translation code returned: KJV by default.'),
+        translation_name: z.string().optional().describe('Full name of the translation returned.'),
+        page: z.string().describe('Web page with today\'s verse, a reflection and a prayer.'),
+        shared: z.string().describe('One sentence explaining that everyone receives this same verse that day.'),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       _meta: widgetMeta('verse-card', 'Finding the bread for this morning', 'The Daily Bread, read from the stored text'),
     },
-    async ({ date }) => {
+    async ({ date, translation, language }) => {
       const day = date ?? isoDate();
       if (!isValidIsoDate(day)) return fail(paragraph([`"${day}" is not a calendar day we can read. Use YYYY-MM-DD`]), { error: 'bad_date' });
+      const chosen = pick(translation, language);
+      if (!isPick(chosen)) return chosen;
       const ref = dailyBreadReference(day);
-      const p = await kjvByRef(env, ref);
-      if (!p) return unavailable('the stored Bible text', DOORS.daily);
+      const got = await readAny(env, chosen.choice, ref);
+      if (!isAny(got)) return chosen.choice.kind === 'kjv' ? unavailable('the stored Bible text', DOORS.daily) : fail(got.message, { reason: got.reason, try_instead: ['daily_bread without translation (the King James Version)'] });
+      const p = { ref: got.own_ref ?? got.ref, text: got.text };
       const shared = 'Everyone on The Living Bread receives this same verse on this morning, so a person who reads it is reading with the whole family.';
       return ok(paragraph([`The Daily Bread for ${day} is ${p.ref}: "${p.text}"`, shared, `Today's bread, with a reflection and a prayer, is at ${DOORS.daily}`]), {
-        date: day, ref: p.ref, text: p.text, translation: 'KJV', page: DOORS.daily, shared, content_layers: layers({ scripture: ['text'], navigation: ['shared', 'page'] }),
+        date: day, ref: p.ref, text: p.text, translation: got.translation, translation_name: got.translation_name, page: DOORS.daily, door: got.door, shared, content_layers: layers({ scripture: ['text'], navigation: ['shared', 'page'] }),
       });
     },
   );
@@ -165,12 +219,16 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
     {
       title: 'Ask The Living Bread',
       description:
-        'A grounded answer from the Christian Knowledge API: real, sourced entities (denominations, saints, sacred sites, biblical figures, Bible places, churches), the Scripture topic the question resonates with (with verses read from the stored KJV), the road to Christ, and honest next steps. Use for any question about Christianity, a tradition, a person of Scripture, a place, or a feeling with no clean keyword. People ask: "what is a Methodist", "who was Augustine", "where is Bethlehem", "how do I forgive my brother", "are there churches in Kenya". Nothing is invented; when we do not know, the answer says so.',
-      inputSchema: { question: z.string().min(2).max(300).describe('The question, in the person\'s own words.') },
+        'Answer one free-form question about Christianity in a single call by querying the Christian Knowledge API live: a short grounded summary, the sourced entities it matched (denominations, saints, sacred sites, biblical figures, Bible places, churches), a Scripture topic with up to 3 KJV verses, and next-step links. One question per call; split compound questions. Use for open questions with no obvious single tool ("what is a Methodist", "who was Augustine", "how do I forgive my brother"). Prefer a specific tool when one fits: heritage_lookup for one named entity, find_churches_near for churches by place, verses_for for a feeling. Use search instead only when you need a list of ids to fetch. answer is null and entities empty when nothing sourced matches. The question text (no user id) is logged anonymously.',
+      inputSchema: { question: z.string().min(2).max(300).describe('The question in the person\'s own words, 2 to 300 characters: "what is a Methodist", "are there churches in Kenya".') },
       outputSchema: out({
-        question: z.string(), entities: z.array(z.looseObject({ id: z.string(), type: z.string(), name: z.string(), url: z.string(), source: z.string().nullable().optional() })),
-        answer: z.string().nullable(), scripture: z.looseObject({ topic: z.string(), url: z.string(), verses: z.array(z.looseObject({ ref: z.string(), text: z.string() })) }).nullable(),
-        road_to_christ: z.array(z.looseObject({ name: z.string(), url: z.string() })), next_steps: z.array(z.looseObject({ label: z.string(), url: z.string() })), grounding: z.string(),
+        question: z.string().describe('The question as understood.'),
+        entities: z.array(z.looseObject({ id: z.string(), type: z.string(), name: z.string(), url: z.string(), source: z.string().nullable().optional() })).describe('Sourced entities matched: lb: id, type, name, page URL, and data source.'),
+        answer: z.string().nullable().describe('A short grounded summary from the Knowledge API, or null when it has none.'),
+        scripture: z.looseObject({ topic: z.string(), url: z.string(), verses: z.array(z.looseObject({ ref: z.string(), text: z.string() })) }).nullable().describe('The Scripture topic the question matched, with up to 3 verbatim KJV verses; null when none.'),
+        road_to_christ: z.array(z.looseObject({ name: z.string(), url: z.string() })).describe('Pages that explain who Jesus is, related to the question.'),
+        next_steps: z.array(z.looseObject({ label: z.string(), url: z.string() })).describe('Suggested next links (find a church, prayer, etc.).'),
+        grounding: z.string().describe('Statement of what the answer is grounded in.'),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
@@ -206,25 +264,29 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
 
   // 5. find_churches_near ----------------------------------------------------
   const placeInput = {
-    lat: z.number().min(-90).max(90).optional().describe('Latitude, if the person has shared where they are.'),
-    lng: z.number().min(-180).max(180).optional().describe('Longitude, paired with lat.'),
-    city: z.string().max(120).optional().describe('A city, region or country, when there are no coordinates: "Dallas", "Lagos", "Greater London".'),
+    lat: z.number().min(-90).max(90).optional().describe('Latitude in decimal degrees, only if the person shared their location. Must be paired with lng; coordinates win over city.'),
+    lng: z.number().min(-180).max(180).optional().describe('Longitude in decimal degrees, paired with lat.'),
+    city: z.string().max(120).optional().describe('A city, region or country, used when there are no coordinates: "Dallas", "Lagos", "Greater London". Geocoded to its centre.'),
   };
   tool(server, 
     'find_churches_near',
     {
       title: 'Find churches near a place',
       description:
-        'Real Christian churches near a person, nearest first, from two live sources: the churches on The Living Bread (some claimed by their own leaders) and a worldwide open directory of about 120,000 churches with stable entity ids. City-level only, with distance in km. Says plainly when nothing is held near the place. People ask: "is there a church near me", "Baptist churches in Dallas", "where can I go to church this Sunday in Lagos", "a Catholic parish near Manchester". Use whenever someone wants a church, congregation or Christian community near them; the Body of Christ is the door, and walking in is the step.',
+        'List real church buildings and congregations within 250 km of a place, nearest first, merged live from churches on The Living Bread and an open worldwide directory of about 120,000 churches. Use when someone wants a church to attend ("Baptist churches in Dallas", "a parish near Manchester"). Not for one known church\'s record (church), for events or services at a time (find_gatherings_near, gatherings_tonight), or for small groups to join (communities_to_join). Needs lat+lng or city, else an error. Location precision is city level: names, city and distance only, never street addresses or contacts. Zero results return count 0 with the nearest church held, if any. The search words (no user id) are logged anonymously.',
       inputSchema: {
         ...placeInput,
-        denomination: z.string().max(60).optional().describe('Optional: "baptist", "catholic", "methodist", "pentecostal", "orthodox", "anglican"...'),
-        limit: z.number().int().min(1).max(20).default(8),
+        denomination: z.string().max(60).optional().describe('Optional tradition filter, one lowercase word: "baptist", "catholic", "methodist", "pentecostal", "orthodox", "anglican".'),
+        limit: z.number().int().min(1).max(20).default(8).describe('Maximum churches to return, 1 to 20 (default 8).'),
       },
       outputSchema: out({
-        searched: z.string(), count: z.number(),
-        churches: z.array(z.looseObject({ name: z.string(), where: z.string(), distance_km: z.number().nullable(), denomination: z.string().nullable(), on_living_bread: z.boolean(), url: z.string().nullable(), id: z.string() })),
-        honest: z.string().optional(), nearest_we_hold: z.string().nullable().optional(), find_a_church: z.string(), gatherings: z.string(),
+        searched: z.string().describe('The place searched, as resolved.'),
+        count: z.number().describe('Number of churches returned; 0 when none is held within 250 km.'),
+        churches: z.array(z.looseObject({ name: z.string(), where: z.string(), distance_km: z.number().nullable(), denomination: z.string().nullable(), on_living_bread: z.boolean(), url: z.string().nullable(), id: z.string() })).describe('Nearest first: name, city-level place, distance in km, denomination when known, whether the church is on The Living Bread, its open-data page, and an id (lb:church:<country>/<slug> ids work with church and fetch).'),
+        honest: z.string().optional().describe('Present when count is 0: what the empty result means.'),
+        nearest_we_hold: z.string().nullable().optional().describe('When count is 0, the nearest church held beyond 250 km, if any.'),
+        find_a_church: z.string().describe('Link to the live church finder map.'),
+        gatherings: z.string().describe('Link to upcoming gatherings.'),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
       _meta: widgetMeta('church-card', 'Looking for real churches near there', 'Real churches, nearest first'),
@@ -281,12 +343,21 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
     {
       title: 'One church, as open data',
       description:
-        'One church from the Christian Knowledge API by country and slug (e.g. country "united-states", slug "saint-josephs"; ids look like lb:church:united-states/saint-josephs). Returns its stable id, name, denomination, country, website, sameAs links, verified data when the church itself supplied it, and provenance.',
+        'Read the full open-data record of one directory church you already have an id for (lb:church:<country>/<slug>), live from the Christian Knowledge API: name, denomination, country, website, sameAs links, provenance, and the details the church verified itself when it has. Use after find_churches_near, search or ask_living_bread returned an lb:church id. Not for finding churches by place (find_churches_near); for any other lb: URN use kingdom_protocol_lookup. An unknown country/slug returns a not_found error pointing to find_churches_near.',
       inputSchema: {
-        country: z.string().min(2).max(80).describe('Country slug or name: "united-states", "colombia", "andorra".'),
-        slug: z.string().min(1).max(160).describe('The church slug from a nearby result or id, e.g. "capella-de-casa-rossell".'),
+        country: z.string().min(2).max(80).describe('Country slug (the part after "lb:church:" and before "/"): "united-states", "colombia". A plain country name is slugified.'),
+        slug: z.string().min(1).max(160).describe('Church slug (the part after "/"), e.g. "iglesia-la-capuchina". A full lb:church:<country>/<slug> id is also accepted.'),
       },
-      outputSchema: out({ id: z.string(), name: z.string(), url: z.string(), denomination: z.string().nullable().optional(), country: z.string().nullable().optional(), website: z.string().nullable().optional(), verified: z.unknown().optional(), provenance: z.unknown().optional() }),
+      outputSchema: out({
+        id: z.string().describe('Stable id, lb:church:<country>/<slug>.'),
+        name: z.string().describe('Church name.'),
+        url: z.string().describe('Open-data page for the church.'),
+        denomination: z.string().nullable().optional().describe('Denomination when known.'),
+        country: z.string().nullable().optional().describe('Country name.'),
+        website: z.string().nullable().optional().describe('The church\'s own website, when known.'),
+        verified: z.unknown().optional().describe('Details the church supplied and verified itself; absent when it has not.'),
+        provenance: z.unknown().optional().describe('Where each part of the record came from (e.g. OpenStreetMap, Wikidata).'),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
       _meta: widgetMeta('church-card', 'Opening the church record', 'One church, as open data'),
     },
@@ -304,18 +375,21 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
     {
       title: 'Find gatherings near a place',
       description:
-        'Real upcoming Christian gatherings a person could attend: services, prayer nights, Bible studies, worship nights, meals, care and recovery, online gatherings. Posted by real churches and believers; nothing invented. Times are UTC. People ask: "is there a Bible study near me this week", "any prayer meeting tonight", "an online church service I can join", "something for a first visit that is not Sunday". Use when someone asks what is happening near them, wants a first step that is not a Sunday service, or wants something online.',
+        'Search upcoming Christian gatherings (services, prayer nights, Bible studies, worship nights, meals, recovery groups) posted on The Living Bread, within 250 km of a place or online, over a window of 1 to 60 days, soonest first, with paging. The general gathering search: use it for custom windows, online-only ("an online service I can join") or first-visit friendly events. For the next few hours use gatherings_tonight; for a plain this-week list use events_this_week; for church buildings use find_churches_near. days counts forward from now; online true lists only online gatherings and ignores distance; a cursor is valid only with the same city, online and days. Times are UTC: convert before telling the person. Listed times are what hosts posted, not confirmation it is happening. Empty results return count 0 and suggest online gatherings. The place words (no user id) are logged anonymously.',
       inputSchema: {
         ...placeInput,
-        days: z.number().int().min(1).max(60).default(14).describe('How many days ahead to look.'),
-        online: z.boolean().optional().describe('True for gatherings joinable from anywhere.'),
-        limit: z.number().int().min(1).max(20).default(8),
+        days: z.number().int().min(1).max(60).default(14).describe('How many days ahead to look, 1 to 60 (default 14).'),
+        online: z.boolean().optional().describe('true: only gatherings joinable online from anywhere. Omit to include in-person and online.'),
+        limit: z.number().int().min(1).max(20).default(8).describe('Page size, 1 to 20 (default 8).'),
         cursor: cursorInput,
       },
       outputSchema: out({
-        searched: z.string(), count: z.number(),
-        gatherings: z.array(z.looseObject({ id: z.string(), title: z.string(), when_utc: z.string(), where: z.string(), distance_km: z.number().nullable(), kind: z.string().nullable(), online: z.boolean(), good_for_a_first_visit: z.boolean().nullable() })),
-        honest: z.string().optional(), gatherings_page: z.string(), next_cursor: z.string().nullable().optional(),
+        searched: z.string().describe('The place searched, as resolved, or "online".'),
+        count: z.number().describe('Gatherings on this page; 0 when none.'),
+        gatherings: z.array(z.looseObject({ id: z.string(), title: z.string(), when_utc: z.string(), where: z.string(), distance_km: z.number().nullable(), kind: z.string().nullable(), online: z.boolean(), good_for_a_first_visit: z.boolean().nullable() })).describe('Soonest first: id (fetch with gathering:<id>), title, start in UTC, city-level place or "online", distance in km, category, online flag, and whether the host marked it good for a first visit.'),
+        honest: z.string().optional().describe('Present when count is 0: what the empty result means and what to try.'),
+        gatherings_page: z.string().describe('Link to every gathering on the web.'),
+        next_cursor: z.string().nullable().optional().describe('Pass back as cursor for the next page; null when there is none.'),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
@@ -353,12 +427,18 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
     {
       title: 'Communities a person can join',
       description:
-        'The discoverable communities on The Living Bread a person can join today: prayer groups, study groups, city and interest communities, with how to join (open or by request) and their next gathering. Family rooms are private and never listed. Use when someone wants people to pray or walk with, or asks "is there a prayer group".',
-      inputSchema: { query: z.string().max(120).optional().describe('Optional: a word, a city, or a kind ("prayer", "study", "Atlanta").'), limit: z.number().int().min(1).max(20).default(10), cursor: cursorInput },
+        'List the ongoing groups on The Living Bread that anyone can discover and join (prayer groups, study groups, city and interest communities), each with its member count, join policy (open or by request) and next posted gathering, filtered by an optional word and paged. Use when someone wants a group to belong to ("is there a prayer group", "a Bible study community in Atlanta"). Not for one-off events (find_gatherings_near), church buildings (find_churches_near) or live rooms right now (tables_live_now). Private family rooms are never listed. query is split into words and a community matches if ANY word appears in its name, description, kind, city or country, so "prayer Atlanta" widens rather than narrows; no match returns count 0.',
+      inputSchema: {
+        query: z.string().max(120).optional().describe('Optional filter words matched against name, description, kind, city and country: "prayer", "study", "Atlanta". Omit to list all.'),
+        limit: z.number().int().min(1).max(20).default(10).describe('Page size, 1 to 20 (default 10).'),
+        cursor: cursorInput,
+      },
       outputSchema: out({
-        count: z.number(),
-        communities: z.array(z.looseObject({ id: z.string(), name: z.string(), kind: z.string(), description: z.string().nullable(), where: z.string(), people: z.number(), join: z.string(), next_gathering: z.string().nullable(), verified: z.boolean() })),
-        join_here: z.string(), next_cursor: z.string().nullable().optional(),
+        count: z.number().describe('Communities on this page; 0 when none matched.'),
+        total: z.number().optional().describe('Total matching communities across all pages.'),
+        communities: z.array(z.looseObject({ id: z.string(), name: z.string(), kind: z.string(), description: z.string().nullable(), where: z.string(), people: z.number(), join: z.string(), next_gathering: z.string().nullable(), verified: z.boolean() })).describe('Each community: id (fetch with community:<id>), name, kind, its own description, city or "everywhere", member count, how to join, next posted gathering (UTC) or null, and whether it is verified.'),
+        join_here: z.string().describe('Link where communities are joined.'),
+        next_cursor: z.string().nullable().optional().describe('Pass back as cursor for the next page; null when there is none.'),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
@@ -394,12 +474,22 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
     {
       title: 'Denomination, saint, sacred site, biblical figure or Bible place',
       description:
-        'One sourced entity from the Christian Knowledge API: a denomination (with its family tree), a saint, a sacred site, a biblical figure (with genealogy edges where known) or a Bible place. Pass the kind and a name or slug ("Methodism", "Augustine of Hippo", "Bethlehem"). Returns the stable lb: id, the page, sameAs links (Wikidata, Wikipedia), provenance, and related ids. Use instead of memory for facts about these.',
+        'Look up one named denomination, saint, sacred site, biblical figure or Bible place in the Christian Knowledge API (live) and return its sourced record: stable lb: id, page, sameAs links (Wikidata, Wikipedia), provenance, image, and related ids (a denomination\'s parent and branches; a biblical figure\'s family links where known). Use when the person names one specific entity ("Methodism", "Augustine of Hippo", "Bethlehem"). For two traditions side by side use denomination_compare; for who is remembered on a date use saint_of_the_day; for an open question use ask_living_bread. name is first tried as a slug ("augustine-of-hippo"), then resolved by meaning through the Knowledge API, so spelling variants usually work; kind must match the entity. No match returns a not_found error. The lookup words (no user id) are logged anonymously.',
       inputSchema: {
-        kind: z.enum(['denomination', 'saint', 'sacred-site', 'biblical-figure', 'bible-place']),
-        name: z.string().min(2).max(120).describe('A name or slug.'),
+        kind: z.enum(['denomination', 'saint', 'sacred-site', 'biblical-figure', 'bible-place']).describe('Which kind of entity: denomination, saint, sacred-site, biblical-figure or bible-place.'),
+        name: z.string().min(2).max(120).describe('The entity\'s name or slug: "Methodism", "augustine-of-hippo", "Bethlehem".'),
       },
-      outputSchema: out({ id: z.string(), type: z.string(), name: z.string(), url: z.string(), sameAs: z.array(z.string()).optional(), provenance: z.unknown().optional(), image: z.string().nullable().optional(), children: z.array(z.string()).optional(), parent: z.unknown().optional() }),
+      outputSchema: out({
+        id: z.string().describe('Stable id, e.g. lb:denomination:methodism.'),
+        type: z.string().describe('Entity type.'),
+        name: z.string().describe('Display name.'),
+        url: z.string().describe('Sourced web page for the entity.'),
+        sameAs: z.array(z.string()).optional().describe('Equivalent pages elsewhere (Wikidata, Wikipedia).'),
+        provenance: z.unknown().optional().describe('Where the record came from.'),
+        image: z.string().nullable().optional().describe('Image URL when held.'),
+        children: z.array(z.string()).optional().describe('Related lb: ids (for a denomination, its branches).'),
+        parent: z.unknown().optional().describe('For a denomination, the tradition it grew from.'),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
     async ({ kind, name }) => {
@@ -423,9 +513,18 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
     {
       title: 'Pray for someone, by name, in your own voice',
       description:
-        'The exact door to pray for a person on The Living Bread: record a prayer in your own voice (or write one) with their name in it; they hear it, and may pray one back. Works for a believer on Living Bread or for anyone, by a private link. Use when someone wants to pray for a friend, a parent, a stranger, or asks how to send a prayer. Returns the deep link and the honest state of recording.',
-      inputSchema: { name: z.string().max(80).optional().describe('Who the prayer is for, if known.') },
-      outputSchema: out({ for: z.string().nullable(), link: z.string(), what_happens: z.string(), recording: z.string(), app_store: z.string(), play_store: z.string(), not_on_living_bread_yet: z.string(), scripture_ref: z.string() }),
+        'Return the link and step-by-step explanation the person needs to pray for someone by name on The Living Bread themselves: recording a voice prayer or writing one in the app, which the other person is notified of and can answer; or, for someone not on the app, a private link they can open without an account. This tool sends nothing and records nothing; the person acts in the app. name only personalises the returned sentences and is not looked up. Use when someone asks how to pray for a friend or send a prayer. For a ready-made prayer text use a_prayer_for; to listen to others praying use hear_the_kingdom_pray. On the signed-in /me endpoint a tool with this same name sends the believer\'s own written prayer instead.',
+      inputSchema: { name: z.string().max(80).optional().describe('First name of the person to be prayed for, used only to personalise the explanation. Optional.') },
+      outputSchema: out({
+        for: z.string().nullable().describe('The name given, or null.'),
+        link: z.string().describe('Deep link to the voice prayer screen (opens the app or web).'),
+        what_happens: z.string().describe('Plain explanation of what the person does and what the other person receives.'),
+        recording: z.string().describe('What recording currently supports, stated honestly.'),
+        app_store: z.string().describe('iOS App Store link.'),
+        play_store: z.string().describe('Google Play link.'),
+        not_on_living_bread_yet: z.string().describe('How to reach someone without an account, by private link.'),
+        scripture_ref: z.string().describe('A reference (not text) for the verse this screen opens with; read it with scripture_passage.'),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async ({ name }) => {
@@ -444,9 +543,14 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
     {
       title: 'Hear the Kingdom pray',
       description:
-        'The door where believers from many nations pray out loud over the whole Living Bread family, one voice at a time, and where a person can listen and add their own. Use when someone wants to hear others pray, feels alone, or asks what the family is praying.',
+        'Return the link to the room where recorded voice prayers from believers of many nations play one after another over the whole Living Bread family, with what the person will hear and how a member can add one voice prayer a day there. Use when someone wants to hear others pray or feels alone in prayer. This tool plays and records nothing; the audio is heard by opening the link. For prayers left at a specific place use prayers_left_near; to pray for one named person use pray_for_someone.',
       inputSchema: {},
-      outputSchema: out({ link: z.string(), what_it_is: z.string(), how_to_add_your_voice: z.string(), scripture_ref: z.string() }),
+      outputSchema: out({
+        link: z.string().describe('Link to the Kingdom praying room.'),
+        what_it_is: z.string().describe('What the person hears there.'),
+        how_to_add_your_voice: z.string().describe('How a member adds a voice prayer (one a day) and what recording supports.'),
+        scripture_ref: z.string().describe('A reference (not text) for the verse the room opens with.'),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async () => {
@@ -462,9 +566,17 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
     {
       title: 'Begin on The Living Bread',
       description:
-        'The invitation and the doors in: the web home, the App Store and Google Play links, and what a newcomer finds first. Use when someone wants to join, asks what The Living Bread is, or is seeking and does not know where to start.',
+        'Explain what The Living Bread is and how to join it: a short invitation, the web, App Store and Google Play links, and the first steps a newcomer sees. Use when someone asks what The Living Bread is or how to sign up. Not for explaining the Christian faith itself (the_gospel) or a personalised path for someone new to faith (journey_next_steps with new_to_christianity). Static content; creates no account (joining happens at the links, and is free).',
       inputSchema: {},
-      outputSchema: out({ invitation: z.string(), web: z.string(), app_store: z.string(), play_store: z.string(), first_steps: z.array(z.string()), who_is_jesus: z.string(), free: z.boolean() }),
+      outputSchema: out({
+        invitation: z.string().describe('A short invitation in the house\'s words.'),
+        web: z.string().describe('Web home link.'),
+        app_store: z.string().describe('iOS App Store link.'),
+        play_store: z.string().describe('Google Play link.'),
+        first_steps: z.array(z.string()).describe('What a newcomer meets first, in order.'),
+        who_is_jesus: z.string().describe('Link to the page on who Jesus is.'),
+        free: z.boolean().describe('Always true: joining costs nothing.'),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async () =>
@@ -478,9 +590,12 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
     'search',
     {
       title: 'Search The Living Bread',
-      description: 'Search across Scripture for a need, a Bible reference, churches, gatherings, communities and sourced entities. Returns results with ids that fetch reads in full. Provided for connector clients.',
-      inputSchema: { query: z.string().min(1).max(300) },
-      outputSchema: out({ results: z.array(z.looseObject({ id: z.string(), title: z.string(), text: z.string(), url: z.string() })) }),
+      description:
+        'Search everything The Living Bread holds with one query and get back a flat list of short results with ids, for the search-then-fetch pattern of connector clients (ChatGPT deep research and similar): a Bible reference, a matching need\'s verse set, sourced entities, churches and gatherings within 250 km when the query is a place, and communities whose name or description contains a query word. query is tried in order as a Bible reference, a need, an entity question, a place (only when it is not a reference or need), and community words. Then call fetch with an id to read it in full. When you want a direct answer rather than a list, use ask_living_bread; for verses by wording use scripture_search. Never empty: with no match it returns one result linking to the home page. The query (no user id) is logged anonymously.',
+      inputSchema: { query: z.string().min(1).max(300).describe('Free text, 1 to 300 characters: a reference ("Psalm 23"), a need ("anxiety"), a name ("Augustine"), a place ("Lagos"), or a topic.') },
+      outputSchema: out({
+        results: z.array(z.looseObject({ id: z.string(), title: z.string(), text: z.string(), url: z.string() })).describe('Matches with id (verse:<ref>, need:<slug>, church:<uuid>, gathering:<uuid>, community:<uuid>, or an lb: id), title, one-line text and a web URL. Pass id to fetch.'),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
     async ({ query }) => {
@@ -511,9 +626,16 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
     'fetch',
     {
       title: 'Fetch one search result',
-      description: 'Read one search result in full by its id (verse:<ref>, need:<slug>, church:<uuid>, gathering:<uuid>, community:<uuid>, or an lb: entity id). Provided for connector clients.',
-      inputSchema: { id: z.string().min(1).max(200) },
-      outputSchema: out({ id: z.string(), title: z.string(), text: z.string(), url: z.string(), metadata: z.record(z.string(), z.unknown()).optional() }),
+      description:
+        'Read one item in full by an id returned by search: a verse (KJV text), a need (its verse set), a church, a gathering (with whether it has already passed), a community, or an lb: denomination, saint, sacred site, biblical figure, Bible place or directory church. The prefix before the first colon picks the source, so pass ids unchanged. Use only with ids from search or other tools. For lb: URNs of gatherings, ministries, needs, testimonies or profiles use kingdom_protocol_lookup. An id that cannot be resolved returns a normal result whose metadata.unresolved holds the id, not an error.',
+      inputSchema: { id: z.string().min(1).max(200).describe('An id exactly as returned: verse:<ref>, need:<slug>, church:<uuid>, gathering:<uuid>, community:<uuid>, or lb:<kind>:<slug> (e.g. lb:denomination:methodism, lb:church:colombia/iglesia-la-capuchina).') },
+      outputSchema: out({
+        id: z.string().describe('The id requested.'),
+        title: z.string().describe('Item title.'),
+        text: z.string().describe('The item in full as plain text (Scripture verbatim).'),
+        url: z.string().describe('Web page for the item.'),
+        metadata: z.record(z.string(), z.unknown()).optional().describe('Kind-specific facts (translation, verses, when_utc, has_passed, join_policy, sameAs) plus attribution; unresolved when the id was not found.'),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
     async ({ id }) => {

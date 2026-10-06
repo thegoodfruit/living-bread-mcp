@@ -20,6 +20,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 import corpus from './data/corpus.json';
+import shelf from './data/translations.json';
 
 export const CORPUS = corpus as {
   translation: string; translation_name: string; license: string; canon: string; books: number; verses: number;
@@ -30,11 +31,14 @@ export const CORPUS = corpus as {
 
 export interface Reading {
   ref: string;
-  translation: 'KJV' | 'WEB';
+  /** 'KJV', 'WEB' (the old cache) or the upper-case id of a translation on the shelf (src/translations.ts). */
+  translation: string;
   text: string;
-  /** The SHA-256 of the book file as the Worker read it (KJV only). */
+  /** The SHA-256 of the book file as the Worker read it. */
   book_sha256?: string;
   book?: string;
+  /** The shelf id when the words came from assets/bible/shelf (src/translations.ts). */
+  corpus?: string;
 }
 
 export interface CallContext {
@@ -82,6 +86,7 @@ export async function evidenceFor(ctx: CallContext): Promise<Record<string, unkn
     seen.add(k);
     return true;
   });
+  if (unique.some((r) => r.corpus)) return shelfLabel(unique, ctx);
   const passages = await Promise.all(unique.map(async (r) => ({ ref: r.ref, translation: r.translation, sha256: await sha256Hex(r.text) })));
   const translations = [...new Set(unique.map((r) => r.translation))];
   const mismatched = unique.filter((r) => r.translation === 'KJV' && r.book && r.book_sha256 && CORPUS.book_files[r.book]?.sha256 !== r.book_sha256).map((r) => r.book as string);
@@ -101,6 +106,48 @@ export async function evidenceFor(ctx: CallContext): Promise<Record<string, unkn
     corpus_check: mismatched.length ? `MISMATCH: ${[...new Set(mismatched)].join(', ')} differ from the manifest; the text is what the Worker read, the corpus_version is stale` : 'every book read matched the manifest hash',
   };
   if (translations.includes('WEB')) label.web_note = WEB_LABEL.canon;
+  if (ctx.crossRefs) label.cross_references = { source: CORPUS.cross_references.source, license: CORPUS.cross_references.license, attribution: CORPUS.cross_references.attribution, url: CORPUS.cross_references.url, dataset_sha256: CORPUS.cross_references.source_sha256, rule: CORPUS.cross_references.rule };
+  return label;
+}
+
+/* ---- the label when any word came from the shelf of translations --------------------------------
+   One entry per translation read, each with its own license statement (verbatim from its source),
+   canon, versification and corpus version (a SHA-256 over its book files), and each passage hashed
+   with the translation it came from. The KJV keeps its own entry when it is read beside the others. */
+type ShelfEntry = { id: string; name: string; language: string; license: string; license_statement: string; license_source: string; source: string; canon_coverage: string; versification: string; corpus_version: string; books: Record<string, [number, string, string]>; attribution?: string; note?: string };
+const SHELF_BY = new Map<string, ShelfEntry>((shelf as unknown as { translations: ShelfEntry[] }).translations.map((t) => [t.id, t]));
+
+async function shelfLabel(unique: Reading[], ctx: CallContext): Promise<Record<string, unknown>> {
+  const passages = await Promise.all(unique.map(async (r) => ({ ref: r.ref, translation: r.translation, sha256: await sha256Hex(r.text) })));
+  const ids = [...new Set(unique.map((r) => (r.corpus ?? (r.translation === 'KJV' ? 'kjv' : r.translation.toLowerCase()))))];
+  const entries = ids.map((id) => {
+    if (id === 'kjv') {
+      return { id: 'kjv', name: CORPUS.translation_name, license: CORPUS.license, license_statement: KJV_ATTRIBUTION, canon_coverage: CORPUS.canon, versification: 'eng (the standard numbering every reference is read in)', corpus_version: CORPUS.corpus_version, source: CORPUS.source };
+    }
+    if (id === 'web' && !SHELF_BY.has('web')) return { id: 'web', name: WEB_LABEL.translation_name, license: WEB_LABEL.license, canon_coverage: WEB_LABEL.canon };
+    const t = SHELF_BY.get(id);
+    if (!t) return { id, name: id, license: 'unknown' };
+    return {
+      id: t.id, name: t.name, language: t.language, license: t.license, license_statement: t.license_statement, license_source: t.license_source, source: t.source,
+      canon_coverage: t.canon_coverage, versification: t.versification, corpus_version: t.corpus_version, ...(t.attribution ? { attribution: t.attribution } : {}), ...(t.note ? { note: t.note } : {}),
+    };
+  });
+  const mismatched = unique.filter((r) => r.book && r.book_sha256 && (r.corpus ? SHELF_BY.get(r.corpus)?.books?.[r.book]?.[1] : CORPUS.book_files[r.book]?.sha256) !== r.book_sha256).map((r) => `${r.corpus ?? 'kjv'}/${r.book}`);
+  const one = entries.length === 1 ? entries[0] : null;
+  const label: Record<string, unknown> = {
+    translation: ids.map((i) => i.toUpperCase()).join('+'),
+    translation_name: entries.map((e) => e.name).join(' and '),
+    canon_coverage: one ? one.canon_coverage : Object.fromEntries(entries.map((e) => [e.id, e.canon_coverage])),
+    corpus_version: one ? (one as { corpus_version?: string }).corpus_version : Object.fromEntries(entries.map((e) => [e.id, (e as { corpus_version?: string }).corpus_version])),
+    license: one ? one.license : entries.map((e) => `${e.id.toUpperCase()}: ${e.license}`).join('; '),
+    attribution: entries.map((e) => (e as { attribution?: string }).attribution ?? `${e.name}, ${e.license}`).join(' '),
+    translations: entries,
+    retrieved_at: new Date().toISOString(),
+    content_hash: await sha256Hex(unique.map((r) => r.text).join('\n')),
+    hash_algorithm: 'SHA-256 of the UTF-8 text exactly as returned; content_hash covers every passage joined by a newline, in order; corpus_version is a SHA-256 over the translation\'s book files (scripts/build-translations.py)',
+    passages,
+    corpus_check: mismatched.length ? `MISMATCH: ${[...new Set(mismatched)].join(', ')} differ from the manifest; the text is what the Worker read, the corpus_version is stale` : 'every book read matched the manifest hash',
+  };
   if (ctx.crossRefs) label.cross_references = { source: CORPUS.cross_references.source, license: CORPUS.cross_references.license, attribution: CORPUS.cross_references.attribution, url: CORPUS.cross_references.url, dataset_sha256: CORPUS.cross_references.source_sha256, rule: CORPUS.cross_references.rule };
   return label;
 }

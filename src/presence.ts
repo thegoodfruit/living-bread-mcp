@@ -65,9 +65,13 @@ function freshnessOf(d: Destination): Freshness {
 export function registerPresence(server: McpServer, env: Env, me: Believer): void {
   tool(server, 'who_is_available_now', {
     title: 'Who is available right now (counts and first names)',
-    description: 'For the signed-in believer: how many people on The Living Bread have said, in a window they opened themselves that has not expired, that they are available to pray, listen, talk, serve or welcome (and how many are looking for prayer or company), how many of them are in the believer\'s own city, and up to five first names. Members only; never a place finer than "your city"; nobody blocked, no minors. People ask: "is anyone available to pray with me tonight", "who is around to talk". Use find_help_for_my_need to actually reach them.',
+    description: 'Count, for the signed-in believer, how many members currently have an open availability window (set by themselves, two hours by default) to pray, listen, talk, serve or welcome, and how many are looking for prayer or company: per status, the total, how many are in the believer\'s city, and up to five first names. No locations finer than "your city"; blocked users and minors excluded. Contacts nobody. "Available" means a window still open, not a promise to answer. To reach someone use someone_to_talk_to; for every kind of help in order use find_help_for_my_need. count 0 when no window is open.',
     inputSchema: {},
-    outputSchema: out({ count: z.number(), statuses: z.array(z.looseObject({ status: z.string(), label: z.string(), side: z.string(), people: z.number(), in_your_city: z.number(), first_names: z.array(z.string()) })), door: z.string() }),
+    outputSchema: out({
+      count: z.number().describe('Statuses with at least one person available.'),
+      statuses: z.array(z.looseObject({ status: z.string(), label: z.string(), side: z.string(), people: z.number(), in_your_city: z.number(), first_names: z.array(z.string()) })).describe('Each status: key, label, side (offering or seeking), people with the window open, how many in the believer\'s city, up to five first names.'),
+      door: z.string().describe('Link to ask the family for someone.'),
+    }),
     annotations: READS,
   }, async () => {
     const r = await rpcAs(env, me, 'who_is_available_now');
@@ -93,13 +97,19 @@ export function registerPresence(server: McpServer, env: Env, me: Believer): voi
 
   tool(server, 'find_help_for_my_need', {
     title: 'Where to turn for what I need',
-    description: 'For the signed-in believer: the nearest safe doors for a need, in the house\'s order (their own family, the groups they belong to, people who said they are available for exactly this, their church and verified ministries nearby, a Table or a gathering, the Word, and the crisis door first whenever the need involves danger), each with why it is there, how fresh it is, and the door to open. Ranked by relationship, relevance, safety, availability and nearness; never by popularity. Reads only: nobody is contacted by this tool. People ask: "I need someone to pray with me tonight", "I want to serve this weekend", "I am new and want a church", "I need to talk to a pastor".',
+    description: 'Return, for the signed-in believer, up to five places to turn for one kind of need, in a fixed order: their own family, their groups, people with an open availability window for this, their church or verified ministries nearby, a Table or gathering, then a verse; with danger true the crisis door comes first. Each has why it is listed, freshness, and a link. Ranked by relationship, relevance, safety, availability and nearness, never popularity. Contacts nobody. To actually ask for a person now use someone_to_talk_to; for the phone numbers in an emergency use crisis_resources.',
     inputSchema: {
-      need: z.enum(['prayer', 'listen', 'talk', 'pastoral', 'help', 'volunteer', 'community', 'newcomer', 'new_believer']).describe('What they need: prayer, someone to listen or talk, a pastor (pastoral), practical help, a way to volunteer, community, a first church (newcomer), or new-believer care.'),
-      danger: z.boolean().default(false).describe('True when anyone is in danger: the crisis door comes first.'),
-      limit: z.number().int().min(1).max(5).default(5),
+      need: z.enum(['prayer', 'listen', 'talk', 'pastoral', 'help', 'volunteer', 'community', 'newcomer', 'new_believer']).describe('One of: prayer, listen, talk, pastoral (a pastor), help (practical), volunteer, community, newcomer (a first church), new_believer.'),
+      danger: z.boolean().default(false).describe('true when anyone is in danger: the crisis door is listed first. Default false.'),
+      limit: z.number().int().min(1).max(5).default(5).describe('Maximum places, 1 to 5 (default 5).'),
     },
-    outputSchema: out({ need: z.string(), crisis: z.boolean(), count: z.number(), doors: z.array(z.looseObject({ layer: z.string(), title: z.string(), why: z.string(), door: z.string() })), first_step: z.looseObject({ label: z.string(), url: z.string() }) }),
+    outputSchema: out({
+      need: z.string().describe('The need routed.'),
+      crisis: z.boolean().describe('true when the crisis door was put first.'),
+      count: z.number().describe('Places returned.'),
+      doors: z.array(z.looseObject({ layer: z.string(), title: z.string(), why: z.string(), door: z.string() })).describe('In order: layer (family, prayer_network, available, ministry, gathering, scripture, crisis), title, why it is listed, link; a scripture layer also carries the verse reference and verbatim KJV text.'),
+      first_step: z.looseObject({ label: z.string(), url: z.string() }).describe('The first place to try.'),
+    }),
     annotations: READS,
   }, async ({ need, danger, limit }) => {
     const r = await rpcAs(env, me, 'route_need', { p_kind: need, p_payload: { crisis: Boolean(danger) } });
@@ -110,7 +120,7 @@ export function registerPresence(server: McpServer, env: Env, me: Believer): voi
       const why = d.layer === 'family' ? `Your own family on The Living Bread${d.names?.length ? ` (${list(d.names, 3)})` : ''}; asking them is the first door`
         : d.layer === 'prayer_network' ? 'A group you already belong to'
         : d.layer === 'available' ? `${d.people ?? 0} ${d.people === 1 ? 'person' : 'people'} said they are available for this, in a window still open${d.names?.length ? ` (${list(d.names, 3)})` : ''}`
-        : d.layer === 'ministry' ? (d.subtitle ?? 'A church or verified ministry near you')
+        : d.layer === 'ministry' ? (d.subtitle ?? 'A church, or a verified ministry or nonprofit near you')
         : d.layer === 'gathering' ? (d.kind === 'event' ? `A gathering${d.starts_at ? ` scheduled for ${new Date(d.starts_at).toUTCString().replace(' GMT', ' UTC')}` : ''}, ${d.subtitle ?? ''}` : 'A Table open to everyone, active in the last fifteen minutes')
         : d.layer === 'crisis' ? 'If anyone is in danger: the real crisis line for your country, before anything else'
         : d.layer === 'scripture' ? 'The Word for this need' : (d.subtitle ?? '');

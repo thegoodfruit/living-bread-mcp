@@ -31,8 +31,10 @@ export const INJECTION_PATTERNS: RegExp[] = [
 ];
 
 const TAGS = /<\/?[a-zA-Z][^<>]{0,200}>/g;
-// C0 controls except tab and newline, DEL, zero-width characters, and bidirectional overrides/isolates
-const INVISIBLE = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF]/g;
+// C0 controls except tab and newline, DEL, zero-width characters, and bidirectional overrides/isolates.
+// The zero-width joiner and non-joiner (U+200C, U+200D) are kept: Persian, Hindi, Bengali, Nepali and
+// Malayalam spell words with them, and the Bibles in those languages are quoted verbatim.
+const INVISIBLE = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u200B\u200E\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF]/g;
 
 export interface Cleaned {
   text: string;
@@ -56,17 +58,39 @@ export function clean(s: string): Cleaned {
   return { text: t, flagged };
 }
 
-/** Every string in a value, cleaned. Returns the cleaned copy and whether anything was removed. */
-export function cleanDeep<T>(value: T, depth = 0): { value: T; flagged: boolean } {
+/**
+ * Clean a string while leaving the given passages untouched. A passage is Scripture this call read from the
+ * stored corpus (never a person's words), so it is set aside before cleaning and put back after: a verse such
+ * as "you are now the blessed of Yahweh" (Genesis 26:29, WEB) is quoted, not mistaken for an instruction.
+ */
+export function cleanExcept(s: string, keep: readonly string[]): Cleaned {
+  if (!keep.length) return clean(s);
+  const held: string[] = [];
+  let masked = s;
+  for (const k of keep) {
+    if (!masked.includes(k)) continue;
+    const token = `\uE000${held.length}\uE001`;
+    held.push(k);
+    masked = masked.split(k).join(token);
+  }
+  if (!held.length) return clean(s);
+  const c = clean(masked);
+  let text = c.text;
+  held.forEach((k, i) => { text = text.split(`\uE000${i}\uE001`).join(k); });
+  return { text, flagged: c.flagged };
+}
+
+/** Every string in a value, cleaned (passages in keep are left exactly as read). Returns the cleaned copy and whether anything was removed. */
+export function cleanDeep<T>(value: T, depth = 0, keep: readonly string[] = []): { value: T; flagged: boolean } {
   if (depth > 8) return { value, flagged: false };
   if (typeof value === 'string') {
-    const c = clean(value);
+    const c = cleanExcept(value, keep);
     return { value: c.text as unknown as T, flagged: c.flagged };
   }
   if (Array.isArray(value)) {
     let flagged = false;
     const out = value.map((v) => {
-      const r = cleanDeep(v, depth + 1);
+      const r = cleanDeep(v, depth + 1, keep);
       flagged ||= r.flagged;
       return r.value;
     });
@@ -76,7 +100,7 @@ export function cleanDeep<T>(value: T, depth = 0): { value: T; flagged: boolean 
     let flagged = false;
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-      const r = cleanDeep(v, depth + 1);
+      const r = cleanDeep(v, depth + 1, keep);
       flagged ||= r.flagged;
       out[k] = r.value;
     }

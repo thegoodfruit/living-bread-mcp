@@ -17,7 +17,16 @@ import { DOORS, SITE } from './doors';
 import { list, paragraph } from './render';
 import { fail, firstName, isUuid, ok, out, tool, WRITES, WRITES_ONCE, READS } from './shared';
 
-const CONSENT_LAW = 'Confirm with the person first: call with confirmed false (or omitted) and read the restatement back; call again with confirmed true only after they said yes in their own words. This tool acts as the signed-in believer.';
+const CONSENT_LAW = 'Two-step consent: without confirmed it writes nothing and returns the exact act in `would` (or asks the person directly when the client supports elicitation); call again with confirmed true only after they say yes. Acts as the signed-in believer; an idempotency_key or an identical confirmed retry within ten minutes never acts twice.';
+
+/* The confirmation flag and the act-result fields every writing tool shares. */
+const confirmedInput = z.boolean().default(false).describe('false (default): write nothing, return the restatement in `would`. true: only after the person confirmed that exact act in their own words.');
+const ACT_FIELDS = {
+  done: z.boolean().describe('true when the act was written (or was already in that state).'),
+  needs_confirmation: z.boolean().describe('true when nothing was written yet: read `would` back and ask.'),
+  would: z.string().optional().describe('The exact act that will happen on confirmation.'),
+  door: z.string().optional().describe('Link where the believer sees the result in the app.'),
+};
 
 export const FEELINGS = ['anxious', 'afraid', 'grieving', 'weary', 'tempted', 'lonely', 'guilty', 'discouraged', 'seeking', 'thankful', 'joyful', 'waiting', 'angry', 'doubting', 'hurting', 'newseason', 'forgiving', 'provision', 'unnamed'] as const;
 
@@ -136,15 +145,20 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
   };
 
   const personInput = {
-    person: z.string().min(1).max(120).describe('Who the prayer is for: a user id from my_family, prayers_i_offered or a previous call, or a first name the tool resolves among the believer\'s family (their Two or Three, prayer partners, people they prayed for before). If ambiguous the tool returns the candidates and asks.'),
-    words: z.string().min(1).max(2000).describe('The prayer, in the BELIEVER\'S OWN WORDS as they said them. Never composed by the assistant.'),
-    confirmed: z.boolean().default(false).describe('True only after the believer confirmed the exact words and the exact person.'),
+    person: z.string().min(1).max(120).describe('Recipient: a user id (UUID) from my_family, prayers_i_offered or an earlier candidates list, or a name matched among the believer\'s family (Two or Three, prayer partners, people prayed for before). Ambiguous or unknown names send nothing and return candidates.'),
+    words: z.string().min(1).max(2000).describe('The prayer exactly as the believer said or typed it, 1 to 2000 characters. Never composed or edited by the assistant.'),
+    confirmed: confirmedInput,
   };
-  const actOut = out({ done: z.boolean(), needs_confirmation: z.boolean(), would: z.string().optional(), prayer_id: z.string().optional(), to: z.looseObject({ id: z.string(), name: z.string(), relation: z.string() }).optional(), candidates: z.array(z.looseObject({ id: z.string(), name: z.string(), relation: z.string() })).optional(), door: z.string().optional() });
+  const actOut = out({
+    ...ACT_FIELDS,
+    prayer_id: z.string().optional().describe('Id of the sent prayer or blessing.'),
+    to: z.looseObject({ id: z.string(), name: z.string(), relation: z.string() }).optional().describe('The resolved recipient: id, name, and relation to the believer.'),
+    candidates: z.array(z.looseObject({ id: z.string(), name: z.string(), relation: z.string() })).optional().describe('When the name was ambiguous: possible recipients to ask about; call again with the chosen id.'),
+  });
 
   tool(server, 'pray_for_someone', {
     title: 'Pray for someone, in writing, as the believer',
-    description: `Send a WRITTEN prayer from the signed-in believer to someone in their family on The Living Bread, with the believer's own name on it. The words must be the believer's own, spoken or typed by them; an assistant never prays in a person's name. The person receives it under Prayers for me with the one notification the house sends ("<name> prayed for you") and can say Amen or pray one back. People ask: "send my prayer to Maria", "pray this over my brother Daniel", "tell Grace I am praying for her surgery, with these words". For a voice prayer, or for someone not on Living Bread yet, hand them the door ${DOORS.prayVoice} instead. ${CONSENT_LAW}`,
+    description: `Send a written prayer, in the signed-in believer's own words and under their name, to one person in their Living Bread family; the recipient is notified once ("<name> prayed for you") and finds it under Prayers for me. Use when the believer dictates a prayer for a named person. For words of blessing rather than prayer use speak_a_blessing; to answer a prayer someone prayed over them use say_amen; for a voice prayer or someone not on the app, give the link ${DOORS.prayVoice}. The assistant never writes the prayer itself. ${CONSENT_LAW}`,
     inputSchema: personInput,
     outputSchema: actOut,
     annotations: WRITES,
@@ -152,8 +166,8 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
 
   tool(server, 'speak_a_blessing', {
     title: 'Speak a blessing over someone, in writing',
-    description: `Send a written blessing from the signed-in believer to someone in their family, in the believer's own words, the way the app's blessing feature does (the same stream as a prayer, kind "blessing"; the person is told "<name> blessed you"). People ask: "bless my daughter with these words", "send Daniel a blessing for his new job". ${CONSENT_LAW}`,
-    inputSchema: { ...personInput, words: z.string().min(1).max(2000).describe('The blessing, in the believer\'s own words.') },
+    description: `Send a written blessing, in the signed-in believer's own words, to one person in their Living Bread family (same delivery as a prayer, kind "blessing"; the recipient is told "<name> blessed you"). Use for "bless my daughter with these words" or "send Daniel a blessing for his new job". For a prayer use pray_for_someone; for what the believer themself carries use bring_what_i_carry. Unknown or ambiguous names send nothing and return candidates. ${CONSENT_LAW}`,
+    inputSchema: { ...personInput, words: z.string().min(1).max(2000).describe('The blessing exactly as the believer said or typed it, 1 to 2000 characters. Never composed by the assistant.') },
     outputSchema: actOut,
     annotations: WRITES,
   }, ({ person, words, confirmed }) => sendWords('blessing', 'speak_a_blessing', person, words, confirmed));
@@ -161,15 +175,21 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
   // ---- bring_what_i_carry: say_what_you_carry (lib/carrying.ts, migration 0464) ----
   tool(server, 'bring_what_i_carry', {
     title: 'Bring what I carry today',
-    description: `Name what the signed-in believer is carrying today, the way the app's "What are you carrying?" does: a feeling from the house's list (anxious, afraid, grieving, weary, tempted, lonely, guilty, discouraged, seeking, thankful, joyful, waiting, angry, doubting, hurting, newseason, forgiving, provision, or unnamed) and, if they wish, their own words. Shared with the Body (default) means real believers can pray over it and the believer is told when they do; private means it is theirs and God's alone. One carrying per feeling per day; saying it again replaces it. People say: "I am anxious today", "tell the family I am grieving", "I want to carry this quietly, just for me". ${CONSENT_LAW}`,
+    description: `Record what the signed-in believer is carrying today (a feeling from a fixed list, plus optional words), as the app's "What are you carrying?" does. Shared (default), believers can pray over it and the believer is told when they do; private, nobody else sees it. One entry per feeling per day: saying it again replaces it. Use for "I am anxious today, tell the family". For verses about a feeling use verses_for; to ask a person to talk now use someone_to_talk_to; for a commitment to act use say_yes. ${CONSENT_LAW}`,
     inputSchema: {
-      feeling: z.enum(FEELINGS).default('unnamed').describe('One of the house\'s feelings, or unnamed when only the words carry it.'),
-      words: z.string().max(600).optional().describe('What they are carrying, in their own words. Required when the feeling is unnamed.'),
-      share_with_body: z.boolean().default(true).describe('True: the Body may see and pray over it. False: private.'),
-      anonymous: z.boolean().default(false).describe('When shared, show "someone in the family" instead of their name.'),
-      confirmed: z.boolean().default(false),
+      feeling: z.enum(FEELINGS).default('unnamed').describe('Closest feeling from the list; "newseason" means a new season of life, "provision" a material need. Use "unnamed" (default) when only the words say it.'),
+      words: z.string().max(600).optional().describe('What they carry, in their own words, up to 600 characters. Required when feeling is "unnamed".'),
+      share_with_body: z.boolean().default(true).describe('true (default): visible to believers, who can pray over it. false: private.'),
+      anonymous: z.boolean().default(false).describe('When shared, show "someone in the family" instead of their name. Default false.'),
+      confirmed: confirmedInput,
     },
-    outputSchema: out({ done: z.boolean(), needs_confirmation: z.boolean(), would: z.string().optional(), id: z.string().optional(), feeling: z.string().optional(), audience: z.string().optional(), replaced: z.boolean().optional(), door: z.string().optional() }),
+    outputSchema: out({
+      ...ACT_FIELDS,
+      id: z.string().optional().describe('Id of the saved entry.'),
+      feeling: z.string().optional().describe('The feeling saved.'),
+      audience: z.string().optional().describe('"kingdom" (shared) or "private".'),
+      replaced: z.boolean().optional().describe('true when it replaced an entry for the same feeling earlier today.'),
+    }),
     annotations: WRITES_ONCE,
   }, async ({ feeling, words, share_with_body, anonymous, confirmed }) => {
     const text = words?.trim() || null;
@@ -192,14 +212,14 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
   // ---- say_yes: say_yes (lib/kingdomWork.ts, migration 0580) ----
   tool(server, 'say_yes', {
     title: 'Say yes: write a yes into my walk',
-    description: `Write a yes into the signed-in believer's walk, the way the app's My Yes does: what they will do with what they received, in their own words, with the verse they held, private by default or opened to the Body so the family can stand with it. Never a streak, never a score. People say: "I say yes to calling my mother tonight", "write down my yes: forgive him, from Matthew 6:14", "share my yes with the family". ${CONSENT_LAW}`,
+    description: `Create a new "yes" in the signed-in believer's walk (the app's My Yes): one concrete thing they will do, in their own words, with an optional verse reference, private by default or shared so others can stand with it. Creates a new entry on every confirmed call; there are no streaks or scores. Use for "write down my yes: call my mother tonight". To read their past yeses use my_walk; to see yeses others shared use family_saying_yes; for a feeling rather than a commitment use bring_what_i_carry. ${CONSENT_LAW}`,
     inputSchema: {
-      words: z.string().min(1).max(600).describe('The yes, in the believer\'s own words.'),
-      verse_ref: z.string().max(80).optional().describe('The verse they held, e.g. "Matthew 6:14".'),
-      share: z.boolean().default(false).describe('True opens it to the Body (words, verse, how it goes). False keeps it between them and God.'),
-      confirmed: z.boolean().default(false),
+      words: z.string().min(1).max(600).describe('The commitment in the believer\'s own words, 1 to 600 characters: "call my mother tonight".'),
+      verse_ref: z.string().max(80).optional().describe('Optional Bible reference they are holding, e.g. "Matthew 6:14". A reference, not verse text.'),
+      share: z.boolean().default(false).describe('true: shared with other believers (words, verse, progress). false (default): private.'),
+      confirmed: confirmedInput,
     },
-    outputSchema: out({ done: z.boolean(), needs_confirmation: z.boolean(), would: z.string().optional(), yes_id: z.string().optional(), door: z.string().optional() }),
+    outputSchema: out({ ...ACT_FIELDS, yes_id: z.string().optional().describe('Id of the new yes.') }),
     annotations: WRITES,
   }, async ({ words, verse_ref, share, confirmed }) => {
     const text = words.trim();
@@ -218,9 +238,18 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
   interface GatheringJson { id: string; community_id: string; community_name: string | null; title: string; starts_at: string; timezone: string | null; status: string; host_name: string; going_count: number; i_rsvped: boolean }
   tool(server, 'going_to_gathering', {
     title: 'I am going to this gathering',
-    description: `Mark the signed-in believer as going (or no longer going) to a gathering of one of their circles, exactly as the app's "I'm going" does: the same RSVP row, so the host sees them among the faces. Use an id from my_family or my_day. People say: "tell them I'm coming Thursday", "I can't make the prayer night after all". ${CONSENT_LAW}`,
-    inputSchema: { gathering_id: z.string().uuid(), going: z.boolean().default(true), confirmed: z.boolean().default(false) },
-    outputSchema: out({ done: z.boolean(), needs_confirmation: z.boolean(), would: z.string().optional(), gathering_id: z.string().optional(), going: z.boolean().optional(), title: z.string().optional(), door: z.string().optional() }),
+    description: `Set or remove the signed-in believer's RSVP ("I'm going") for one gathering of a circle they belong to; the host and members see it. Idempotent: if they are already in the requested state it returns done without writing. Cancelled or unreadable gatherings return an error. Use with a gathering id from my_family or my_day ("tell them I'm coming Thursday"). Not for public gatherings found by find_gatherings_near (those are joined on their own page), and not for hosting (set_a_table). ${CONSENT_LAW}`,
+    inputSchema: {
+      gathering_id: z.string().uuid().describe('Gathering UUID from my_family or my_day.'),
+      going: z.boolean().default(true).describe('true (default): mark as going. false: take the RSVP back.'),
+      confirmed: confirmedInput,
+    },
+    outputSchema: out({
+      ...ACT_FIELDS,
+      gathering_id: z.string().optional().describe('The gathering acted on.'),
+      going: z.boolean().optional().describe('The RSVP state after the call.'),
+      title: z.string().optional().describe('Gathering title.'),
+    }),
     annotations: WRITES_ONCE,
   }, async ({ gathering_id, going, confirmed }) => {
     const g = await rpcAs(env, me, 'group_gathering', { p_event: gathering_id });
@@ -244,19 +273,19 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
   // ---- set_a_table: create_table (lib/tables.ts, migration 0334) ----
   tool(server, 'set_a_table', {
     title: 'Set a Living Bread Table',
-    description: `Set a Table the way the app's Tables do (migration 0334): a real gathering the believer hosts at a time and a place, with seats, who it is for and what it is for; others save a seat and the host is told. People say: "set a table at my place Friday at 7 for six people", "host a Bible breakfast at the cafe on Main Street Saturday 9am". A place and a time are required because a Table without them is not a promise anyone can keep. ${CONSENT_LAW}`,
+    description: `Create a Table hosted by the signed-in believer: a real in-person gathering at a stated place and future time (60 minutes, walk-in), with optional seat limit, audience and purpose. Other believers can then save a seat and the host is told. Use for "set a table at my place Friday at 7 for six people". To RSVP to someone else's circle gathering use going_to_gathering; to see Tables open now use tables_live_now. The place text is shown to those who come, so it may be an address only if the host chooses. Unparseable or past times return an error. ${CONSENT_LAW}`,
     inputSchema: {
-      title: z.string().min(2).max(120),
+      title: z.string().min(2).max(120).describe('Name of the Table, 2 to 120 characters: "Friday supper and John 1".'),
       place: z.string().min(2).max(200).describe('Where, as the host says it (a home, a cafe, a church hall). Shown to those who come.'),
-      starts_at: z.string().min(10).max(40).describe('When it starts, ISO 8601 with offset, e.g. 2026-10-10T19:00:00-05:00.'),
-      seats: z.number().int().min(1).max(200).optional().describe('How many seats, if limited.'),
+      starts_at: z.string().min(10).max(40).describe('Start time, ISO 8601 with offset, in the future, e.g. 2026-10-10T19:00:00-05:00.'),
+      seats: z.number().int().min(1).max(200).optional().describe('Seat limit, 1 to 200. Omit for unlimited.'),
       who: z.string().max(120).optional().describe('Who it is for, e.g. "anyone", "students", "young families".'),
-      how: z.string().max(300).optional().describe('What you gather around, e.g. "a meal and one chapter of John".'),
-      city: z.string().max(80).optional(),
-      country: z.string().max(80).optional(),
-      confirmed: z.boolean().default(false),
+      how: z.string().max(300).optional().describe('What they gather around, e.g. "a meal and one chapter of John".'),
+      city: z.string().max(80).optional().describe('City, so believers nearby can find it.'),
+      country: z.string().max(80).optional().describe('Country name or ISO code.'),
+      confirmed: confirmedInput,
     },
-    outputSchema: out({ done: z.boolean(), needs_confirmation: z.boolean(), would: z.string().optional(), table_id: z.string().optional(), door: z.string().optional() }),
+    outputSchema: out({ ...ACT_FIELDS, table_id: z.string().optional().describe('Id of the new Table.') }),
     annotations: WRITES,
   }, async ({ title, place, starts_at, seats, who, how, city, country, confirmed }) => {
     const when = Date.parse(starts_at);
@@ -279,13 +308,18 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
   // ---- someone_to_talk_to: the care match (lib/care.ts, migration 0348), with the app's own fallback ----
   tool(server, 'someone_to_talk_to', {
     title: 'Someone to talk to, now',
-    description: `Ask for a real person to talk to right now, the way the app's "Talk to someone now" does: it tells every available shepherd (or available believer, or both) and the first to answer meets them in a private room. When nobody is on call this minute the app does not leave a person waiting; it asks the wider family through I Need Someone instead, and this tool does the same. Never a chatbot. People say: "I need to talk to someone", "is there a pastor I can speak with now", "I don't want to be alone with this". If the person speaks of harming themselves or others, call crisis_resources FIRST and give the real line for their country before anything else. ${CONSENT_LAW}`,
+    description: `Open a live request for a real person (a pastor, a believer, or either) to talk with the signed-in believer now: everyone available is notified and the first to answer meets them in a private room. If nobody is available this minute, it instead posts an "I Need Someone" call to the wider family. Sends notifications to other people. Not a crisis service: when anyone is in danger call crisis_resources first. To only count who is available use who_is_available_now; to see every kind of help in order use find_help_for_my_need. ${CONSENT_LAW}`,
     inputSchema: {
-      audience: z.enum(['shepherd', 'family', 'any']).default('any').describe('Who to ask: a shepherd (pastor), a believer from the family, or anyone available.'),
-      note: z.string().max(300).optional().describe('One line in their words about what they are carrying, shown to the one who answers.'),
-      confirmed: z.boolean().default(false),
+      audience: z.enum(['shepherd', 'family', 'any']).default('any').describe('Who to ask: "shepherd" (pastors), "family" (other believers) or "any" (default).'),
+      note: z.string().max(300).optional().describe('Optional one line in their words, up to 300 characters, shown to whoever answers.'),
+      confirmed: confirmedInput,
     },
-    outputSchema: out({ done: z.boolean(), needs_confirmation: z.boolean(), would: z.string().optional(), request_id: z.string().optional(), reached: z.number().optional(), available_now: z.number().optional(), door: z.string().optional() }),
+    outputSchema: out({
+      ...ACT_FIELDS,
+      request_id: z.string().optional().describe('Id of the opened request.'),
+      reached: z.number().optional().describe('How many people were notified; 0 means the wider-family call was used instead.'),
+      available_now: z.number().optional().describe('How many were available when asked.'),
+    }),
     annotations: WRITES,
   }, async ({ audience, note, confirmed }) => {
     const avail = await rpcAs(env, me, 'care_available_now', { p_audience: audience, p_denomination: null });
@@ -314,9 +348,17 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
   // ---- offer_to_serve: commit_to (lib/kingdomWork.ts) over an open Serve need ----
   tool(server, 'offer_to_serve', {
     title: 'Offer to meet a need',
-    description: `Promise, as the signed-in believer, to meet one open Serve need the way the app's "I will" does (a commitment the believer alone can later say was kept). Use a need id from needs_near. People say: "I'll take the groceries need in Bugesera", "sign me up to help with that". ${CONSENT_LAW}`,
-    inputSchema: { need_id: z.string().uuid(), promise: z.string().max(300).optional().describe('What exactly they will do, in their words.'), confirmed: z.boolean().default(false) },
-    outputSchema: out({ done: z.boolean(), needs_confirmation: z.boolean(), would: z.string().optional(), commitment_id: z.string().optional(), need: z.looseObject({ id: z.string(), title: z.string() }).optional(), door: z.string().optional() }),
+    description: `Record the signed-in believer's commitment ("I will") to meet one open Serve need, as the app does; only the believer can later mark it kept. Use with a need id from needs_near or where_can_i_serve_publicly ("I'll take the groceries need in Bugesera"). To browse needs use those tools; this one only commits. A need that is unknown or no longer open returns an error. ${CONSENT_LAW}`,
+    inputSchema: {
+      need_id: z.string().uuid().describe('Serve need UUID from needs_near or where_can_i_serve_publicly.'),
+      promise: z.string().max(300).optional().describe('Optional: what exactly they will do, in their words, up to 300 characters.'),
+      confirmed: confirmedInput,
+    },
+    outputSchema: out({
+      ...ACT_FIELDS,
+      commitment_id: z.string().optional().describe('Id of the recorded commitment.'),
+      need: z.looseObject({ id: z.string(), title: z.string() }).optional().describe('The need committed to.'),
+    }),
     annotations: WRITES,
   }, async ({ need_id, promise, confirmed }) => {
     const rows = await selectAs<{ id: string; title: string; status: string; city: string | null; country: string | null }>(env, me, 'serve_needs', `id=eq.${need_id}&select=id,title,status,city,country&limit=1`);
@@ -337,9 +379,14 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
   // ---- signed-in reads ----
   tool(server, 'invite_someone', {
     title: 'My invitation link',
-    description: 'The signed-in believer\'s own invitation link into The Living Bread (the multiplication engine: whoever joins through it is placed near them), so an assistant can help them bring a friend, a parent or a stranger. Read only. People say: "how do I invite my sister", "give me my link to share".',
+    description: 'Return the signed-in believer\'s personal invitation link and code: anyone who joins through it is connected to them and they are told on arrival. Use for "how do I invite my sister" or "give me my link to share". Read-only; sends nothing (the believer shares the link themselves). For a general description of the app use begin. If they have no code yet, returns the general join link and says so.',
     inputSchema: {},
-    outputSchema: out({ link: z.string(), code: z.string().nullable(), how: z.string(), door: z.string() }),
+    outputSchema: out({
+      link: z.string().describe('The link to share.'),
+      code: z.string().nullable().describe('Their personal invite code, or null if none exists yet.'),
+      how: z.string().describe('What happens when someone joins through the link.'),
+      door: z.string().describe('The app\'s Invite page, with a QR code.'),
+    }),
     annotations: READS,
   }, async () => {
     const rows = await selectAs<{ invite_code: string | null; name: string | null }>(env, me, 'users', `id=eq.${me.userId}&select=invite_code,name&limit=1`);
@@ -353,9 +400,14 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
   interface WallRow { id: string; title: string | null; body: string; category: string; is_urgent: boolean; is_anonymous: boolean; author_name: string | null; created_at: string; pray_count: number }
   tool(server, 'my_church', {
     title: 'My church this week',
-    description: 'The signed-in believer\'s church on The Living Bread: its events in the coming week and the prayer requests the church shares with its members (the church layer of the prayer wall, exactly what the app shows them). Honest when they have not named a church. People ask: "what is on at my church this week", "what is my church praying for".',
-    inputSchema: { days: z.number().int().min(1).max(60).default(7) },
-    outputSchema: out({ church: z.looseObject({ id: z.string(), name: z.string().nullable() }).nullable(), events: z.array(z.looseObject({ id: z.string(), title: z.string(), when: z.string(), where: z.string().nullable(), online: z.boolean(), going: z.number(), i_am_going: z.boolean() })), prayers: z.array(z.looseObject({ id: z.string(), from: z.string(), title: z.string().nullable(), body: z.string(), urgent: z.boolean(), when: z.string() })), door: z.string() }),
+    description: 'Read the signed-in believer\'s own church on The Living Bread as a member sees it: non-cancelled events in the next N days and up to 12 prayer requests shared with the church\'s members. Use for "what is on at my church this week" or "what is my church praying for". For a pastor\'s care requests use my_congregation; for churches near a place use find_churches_near; for their circles use my_family. Read-only. When they have not joined a church, returns church null with empty lists and a find-a-church link.',
+    inputSchema: { days: z.number().int().min(1).max(60).default(7).describe('How many days of upcoming events, 1 to 60 (default 7).') },
+    outputSchema: out({
+      church: z.looseObject({ id: z.string(), name: z.string().nullable() }).nullable().describe('Their church, or null when none is joined.'),
+      events: z.array(z.looseObject({ id: z.string(), title: z.string(), when: z.string(), where: z.string().nullable(), online: z.boolean(), going: z.number(), i_am_going: z.boolean() })).describe('Upcoming events: id, title, start (ISO, UTC), place or "online", how many are going, and whether the believer is.'),
+      prayers: z.array(z.looseObject({ id: z.string(), from: z.string(), title: z.string().nullable(), body: z.string(), urgent: z.boolean(), when: z.string() })).describe('Prayer requests shared with members: first name or "someone in the church", title, text, urgency, posted time.'),
+      door: z.string().describe('Link to the church room in the app.'),
+    }),
     annotations: READS,
   }, async ({ days }) => {
     const rows = await selectAs<{ church_id: string | null; church_name: string | null }>(env, me, 'users', `id=eq.${me.userId}&select=church_id,church_name&limit=1`);
@@ -378,9 +430,13 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
   interface HallRow { id: string; title: string; host_name: string; saved_for_me: boolean; present: number; seats: number; scheduled_at: string | null }
   tool(server, 'my_invitations', {
     title: 'What is waiting for me',
-    description: 'Offers made to the signed-in believer that wait for their answer: people offering to walk a yes with them, and seats saved for them at a Table. Read only; answering is done in the app. People ask: "did anyone offer to walk with me", "is a seat saved for me anywhere".',
+    description: 'List offers waiting for the signed-in believer\'s answer: people offering to walk one of their yeses with them, and seats saved for them at a Table. Use for "did anyone offer to walk with me" or "is a seat saved for me". Read-only: answering happens in the app at the returned links. Prayers prayed over them are in prayers_waiting_for_me, not here. Both lists empty when nothing is waiting.',
     inputSchema: {},
-    outputSchema: out({ walk_offers: z.array(z.looseObject({ yes_id: z.string(), words: z.string(), from: z.string(), when: z.string(), door: z.string() })), saved_seats: z.array(z.looseObject({ table_id: z.string(), title: z.string(), host: z.string(), present: z.number(), seats: z.number(), door: z.string() })), door: z.string() }),
+    outputSchema: out({
+      walk_offers: z.array(z.looseObject({ yes_id: z.string(), words: z.string(), from: z.string(), when: z.string(), door: z.string() })).describe('Offers to walk a yes: which yes, its words, who offered (first name), when, and the link to answer.'),
+      saved_seats: z.array(z.looseObject({ table_id: z.string(), title: z.string(), host: z.string(), present: z.number(), seats: z.number(), door: z.string() })).describe('Tables with a seat saved for them: title, host, people present, seats, link.'),
+      door: z.string().describe('Link to their Today page.'),
+    }),
     annotations: READS,
   }, async () => {
     const [offers, hall] = await Promise.all([rpcAs(env, me, 'my_yes_offers'), rpcAs(env, me, 'the_hall')]);
@@ -396,9 +452,13 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
   interface FamilyYes { id: string; name: string | null; words: string; verse_ref: string | null; state: string; created_at: string; n_with: number; i_am_with: boolean }
   tool(server, 'family_saying_yes', {
     title: 'The family saying yes',
-    description: 'The yeses believers have opened to the Body (shared yeses only, never private ones), the ones that said "heavier than I thought" first, each with who said it, the verse they held, how many stand with it, and the room where the signed-in believer can stand with it too. Read only. People ask: "what is the family saying yes to", "who needs someone to stand with them today".',
-    inputSchema: { limit: z.number().int().min(1).max(40).default(10) },
-    outputSchema: out({ count: z.number(), yeses: z.array(z.looseObject({ id: z.string(), from: z.string(), words: z.string(), verse_ref: z.string().nullable(), state: z.string(), with: z.number(), i_am_with: z.boolean(), when: z.string(), door: z.string() })), door: z.string() }),
+    description: 'List the yeses other believers chose to share (never private ones), those marked "heavier than I thought" first, each with first name, words, verse reference, how many stand with it, and whether the signed-in believer already does. Use for "what is the family saying yes to" or "who needs someone to stand with them". Read-only: standing with one happens at its link. For the believer\'s own yeses use my_walk; to write one use say_yes. count 0 when none are shared.',
+    inputSchema: { limit: z.number().int().min(1).max(40).default(10).describe('Maximum yeses, 1 to 40 (default 10).') },
+    outputSchema: out({
+      count: z.number().describe('Yeses returned.'),
+      yeses: z.array(z.looseObject({ id: z.string(), from: z.string(), words: z.string(), verse_ref: z.string().nullable(), state: z.string(), with: z.number(), i_am_with: z.boolean(), when: z.string(), door: z.string() })).describe('Each yes: id, first name, words, verse reference, state ("needs_support" means heavier than expected), people standing with it, whether the believer is, when, link.'),
+      door: z.string().describe('Link to all shared yeses.'),
+    }),
     annotations: READS,
   }, async ({ limit }) => {
     const r = await rpcAs(env, me, 'family_yeses', { p_limit: limit });

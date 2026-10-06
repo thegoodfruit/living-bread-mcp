@@ -51,13 +51,20 @@ export function registerProtocol(server: McpServer, env: Env): void {
   // ---- gatherings_tonight ---------------------------------------------------------------
   tool(server, 'gatherings_tonight', {
     title: 'Gatherings tonight',
-    description: 'Public Christian gatherings that start between now and the end of tonight (the next 12 hours by default) in a city: worship nights, prayer gatherings, Bible studies, services, as listed publicly by real churches, groups and believers on The Living Bread. Only public gatherings are returned; a gathering that keeps its address private keeps its city private too, so it is not listed by city. People ask: "is there a prayer meeting tonight in Atlanta", "Bible study tonight near me", "worship tonight". Honest when nothing is listed, with the door to every gathering.',
+    description: 'List public gatherings (worship nights, prayer meetings, Bible studies, services) in one named city that start within the next few hours (default 12, up to 36; ones that started in the last hour are kept), from the public Kingdom Protocol listing, with host name, venue name and a data URL. Use for "a prayer meeting tonight in Atlanta". For a window of days, online-only, or a search by coordinates use find_gatherings_near; for a plain week use events_this_week; for live rooms in the app use tables_live_now. Matches by city name, not distance; cancelled gatherings and those whose hosts keep their location private are excluded. Times are UTC and as posted by hosts. None returns count 0.',
     inputSchema: {
-      city: z.string().min(2).max(80).describe('The city, for example "Atlanta" or "San Diego".'),
-      country: z.string().max(80).optional().describe('Optional country, as an ISO code (US) or a name.'),
-      hours: z.number().int().min(1).max(36).default(12).describe('How many hours ahead to look, 1 to 36. Default 12.'),
+      city: z.string().min(2).max(80).describe('City name, matched as text: "Atlanta", "San Diego".'),
+      country: z.string().max(80).optional().describe('Optional country to disambiguate the city, ISO code ("US") or name.'),
+      hours: z.number().int().min(1).max(36).default(12).describe('How many hours ahead to look, 1 to 36 (default 12).'),
     },
-    outputSchema: out({ city: z.string(), hours: z.number(), count: z.number(), gatherings: z.array(z.looseObject({ id: z.string(), title: z.string(), starts_at: z.string(), city: z.string().nullable(), region: z.string().nullable(), country: z.string().nullable(), is_online: z.boolean(), host: z.string(), place_name: z.string().nullable(), data_url: z.string() })), honest: z.string().optional(), door: z.string() }),
+    outputSchema: out({
+      city: z.string().describe('The city searched.'),
+      hours: z.number().describe('The window used, in hours.'),
+      count: z.number().describe('Gatherings returned; 0 when none.'),
+      gatherings: z.array(z.looseObject({ id: z.string(), title: z.string(), starts_at: z.string(), city: z.string().nullable(), region: z.string().nullable(), country: z.string().nullable(), is_online: z.boolean(), host: z.string(), place_name: z.string().nullable(), data_url: z.string() })).describe('Each gathering: id, title, start (ISO, UTC), city, region, country, online flag, host name, venue name, and its public JSON data URL.'),
+      honest: z.string().optional().describe('Present when count is 0: what the empty result means.'),
+      door: z.string().describe('Link to every gathering.'),
+    }),
     annotations: READS,
   }, async ({ city, country, hours }) => {
     const h = hours ?? 12;
@@ -93,13 +100,18 @@ export function registerProtocol(server: McpServer, env: Env): void {
   // ---- where_can_i_serve_publicly --------------------------------------------------------
   tool(server, 'where_can_i_serve_publicly', {
     title: 'Where can I serve (publicly listed needs)',
-    description: 'Verified, open needs that ask for people, posted publicly by verified ministries on The Living Bread Serve network: what is needed, the city and country, whether it can be met in person or remotely, and the ministry behind it. Only public data is returned: never coordinates, never a contact. People ask: "where can I volunteer", "where can I serve this Saturday", "something I can help with remotely". Honest when nothing is listed.',
+    description: 'List up to 20 open volunteer needs (needs that ask for people\'s time, in person or remotely; funding-only needs excluded) posted publicly by verified ministries and Christian nonprofits on the Serve network, filtered by city and country name and optionally remote-only, through the public Kingdom Protocol read: what is needed, urgency, city and country, in person or remote, the ministry and its page, and a machine-readable data URL. Use for "where can I volunteer" or "something I can help with remotely". For needs near coordinates with distance, or needs that can be funded, use needs_near. city and country are text filters combined with AND; omit both for the whole network. Never coordinates or contacts. No match returns count 0.',
     inputSchema: {
-      country: z.string().max(80).optional().describe('Optional country, as a name or ISO code.'),
-      city: z.string().max(80).optional().describe('Optional city.'),
-      remote_only: z.boolean().optional().describe('Only needs that can be met remotely.'),
+      country: z.string().max(80).optional().describe('Optional country filter, name or ISO code: "Rwanda", "US".'),
+      city: z.string().max(80).optional().describe('Optional city filter, by name: "Kigali".'),
+      remote_only: z.boolean().optional().describe('true: only needs that can be met remotely.'),
     },
-    outputSchema: out({ count: z.number(), needs: z.array(z.looseObject({ id: z.string(), title: z.string(), category: z.string().nullable(), urgency: z.string().nullable(), city: z.string().nullable(), region: z.string().nullable(), country: z.string().nullable(), local: z.boolean(), remote: z.boolean(), ministry: z.string().nullable(), ministry_url: z.string().nullable(), data_url: z.string() })), honest: z.string().optional(), door: z.string() }),
+    outputSchema: out({
+      count: z.number().describe('Needs returned (at most 20); 0 when none.'),
+      needs: z.array(z.looseObject({ id: z.string(), title: z.string(), category: z.string().nullable(), urgency: z.string().nullable(), city: z.string().nullable(), region: z.string().nullable(), country: z.string().nullable(), local: z.boolean(), remote: z.boolean(), ministry: z.string().nullable(), ministry_url: z.string().nullable(), data_url: z.string() })).describe('Each need: id, title, category, urgency, city, region, country, local (in person possible), remote (remote possible), ministry name and page, and its public JSON data URL.'),
+      honest: z.string().optional().describe('Present when count is 0: what the empty result means.'),
+      door: z.string().describe('Link to Serve.'),
+    }),
     annotations: READS,
   }, async ({ country, city, remote_only }) => {
     const r = await anonRpc(env, 'protocol_needs', { p_country: country ?? null, p_city: city ?? null, p_people_only: true, p_limit: 20 });
@@ -143,9 +155,17 @@ export function registerProtocol(server: McpServer, env: Env): void {
 
   tool(server, 'kingdom_protocol_lookup', {
     title: 'Look up a Kingdom Protocol object',
-    description: 'Resolve a Living Bread lb: URN to its public object under the Kingdom Protocol v0.1: lb:gathering:<id>, lb:church:<id>, lb:ministry:<slug>, lb:community:<id>, lb:need:<id>, lb:service:<id>, lb:testimony:<id>, lb:prayer:<id>, lb:profile:<handle>. Any other lb: URN (a directory church, a city, a Scripture, a topic, a person of the Bible) is resolved through the public Kingdom Graph. Only public data is returned; an object that is not public answers as not found. Returns the object, its protocol kind and its JSON Schema.',
-    inputSchema: { urn: z.string().min(5).max(300).describe('An lb: URN, for example lb:gathering:<uuid> or lb:ministry:hope-for-a-good-life.') },
-    outputSchema: out({ urn: z.string(), found: z.boolean(), protocol_kind: z.string().nullable(), schema: z.string().nullable(), object: z.unknown().nullable(), source: z.string(), door: z.string() }),
+    description: 'Resolve any Living Bread lb: URN to its raw public JSON object. Protocol kinds (lb:gathering:<uuid>, lb:church:<uuid>, lb:ministry:<slug>, lb:community:<uuid>, lb:need:<uuid>, lb:service:<uuid>, lb:testimony:<uuid>, lb:prayer:<uuid>, lb:profile:<handle>) are read from the Kingdom Protocol v0.1 with their JSON Schema; any other lb: URN (directory church, city, Scripture, topic, biblical person) is resolved live through the public Kingdom Graph. Use when you hold a URN and need the machine-readable object. For a readable summary of a search result use fetch; for a directory church\'s full record use church. A private or unknown object returns found false, not an error; a string that is not an lb: URN also returns found false with the expected format.',
+    inputSchema: { urn: z.string().min(5).max(300).describe('An lb: URN, lowercase kind: "lb:gathering:<uuid>", "lb:ministry:hope-for-a-good-life", "lb:profile:<handle>".') },
+    outputSchema: out({
+      urn: z.string().describe('The URN requested.'),
+      found: z.boolean().describe('False when unknown, not public, or not a URN.'),
+      protocol_kind: z.string().nullable().describe('Protocol kind (gathering, church, ministry, community, need, service-opportunity, testimony, prayer, person), or null for Kingdom Graph entities.'),
+      schema: z.string().nullable().describe('URL of the JSON Schema for this kind, or null.'),
+      object: z.unknown().nullable().describe('The public object as stored, or null.'),
+      source: z.string().describe('The read that answered (a protocol function name, or kingdom_graph).'),
+      door: z.string().describe('Documentation page for the protocol or graph.'),
+    }),
     annotations: READS_WORLD,
   }, async ({ urn }) => {
     const u = urn.trim();

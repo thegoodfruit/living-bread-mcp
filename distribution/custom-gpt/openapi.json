@@ -1,0 +1,123 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "The Living Bread (read only)",
+    "version": "1.0.0",
+    "description": "Read-only public doors of The Living Bread (living-bread.org): Scripture read from the stored King James Version, verification of a quoted verse, crisis lines by country, grounded answers from the knowledge graph, real churches and public gatherings, and the live count of people who prayed. No account, no write, no personal data. Directory data CC BY 4.0, attribute The Living Bread (living-bread.org); Scripture public domain."
+  },
+  "servers": [{ "url": "https://discover.living-bread.org" }],
+  "paths": {
+    "/api/crisis": {
+      "get": {
+        "operationId": "getCrisisLines",
+        "summary": "Emergency number and crisis line for the person's country. Call FIRST when anyone is in danger or speaks of harming themselves or others.",
+        "parameters": [
+          { "name": "country", "in": "query", "required": false, "description": "Country name or ISO 3166-1 alpha-2 code, as the person said it. If unknown, ask the person; never assume a country.", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "found true with emergency numbers and crisis_line (with source and verified_at), or found false with the general rule and the countries held", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    },
+    "/api/scripture/{ref}": {
+      "get": {
+        "operationId": "getScripture",
+        "summary": "A Bible passage read verbatim from the stored King James Version (public domain). Use for every verse you quote.",
+        "parameters": [
+          { "name": "ref", "in": "path", "required": true, "description": "A reference such as John 3:16, Psalm 23:1-6 or Romans 8:38-39 (URL encoded), or a slug like john-3-16. At most 31 verses from one chapter.", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "ref, verses [{ verse, text }], text, translation, urn", "content": { "application/json": { "schema": { "type": "object" } } } }, "404": { "description": "Not a held reference" } }
+      }
+    },
+    "/api/verify": {
+      "get": {
+        "operationId": "verifyScriptureQuote",
+        "summary": "Check whether words are really Scripture before presenting them as a quotation: verbatim, close_but_differs (with a word diff), resembles, or not_found in any held translation. Returns the closest real verse with reference and SHA-256.",
+        "parameters": [
+          { "name": "quote", "in": "query", "required": true, "description": "The exact words to check, 3 to 2000 characters.", "schema": { "type": "string" } },
+          { "name": "reference", "in": "query", "required": false, "description": "The reference the words are attributed to, e.g. Philippians 4:13.", "schema": { "type": "string" } },
+          { "name": "translations", "in": "query", "required": false, "description": "Comma separated held translations, default KJV, at most 3 (for example KJV,es,de).", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "verdict, verdict_sentence, best_match { ref, translation, text, verses [{ ref, text, sha256 }], diff }, claimed_check, differences, not_found, source_url", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    },
+    "/api/ask": {
+      "get": {
+        "operationId": "askLivingBread",
+        "summary": "Grounded answer from The Living Bread knowledge graph: real denominations, saints, sacred sites, people and places of the Bible the question names, the church directory and its true count when a country is named, a related page, and next steps. Never invents; empty when nothing grounds.",
+        "parameters": [
+          { "name": "q", "in": "query", "required": true, "description": "The question in the person's words.", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "question, entities, churches, scripture, road_to_christ, next_steps", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    },
+    "/api/nearby": {
+      "get": {
+        "operationId": "getChurchesNear",
+        "summary": "Real churches in the open directory nearest a point in a country, sorted by distance.",
+        "parameters": [
+          { "name": "country", "in": "query", "required": true, "description": "Country slug, lower case with hyphens, e.g. kenya, south-korea, united-kingdom.", "schema": { "type": "string" } },
+          { "name": "lat", "in": "query", "required": true, "description": "Latitude of the place the person named.", "schema": { "type": "string" } },
+          { "name": "lon", "in": "query", "required": true, "description": "Longitude of the place the person named.", "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "required": false, "description": "1 to 50, default 20.", "schema": { "type": "string" } },
+          { "name": "denomination", "in": "query", "required": false, "description": "Optional denomination filter (substring).", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "churches with name, denomination, distance, stable lb: id and page", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    },
+    "/api/church/{country}/{slug}": {
+      "get": {
+        "operationId": "getChurch",
+        "summary": "One church in the open directory.",
+        "parameters": [
+          { "name": "country", "in": "path", "required": true, "description": "Country slug, e.g. colombia.", "schema": { "type": "string" } },
+          { "name": "slug", "in": "path", "required": true, "description": "Church slug from a previous answer.", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "name, denomination, coordinates, website where known, provenance", "content": { "application/json": { "schema": { "type": "object" } } } }, "404": { "description": "Not held" } }
+      }
+    },
+    "/api/gatherings": {
+      "get": {
+        "operationId": "listGatherings",
+        "summary": "Upcoming PUBLIC Christian gatherings (worship, prayer, Bible study, services) listed on The Living Bread, as schema.org-like events. A gathering that hides its address hides its city too.",
+        "parameters": [
+          { "name": "city", "in": "query", "required": false, "description": "City name or slug.", "schema": { "type": "string" } },
+          { "name": "country", "in": "query", "required": false, "description": "ISO code or name.", "schema": { "type": "string" } },
+          { "name": "kind", "in": "query", "required": false, "description": "service, study, outreach, prayer or other.", "schema": { "type": "string" } },
+          { "name": "days", "in": "query", "required": false, "description": "Window in days, 1 to 180, default 30.", "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "required": false, "description": "1 to 200, default 50.", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "count and items with title, starts_at, status, url, source", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    },
+    "/api/service-opportunities": {
+      "get": {
+        "operationId": "listServiceOpportunities",
+        "summary": "Verified needs from ministries that ask for people to serve. City and country only, never coordinates.",
+        "parameters": [
+          { "name": "country", "in": "query", "required": false, "description": "Country.", "schema": { "type": "string" } },
+          { "name": "city", "in": "query", "required": false, "description": "City.", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "items with title, ministry, city, url", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    },
+    "/api/praying-now": {
+      "get": {
+        "operationId": "getPrayingNow",
+        "summary": "How many distinct people prayed through The Living Bread in a window (counts only, never names).",
+        "parameters": [
+          { "name": "hours", "in": "query", "required": false, "description": "1 to 168, default 24.", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "people, countries (three or more people), as_of", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    },
+    "/api/now": {
+      "get": {
+        "operationId": "getToday",
+        "summary": "Today's Daily Bread verse (KJV), people who prayed in the last hour, and the next public gathering.",
+        "parameters": [
+          { "name": "city", "in": "query", "required": false, "description": "Optional city for the next gathering.", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "date, bread { ref, text, translation }, prayed_last_hour, next_gathering", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    }
+  }
+}

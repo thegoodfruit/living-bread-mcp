@@ -24,6 +24,8 @@ import distribution from './data/distribution.json';
 import versions from './data/versions.json';
 import { count } from './metrics';
 import { status } from './status';
+import { a2aRoute } from './a2a';
+import { EXCELLENCE_TOOL_SUMMARY } from './excellence';
 
 /** Count an MCP initialize by the client name it announces. Reads at most 64 KB of a JSON body; never blocks the request. */
 async function countInitialize(env: Env, req: Request, path: string): Promise<void> {
@@ -119,15 +121,18 @@ export default {
       return text(JSON.stringify(protectedResourceMetadata(env, p.endsWith('/app') ? '/app' : '/me'), null, 2), 'application/json; charset=utf-8', 200, { 'cache-control': 'public, max-age=3600' });
     }
 
+    // Glama connector ownership claim (kept published to stay verified).
+    if (p === '/.well-known/glama.json') return text(JSON.stringify({ $schema: 'https://glama.ai/mcp/schemas/connector.json', claim: 'glama_claim_lUZQjaRR8teA__ZbFmj-T5Gd-QCTpmQ5' }, null, 2), 'application/json; charset=utf-8', 200, { 'cache-control': 'public, max-age=300', 'access-control-allow-origin': '*' });
     if (p === '/privacy' || p === '/privacy/') return text(PRIVACY_HTML, 'text/html; charset=utf-8', 200, { 'cache-control': 'public, max-age=600' });
     if (p === '/') return text(landingHTML(), 'text/html; charset=utf-8', 200, { 'cache-control': 'public, max-age=3600' });
     if (p === '/llms.txt') return text(mcpLlmsTxt(), 'text/plain; charset=utf-8', 200, { 'cache-control': 'public, max-age=86400' });
     if (p === '/openapi.json') return Response.redirect(`${KNOWLEDGE_API}/openapi.json`, 302);
+    { const a2a = await a2aRoute(request, env, p); if (a2a) return a2a; }
     if (p === '/health' || p === '/.well-known/mcp.json') {
       return text(JSON.stringify({
         name: SERVER_NAME, version: SERVER_VERSION, ok: true,
         transports: { streamable_http: MCP_URL, sse: SSE_URL },
-        tools: TOOL_SUMMARY.flatMap(([n]) => n.split(', ')), prompts: PROMPTS, resources: RESOURCES,
+        tools: [...TOOL_SUMMARY.flatMap(([n]) => n.split(', ')), ...EXCELLENCE_TOOL_SUMMARY.map(([n]) => n)], a2a: 'https://mcp.living-bread.org/.well-known/agent-card.json', prompts: PROMPTS, resources: RESOURCES,
         signed_in: { endpoint: 'https://mcp.living-bread.org/me', tools: [...PERSONAL_TOOL_SUMMARY, ...SIGNED_IN_READ_SUMMARY, ...ACT_TOOL_SUMMARY].map(([n]) => n), shepherd_tools: SHEPHERD_TOOL_SUMMARY.map(([n]) => n) },
         auth: 'none on /mcp; OAuth 2.1 (Supabase Auth) on /me', confession: 'Jesus Christ is God and Lord.',
       }, null, 2), 'application/json; charset=utf-8', 200, { 'cache-control': 'no-store' });

@@ -47,17 +47,18 @@ function whenLocal(iso: string, tz: string | null): string {
 export function registerMyDay(server: McpServer, env: Env, me: Believer): void {
   tool(server, 'my_day', {
     title: 'My day on The Living Bread',
-    description: 'Today for the signed-in believer, in one paragraph and in parts: the Daily Bread for their morning (read from the stored text), the prayers waiting unheard over them, who in their own family is carrying something today (first names and feelings only), their next gathering, one open Serve need near them when their profile holds a place, and the yes they are walking. Absent parts are simply absent; nothing is invented. People ask: "what is my day", "anything waiting for me", "what should I pray for today". Read only; acts as the signed-in believer.',
+    description: 'Summarise the signed-in believer\'s day in one call: the verse of the day for their local date (verbatim KJV), how many prayers over them are unheard and from whom, which people in their own family shared a feeling today (first names and feelings only), their next circle gathering, one open Serve need within 150 km if their profile has a location, and their current open yes. Use for "what is my day" or "anything waiting for me". For any single part in depth use prayers_waiting_for_me, my_family, my_walk or needs_near. Read-only; parts with nothing are null or empty.',
     inputSchema: {},
     outputSchema: out({
-      date: z.string(), name: z.string().nullable(),
-      bread: z.looseObject({ ref: z.string(), text: z.string(), door: z.string() }).nullable(),
-      prayers_waiting: z.looseObject({ count: z.number(), from: z.array(z.string()), door: z.string() }),
-      family_carrying: z.array(z.looseObject({ name: z.string(), feeling: z.string(), door: z.string() })),
-      next_gathering: z.looseObject({ id: z.string(), title: z.string(), community: z.string().nullable(), when: z.string(), when_local: z.string(), i_am_going: z.boolean(), door: z.string() }).nullable(),
-      need_near: z.looseObject({ id: z.string(), title: z.string(), where: z.string(), partner: z.string(), km: z.number(), door: z.string() }).nullable(),
-      open_yes: z.looseObject({ id: z.string(), words: z.string(), verse_ref: z.string().nullable(), state: z.string(), days_ago: z.number(), door: z.string() }).nullable(),
-      doors: z.record(z.string(), z.string()),
+      date: z.string().describe('Their local date, YYYY-MM-DD.'),
+      name: z.string().nullable().describe('Their profile name.'),
+      bread: z.looseObject({ ref: z.string(), text: z.string(), door: z.string() }).nullable().describe('Verse of the day: reference, verbatim KJV text, link.'),
+      prayers_waiting: z.looseObject({ count: z.number(), from: z.array(z.string()), door: z.string() }).describe('Unheard prayers over them: count, up to 6 sender first names, link.'),
+      family_carrying: z.array(z.looseObject({ name: z.string(), feeling: z.string(), door: z.string() })).describe('Up to 8 family members who shared a feeling today: first name, feeling, link to pray.'),
+      next_gathering: z.looseObject({ id: z.string(), title: z.string(), community: z.string().nullable(), when: z.string(), when_local: z.string(), i_am_going: z.boolean(), door: z.string() }).nullable().describe('Next non-cancelled gathering of their circles, or null.'),
+      need_near: z.looseObject({ id: z.string(), title: z.string(), where: z.string(), partner: z.string(), km: z.number(), door: z.string() }).nullable().describe('One open Serve need within 150 km, or null when none or no location.'),
+      open_yes: z.looseObject({ id: z.string(), words: z.string(), verse_ref: z.string().nullable(), state: z.string(), days_ago: z.number(), door: z.string() }).nullable().describe('The yes they are walking now, or null.'),
+      doors: z.record(z.string(), z.string()).describe('Links: today, prayers_for_me, carrying, my_yes, serve, communities.'),
     }),
     annotations: READS,
   }, async () => {
