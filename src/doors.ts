@@ -39,8 +39,8 @@ export const DOORS = {
   today: `${SITE}/today`,
   prayersForMe: `${SITE}/prayers-for-me`,
   carrying: `${SITE}/carrying`,
-  myYes: `${SITE}/my-yes`,
-  yesFamily: `${SITE}/yes/family`,
+  myYes: `${SITE}/live-your-faith`,
+  yesFamily: `${SITE}/live-your-faith/faith-in-action`,
   tables: `${SITE}/tables`,
   theTable: `${SITE}/the-table`,
   serve: `${SITE}/serve`,
@@ -71,3 +71,22 @@ export const FIRST_STEPS: readonly string[] = [
   'A companion for the first days, and real believers who pray for them by name.',
   'A church and gatherings near them, and communities they can join.',
 ];
+
+
+/** The gentle offer that closes every comfort answer (owner, 2026-10-14). It is an invitation, never a
+ *  push: the family prays for a person only when that person asks, and the page says how. No prayer is
+ *  sent by an assistant on someone's behalf from here; this is a door. */
+export const PRAYER_OFFER =
+  'You do not have to carry this alone. If you would like it, real believers on The Living Bread will pray for you by name, and you can ask them, in your own words, here';
+/* The Open Chair (docs/OPEN_CHAIR_PROMPT_2026-10-14.md) is where that offer now points: ask once, a believer
+   takes the chair, we come back to ask how you are. A door is named only if it opens, and this server is
+   deployed apart from the web build, so the flag is set from a live check (openChair.chairDoorLive) before
+   an answer is built; until the page answers 200 the offer keeps pointing at the prayer page. */
+export const OPEN_CHAIR_DOOR = `${SITE}/open-chair`;
+let chairOpen = false;
+export function setChairLive(v: boolean): void { chairOpen = v; }
+export function prayerOfferLine(): string {
+  return chairOpen
+    ? `You do not have to carry this alone. If you would like it, you can ask the family to pray for you once, in your own words, with no account, and we will come back to ask how you are: ${OPEN_CHAIR_DOOR}?via=assistant`
+    : `${PRAYER_OFFER}: ${DOORS.prayer}`;
+}

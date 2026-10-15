@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "living-bread": {
+      "type": "http",
+      "url": "https://mcp.living-bread.org/mcp"
+    }
+  }
+}

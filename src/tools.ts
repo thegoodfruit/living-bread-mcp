@@ -10,13 +10,15 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 
 import { dailyBreadReference, isValidIsoDate, isoDate } from './daily';
-import { DOORS, FIRST_STEPS, INVITATION, KNOWLEDGE_API, RECORDING_TRUTH, SITE } from './doors';
+import { DOORS, FIRST_STEPS, INVITATION, KNOWLEDGE_API, PRAYER_OFFER, prayerOfferLine, RECORDING_TRUTH, SITE } from './doors';
+import { chairDoorLive } from './openChair';
 import { kjvByRef, kjvPassage, type Passage } from './kjv';
 import {
   ask, church as churchApi, communities, findChurches, findEntity, findGatherings, geocode, getChurch, getGathering, getText,
   nearby, type AskResult, type Church, type Community, type Gathering, type HeritageKind,
 } from './knowledge';
 import { allNeeds, findNeed, needBySlug, type Need } from './needs';
+import { rhythmOf } from './rhythm';
 import { km, list, paragraph, placeOf, slugify, whenUTC } from './render';
 import { parseReference, verseSlug } from './scripture';
 import { isAny, isPick, languageInput, notesOf, pick, readAny, translationInput } from './shelf';
@@ -142,6 +144,7 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
         translation_name: z.string().optional().describe('Full name of that translation.'),
         page: z.string().describe('Web page for this need, where believers pray over it.'),
         pray_with_the_family: z.string().describe('Link where the person can ask the family to pray for them.'),
+        pray_offer: z.string().optional().describe('One gentle sentence offering that the family will pray for the person if they ask.'),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       _meta: widgetMeta('verse-card', 'Finding the verses the house pairs with this', 'Verses read from the stored text'),
@@ -161,13 +164,15 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
       const verses = await resolveVerses(env, m.need, limit, chosen.choice);
       if (!verses.length) return unavailable('the stored Bible text', m.need.page);
       const tr = describe(chosen.choice);
+      await chairDoorLive();
       const text = paragraph([
         m.need.lead || `Scripture for ${m.need.label.toLowerCase()}`,
         ...verses.map((v) => `${v.own_ref ?? v.ref}: "${v.text}"${v.why ? ` (${v.why})` : ''}`),
         `Real believers pray over this need by name at ${m.need.page}`,
+        prayerOfferLine(),
       ]);
       return ok(text, {
-        need: m.need.slug, label: m.need.label, lead: m.need.lead || undefined, matched: m.matched, verses, translation: tr.code, translation_name: tr.name, page: m.need.page, pray_with_the_family: DOORS.prayer, door: doorFor(tr.language), ...ATTRIBUTION,
+        need: m.need.slug, label: m.need.label, lead: m.need.lead || undefined, matched: m.matched, verses, translation: tr.code, translation_name: tr.name, page: m.need.page, pray_with_the_family: DOORS.prayer, pray_offer: PRAYER_OFFER, door: doorFor(tr.language), ...ATTRIBUTION,
         content_layers: layers({ scripture: ['verses[].text'], reflection: ['lead', 'verses[].why'] }, 'The pairing of verses with a need, and each one-line why, are the house\'s own words, not Scripture.'),
       });
     },
@@ -436,7 +441,7 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
       outputSchema: out({
         count: z.number().describe('Communities on this page; 0 when none matched.'),
         total: z.number().optional().describe('Total matching communities across all pages.'),
-        communities: z.array(z.looseObject({ id: z.string(), name: z.string(), kind: z.string(), description: z.string().nullable(), where: z.string(), people: z.number(), join: z.string(), next_gathering: z.string().nullable(), verified: z.boolean() })).describe('Each community: id (fetch with community:<id>), name, kind, its own description, city or "everywhere", member count, how to join, next posted gathering (UTC) or null, and whether it is verified.'),
+        communities: z.array(z.looseObject({ id: z.string(), name: z.string(), kind: z.string(), description: z.string().nullable(), where: z.string(), people: z.number(), join: z.string(), next_gathering: z.string().nullable(), verified: z.boolean() })).describe('Each community: id (fetch with community:<id>), name, kind, its own description, city or "everywhere", member count, how to join, next posted gathering (UTC) or null, whether it is verified, its own weekly rhythm when the group set one (self described, in the group\'s own time, no time zone, not a confirmation), and a handoff to its page.'),
         join_here: z.string().describe('Link where communities are joined.'),
         next_cursor: z.string().nullable().optional().describe('Pass back as cursor for the next page; null when there is none.'),
       }),
@@ -455,6 +460,7 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
         id: c.id, name: c.name, kind: c.kind, description: c.description, where: c.is_global ? 'everywhere' : placeOf(c) === 'place not given' ? 'everywhere' : placeOf(c),
         people: c.member_count ?? 0, join: c.join_policy === 'open' ? 'open: anyone may join' : c.join_policy === 'request' ? 'by request to its leaders' : c.join_policy ?? 'see the community page',
         next_gathering: c.next_gathering_title ? `${c.next_gathering_title}${c.next_gathering_at ? `, ${whenUTC(c.next_gathering_at)}` : ''}` : null, verified: Boolean(c.is_verified),
+        rhythm: rhythmOf(c),
         freshness: c.next_gathering_at ? scheduled(c.next_gathering_at, 'The community\'s next posted gathering; not a statement that anyone is gathered now.') : record(null, 'A community on record; membership counts are read live, not who is present now.'),
       }));
       if (!shown.length) {
@@ -554,9 +560,9 @@ export function registerAll(server: McpServer, env: Env, opts: RegisterOptions =
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async () => {
-      const what = `At ${DOORS.kingdomPraying} you hear real believers praying over the whole family, one voice at a time, each naming their nation, each up to forty seconds. The latest prayer plays when you arrive.`;
+      const what = `At ${DOORS.kingdomPraying} you hear real believers praying over the whole family, one voice at a time, each naming their nation, each a whole prayer as long as they prayed. Nothing plays until you press it; Hear all plays them one after another, with next, previous and stop.`;
       const how = `Any believer on Living Bread may add one voice a day from the same page (the family is told once a day, naming the nations that prayed). ${RECORDING_TRUTH}`;
-      return ok(paragraph([what, how, 'Revelation 7:9 is the verse this room opens with: a multitude out of every nation']), { link: DOORS.kingdomPraying, what_it_is: what, how_to_add_your_voice: how, scripture_ref: 'Revelation 7:9' });
+      return ok(paragraph([what, how, 'Revelation 7:9 is the verse this room opens with: use scripture_passage to read it']), { link: DOORS.kingdomPraying, what_it_is: what, how_to_add_your_voice: how, scripture_ref: 'Revelation 7:9' });
     },
   );
 

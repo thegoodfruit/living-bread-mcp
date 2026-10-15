@@ -1,207 +1,207 @@
 {
  "label": "local",
- "base": "http://localhost:8797",
- "server_version": "1.2.0",
- "ran_at": "2026-10-06T12:27:47.306Z",
- "total": 106,
- "passed": 106,
+ "base": "http://127.0.0.1:8797",
+ "server_version": "1.3.0",
+ "ran_at": "2026-10-06T20:34:58.186Z",
+ "total": 146,
+ "passed": 146,
  "results": [
   {
    "id": "scr-01",
    "category": "scripture_accuracy",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 5222
+   "ms": 4733
   },
   {
    "id": "scr-02",
    "category": "scripture_accuracy",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 216
+   "ms": 151
   },
   {
    "id": "scr-03",
    "category": "scripture_accuracy",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 242
+   "ms": 60
   },
   {
    "id": "scr-04",
    "category": "scripture_accuracy",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 166
+   "ms": 56
   },
   {
    "id": "scr-05",
    "category": "scripture_accuracy",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 142
+   "ms": 51
   },
   {
    "id": "scr-06",
    "category": "scripture_accuracy",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 401
+   "ms": 52
   },
   {
    "id": "scr-07",
    "category": "scripture_accuracy",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 245
+   "ms": 60
   },
   {
    "id": "scr-08",
    "category": "scripture_accuracy",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 181
+   "ms": 49
   },
   {
    "id": "scr-09",
    "category": "scripture_accuracy",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 130
+   "ms": 37
   },
   {
    "id": "scr-10",
    "category": "scripture_accuracy",
-   "tool": "scripture_context",
+   "tool": "read_scripture (context) as scripture_context",
    "pass": true,
    "fails": [],
-   "ms": 129
+   "ms": 42
   },
   {
    "id": "scr-11",
    "category": "scripture_accuracy",
-   "tool": "scripture_search",
+   "tool": "read_scripture (search) as scripture_search",
    "pass": true,
    "fails": [],
-   "ms": 1546
+   "ms": 368
   },
   {
    "id": "scr-12",
    "category": "scripture_accuracy",
-   "tool": "cross_references",
+   "tool": "read_scripture (cross_references) as cross_references",
    "pass": true,
    "fails": [],
-   "ms": 1135
+   "ms": 53
   },
   {
    "id": "scr-13",
    "category": "scripture_accuracy",
-   "tool": "daily_bread",
+   "tool": "find_scripture_for (daily_bread) as daily_bread",
    "pass": true,
    "fails": [],
-   "ms": 257
+   "ms": 31
   },
   {
    "id": "scr-14",
    "category": "scripture_accuracy",
-   "tool": "verses_for",
+   "tool": "find_scripture_for (need) as verses_for",
    "pass": true,
    "fails": [],
-   "ms": 529
+   "ms": 69
   },
   {
    "id": "ev-01",
    "category": "evidence_label",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 232
+   "ms": 77
   },
   {
    "id": "ev-02",
    "category": "evidence_label",
-   "tool": "verses_for",
+   "tool": "find_scripture_for (need) as verses_for",
    "pass": true,
    "fails": [],
-   "ms": 227
+   "ms": 60
   },
   {
    "id": "ev-03",
    "category": "evidence_label",
-   "tool": "the_gospel",
+   "tool": "learn_the_faith (gospel) as the_gospel",
    "pass": true,
    "fails": [],
-   "ms": 359
+   "ms": 261
   },
   {
    "id": "ev-04",
    "category": "evidence_label",
-   "tool": "cross_references",
+   "tool": "read_scripture (cross_references) as cross_references",
    "pass": true,
    "fails": [],
-   "ms": 390
+   "ms": 38
   },
   {
    "id": "ev-05",
    "category": "evidence_label",
-   "tool": "find_churches_near",
+   "tool": "find_churches (near) as find_churches_near",
    "pass": true,
    "fails": [],
-   "ms": 810
+   "ms": 575
   },
   {
    "id": "int-01",
    "category": "interpretation_labels",
-   "tool": "verses_for",
+   "tool": "find_scripture_for (need) as verses_for",
    "pass": true,
    "fails": [],
-   "ms": 123
+   "ms": 105
   },
   {
    "id": "int-02",
    "category": "interpretation_labels",
-   "tool": "the_gospel",
+   "tool": "learn_the_faith (gospel) as the_gospel",
    "pass": true,
    "fails": [],
-   "ms": 86
+   "ms": 52
   },
   {
    "id": "int-03",
    "category": "interpretation_labels",
-   "tool": "what_the_bible_says_about",
+   "tool": "find_scripture_for (topic) as what_the_bible_says_about",
    "pass": true,
    "fails": [],
-   "ms": 135
+   "ms": 70
   },
   {
    "id": "int-04",
    "category": "interpretation_labels",
-   "tool": "cross_references",
+   "tool": "read_scripture (cross_references) as cross_references",
    "pass": true,
    "fails": [],
-   "ms": 100
+   "ms": 114
   },
   {
    "id": "int-05",
    "category": "interpretation_labels",
-   "tool": "ask_living_bread",
+   "tool": "search (answer) as ask_living_bread",
    "pass": true,
    "fails": [],
-   "ms": 1770
+   "ms": 2327
   },
   {
    "id": "int-06",
    "category": "interpretation_labels",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
    "ms": 181
@@ -209,63 +209,63 @@
   {
    "id": "geo-01",
    "category": "geography",
-   "tool": "find_churches_near",
+   "tool": "find_churches (near) as find_churches_near",
    "pass": true,
    "fails": [],
-   "ms": 383
+   "ms": 560
   },
   {
    "id": "geo-02",
    "category": "geography",
-   "tool": "find_churches_near",
+   "tool": "find_churches (near) as find_churches_near",
    "pass": true,
    "fails": [],
-   "ms": 423
+   "ms": 358
   },
   {
    "id": "geo-03",
    "category": "geography",
-   "tool": "find_churches_near",
+   "tool": "find_churches (near) as find_churches_near",
    "pass": true,
    "fails": [],
-   "ms": 326
+   "ms": 600
   },
   {
    "id": "geo-04",
    "category": "geography",
-   "tool": "find_gatherings_near",
+   "tool": "find_gatherings (any) as find_gatherings_near",
    "pass": true,
    "fails": [],
-   "ms": 1191
+   "ms": 755
   },
   {
    "id": "geo-05",
    "category": "geography",
-   "tool": "journey_next_steps",
+   "tool": "start_with_christ (next_steps) as journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 1442
+   "ms": 586
   },
   {
    "id": "geo-06",
    "category": "geography",
-   "tool": "needs_near",
+   "tool": "find_ways_to_serve (near) as needs_near",
    "pass": true,
    "fails": [],
-   "ms": 430
+   "ms": 276
   },
   {
    "id": "ml-01",
    "category": "multilingual",
-   "tool": "journey_next_steps",
+   "tool": "start_with_christ (next_steps) as journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 350
+   "ms": 429
   },
   {
    "id": "ml-02",
    "category": "multilingual",
-   "tool": "journey_next_steps",
+   "tool": "start_with_christ (next_steps) as journey_next_steps",
    "pass": true,
    "fails": [],
    "ms": 335
@@ -273,111 +273,111 @@
   {
    "id": "ml-03",
    "category": "multilingual",
-   "tool": "verses_for",
+   "tool": "find_scripture_for (need) as verses_for",
    "pass": true,
    "fails": [],
-   "ms": 168
+   "ms": 40
   },
   {
    "id": "ml-04",
    "category": "multilingual",
-   "tool": "find_churches_near",
+   "tool": "find_churches (near) as find_churches_near",
    "pass": true,
    "fails": [],
-   "ms": 427
+   "ms": 241
   },
   {
    "id": "ml-05",
    "category": "multilingual",
-   "tool": "ask_living_bread",
+   "tool": "search (answer) as ask_living_bread",
    "pass": true,
    "fails": [],
-   "ms": 1290
+   "ms": 1888
   },
   {
    "id": "fr-01",
    "category": "stale_availability",
-   "tool": "find_gatherings_near",
+   "tool": "find_gatherings (any) as find_gatherings_near",
    "pass": true,
    "fails": [],
-   "ms": 797
+   "ms": 394
   },
   {
    "id": "fr-02",
    "category": "stale_availability",
-   "tool": "events_this_week",
+   "tool": "find_gatherings (this_week) as events_this_week",
    "pass": true,
    "fails": [],
-   "ms": 347
+   "ms": 604
   },
   {
    "id": "fr-03",
    "category": "stale_availability",
-   "tool": "journey_next_steps",
+   "tool": "start_with_christ (next_steps) as journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 296
+   "ms": 515
   },
   {
    "id": "fr-04",
    "category": "stale_availability",
-   "tool": "gatherings_tonight",
+   "tool": "find_gatherings (tonight) as gatherings_tonight",
    "pass": true,
    "fails": [],
-   "ms": 225
+   "ms": 283
   },
   {
    "id": "fr-05",
    "category": "stale_availability",
-   "tool": "tables_live_now",
+   "tool": "find_people_to_pray_with (live_tables) as tables_live_now",
    "pass": true,
    "fails": [],
-   "ms": 189
+   "ms": 100
   },
   {
    "id": "em-01",
    "category": "empty_results",
-   "tool": "scripture_search",
+   "tool": "read_scripture (search) as scripture_search",
    "pass": true,
    "fails": [],
-   "ms": 187
+   "ms": 708
   },
   {
    "id": "em-02",
    "category": "empty_results",
-   "tool": "journey_next_steps",
+   "tool": "start_with_christ (next_steps) as journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 1161
+   "ms": 359
   },
   {
    "id": "em-03",
    "category": "empty_results",
-   "tool": "a_prayer_for",
+   "tool": "learn_the_faith (a_prayer_for) as a_prayer_for",
    "pass": true,
    "fails": [],
-   "ms": 207
+   "ms": 134
   },
   {
    "id": "em-04",
    "category": "empty_results",
-   "tool": "communities_to_join",
+   "tool": "find_communities (to_join) as communities_to_join",
    "pass": true,
    "fails": [],
-   "ms": 162
+   "ms": 251
   },
   {
    "id": "em-05",
    "category": "empty_results",
-   "tool": "where_can_i_serve_publicly",
+   "tool": "find_ways_to_serve (public_needs) as where_can_i_serve_publicly",
    "pass": true,
    "fails": [],
-   "ms": 302
+   "ms": 280
   },
   {
    "id": "em-06",
    "category": "empty_results",
-   "tool": "kingdom_map",
+   "tool": "see_the_kingdom (map) as kingdom_map",
    "pass": true,
    "fails": [],
    "ms": 273
@@ -388,7 +388,7 @@
    "tool": "list",
    "pass": true,
    "fails": [],
-   "ms": 957
+   "ms": 434
   },
   {
    "id": "pm-02",
@@ -396,7 +396,7 @@
    "tool": "list",
    "pass": true,
    "fails": [],
-   "ms": 2209
+   "ms": 2678
   },
   {
    "id": "pm-03",
@@ -404,7 +404,7 @@
    "tool": "list",
    "pass": true,
    "fails": [],
-   "ms": 568
+   "ms": 675
   },
   {
    "id": "pm-04",
@@ -412,7 +412,7 @@
    "tool": "list",
    "pass": true,
    "fails": [],
-   "ms": 1515
+   "ms": 1826
   },
   {
    "id": "pm-05",
@@ -420,7 +420,7 @@
    "tool": "list",
    "pass": true,
    "fails": [],
-   "ms": 609
+   "ms": 324
   },
   {
    "id": "pm-06",
@@ -428,23 +428,23 @@
    "tool": "http",
    "pass": true,
    "fails": [],
-   "ms": 43
+   "ms": 52
   },
   {
    "id": "inj-01",
    "category": "prompt_injection",
-   "tool": "kingdom_map",
+   "tool": "see_the_kingdom (map) as kingdom_map",
    "pass": true,
    "fails": [],
-   "ms": 171
+   "ms": 243
   },
   {
    "id": "inj-02",
    "category": "prompt_injection",
-   "tool": "kingdom_map",
+   "tool": "see_the_kingdom (map) as kingdom_map",
    "pass": true,
    "fails": [],
-   "ms": 176
+   "ms": 1736
   },
   {
    "id": "inj-03",
@@ -452,7 +452,7 @@
    "tool": "local",
    "pass": true,
    "fails": [],
-   "ms": 297
+   "ms": 370
   },
   {
    "id": "inj-04",
@@ -460,7 +460,7 @@
    "tool": "instructions",
    "pass": true,
    "fails": [],
-   "ms": 0
+   "ms": 3
   },
   {
    "id": "dup-01",
@@ -468,7 +468,7 @@
    "tool": "say_yes",
    "pass": true,
    "fails": [],
-   "ms": 925
+   "ms": 962
   },
   {
    "id": "dup-02",
@@ -476,87 +476,87 @@
    "tool": "say_yes",
    "pass": true,
    "fails": [],
-   "ms": 520
+   "ms": 618
   },
   {
    "id": "dl-01",
    "category": "deep_links",
-   "tool": "journey_next_steps",
+   "tool": "start_with_christ (next_steps) as journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 1269
+   "ms": 1996
   },
   {
    "id": "dl-02",
    "category": "deep_links",
-   "tool": "journey_next_steps",
+   "tool": "start_with_christ (next_steps) as journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 1962
+   "ms": 1489
   },
   {
    "id": "dl-03",
    "category": "deep_links",
-   "tool": "journey_next_steps",
+   "tool": "start_with_christ (next_steps) as journey_next_steps",
    "pass": true,
    "fails": [],
-   "ms": 1225
+   "ms": 1682
   },
   {
    "id": "dl-04",
    "category": "deep_links",
-   "tool": "reading_plans",
+   "tool": "start_with_christ (reading_plans) as reading_plans",
    "pass": true,
    "fails": [],
-   "ms": 558
+   "ms": 446
   },
   {
    "id": "dl-05",
    "category": "deep_links",
-   "tool": "needs_near",
+   "tool": "find_ways_to_serve (near) as needs_near",
    "pass": true,
    "fails": [],
-   "ms": 580
+   "ms": 1669
   },
   {
    "id": "hy-01",
    "category": "tool_hygiene",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 169
+   "ms": 586
   },
   {
    "id": "hy-02",
    "category": "tool_hygiene",
-   "tool": "scripture_search",
+   "tool": "read_scripture (search) as scripture_search",
    "pass": true,
    "fails": [],
-   "ms": 1057
+   "ms": 415
   },
   {
    "id": "hy-03",
    "category": "tool_hygiene",
-   "tool": "find_churches_near",
+   "tool": "find_churches (near) as find_churches_near",
    "pass": true,
    "fails": [],
-   "ms": 210
+   "ms": 842
   },
   {
    "id": "hy-04",
    "category": "tool_hygiene",
-   "tool": "daily_bread",
+   "tool": "find_scripture_for (daily_bread) as daily_bread",
    "pass": true,
    "fails": [],
-   "ms": 62
+   "ms": 137
   },
   {
    "id": "hy-05",
    "category": "tool_hygiene",
-   "tool": "the_gospel",
+   "tool": "learn_the_faith (gospel) as the_gospel",
    "pass": true,
    "fails": [],
-   "ms": 85
+   "ms": 108
   },
   {
    "id": "hy-06",
@@ -564,7 +564,7 @@
    "tool": "http",
    "pass": true,
    "fails": [],
-   "ms": 215
+   "ms": 548
   },
   {
    "id": "hy-07",
@@ -572,79 +572,79 @@
    "tool": "http",
    "pass": true,
    "fails": [],
-   "ms": 639
+   "ms": 578
   },
   {
    "id": "ver-01",
    "category": "scripture_verification",
-   "tool": "verify_scripture_quote",
+   "tool": "read_scripture (verify) as verify_scripture_quote",
    "pass": true,
    "fails": [],
-   "ms": 542
+   "ms": 898
   },
   {
    "id": "ver-02",
    "category": "scripture_verification",
-   "tool": "verify_scripture_quote",
+   "tool": "read_scripture (verify) as verify_scripture_quote",
    "pass": true,
    "fails": [],
-   "ms": 213
+   "ms": 143
   },
   {
    "id": "ver-03",
    "category": "scripture_verification",
-   "tool": "verify_scripture_quote",
+   "tool": "read_scripture (verify) as verify_scripture_quote",
    "pass": true,
    "fails": [],
-   "ms": 98
+   "ms": 141
   },
   {
    "id": "ver-04",
    "category": "scripture_verification",
-   "tool": "verify_scripture_quote",
+   "tool": "read_scripture (verify) as verify_scripture_quote",
    "pass": true,
    "fails": [],
-   "ms": 131
+   "ms": 90
   },
   {
    "id": "ver-05",
    "category": "scripture_verification",
-   "tool": "verify_scripture_quote",
+   "tool": "read_scripture (verify) as verify_scripture_quote",
    "pass": true,
    "fails": [],
-   "ms": 459
+   "ms": 81
   },
   {
    "id": "pray-01",
    "category": "human_door",
-   "tool": "real_people_will_pray",
+   "tool": "find_people_to_pray_with (real_people_will_pray) as real_people_will_pray",
    "pass": true,
    "fails": [],
-   "ms": 909
+   "ms": 1141
   },
   {
    "id": "cite-01",
    "category": "citations",
-   "tool": "ask_living_bread",
+   "tool": "search (answer) as ask_living_bread",
    "pass": true,
    "fails": [],
-   "ms": 1671
+   "ms": 2500
   },
   {
    "id": "cite-02",
    "category": "citations",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 330
+   "ms": 633
   },
   {
    "id": "cite-03",
    "category": "citations",
-   "tool": "prayers_left_near",
+   "tool": "find_people_to_pray_with (prayers_near) as prayers_left_near",
    "pass": true,
    "fails": [],
-   "ms": 616
+   "ms": 885
   },
   {
    "id": "a2a-01",
@@ -652,7 +652,7 @@
    "tool": "http",
    "pass": true,
    "fails": [],
-   "ms": 117
+   "ms": 77
   },
   {
    "id": "a2a-02",
@@ -660,7 +660,7 @@
    "tool": "http",
    "pass": true,
    "fails": [],
-   "ms": 104
+   "ms": 125
   },
   {
    "id": "nlw-01",
@@ -668,7 +668,7 @@
    "tool": "http",
    "pass": true,
    "fails": [],
-   "ms": 4796
+   "ms": 2217
   },
   {
    "id": "nlw-02",
@@ -676,7 +676,7 @@
    "tool": "http",
    "pass": true,
    "fails": [],
-   "ms": 1483
+   "ms": 1568
   },
   {
    "id": "vapi-01",
@@ -684,159 +684,159 @@
    "tool": "http",
    "pass": true,
    "fails": [],
-   "ms": 2723
+   "ms": 730
   },
   {
    "id": "tr-01",
    "category": "translations",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 2985
+   "ms": 613
   },
   {
    "id": "tr-02",
    "category": "translations",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 2919
+   "ms": 234
   },
   {
    "id": "tr-03",
    "category": "translations",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 1397
+   "ms": 108
   },
   {
    "id": "tr-04",
    "category": "translations",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 1074
+   "ms": 249
   },
   {
    "id": "tr-05",
    "category": "translations",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 867
+   "ms": 203
   },
   {
    "id": "tr-06",
    "category": "translations",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 424
+   "ms": 130
   },
   {
    "id": "tr-07",
    "category": "translations",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 287
+   "ms": 200
   },
   {
    "id": "tr-08",
    "category": "translations",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 435
+   "ms": 173
   },
   {
    "id": "tr-09",
    "category": "translations",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 550
+   "ms": 131
   },
   {
    "id": "tr-10",
    "category": "translations",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 125
+   "ms": 42
   },
   {
    "id": "tr-11",
    "category": "translations",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 66
+  },
+  {
+   "id": "tr-12",
+   "category": "translations",
+   "tool": "read_scripture (compare) as compare_translations",
+   "pass": true,
+   "fails": [],
+   "ms": 254
+  },
+  {
+   "id": "tr-13",
+   "category": "translations",
+   "tool": "read_scripture (passage) as scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 645
+  },
+  {
+   "id": "tr-14",
+   "category": "translations",
+   "tool": "read_scripture (passage) as scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 69
+  },
+  {
+   "id": "tr-15",
+   "category": "translations",
+   "tool": "read_scripture (original_words) as original_words",
    "pass": true,
    "fails": [],
    "ms": 119
   },
   {
-   "id": "tr-12",
-   "category": "translations",
-   "tool": "compare_translations",
-   "pass": true,
-   "fails": [],
-   "ms": 762
-  },
-  {
-   "id": "tr-13",
-   "category": "translations",
-   "tool": "scripture_passage",
-   "pass": true,
-   "fails": [],
-   "ms": 831
-  },
-  {
-   "id": "tr-14",
-   "category": "translations",
-   "tool": "scripture_passage",
-   "pass": true,
-   "fails": [],
-   "ms": 275
-  },
-  {
-   "id": "tr-15",
-   "category": "translations",
-   "tool": "original_words",
-   "pass": true,
-   "fails": [],
-   "ms": 101
-  },
-  {
    "id": "tr-16",
    "category": "translations",
-   "tool": "original_words",
+   "tool": "read_scripture (original_words) as original_words",
    "pass": true,
    "fails": [],
-   "ms": 89
+   "ms": 98
   },
   {
    "id": "tr-17",
    "category": "translations",
-   "tool": "scripture_search",
+   "tool": "read_scripture (search) as scripture_search",
    "pass": true,
    "fails": [],
-   "ms": 1309
+   "ms": 715
   },
   {
    "id": "tr-18",
    "category": "translations",
-   "tool": "list_translations",
+   "tool": "read_scripture (translations) as list_translations",
    "pass": true,
    "fails": [],
-   "ms": 268
+   "ms": 151
   },
   {
    "id": "tr-19",
    "category": "translations",
-   "tool": "scripture_passage",
+   "tool": "read_scripture (passage) as scripture_passage",
    "pass": true,
    "fails": [],
-   "ms": 393
+   "ms": 319
   },
   {
    "id": "tr-20",
@@ -844,7 +844,7 @@
    "tool": "list",
    "pass": true,
    "fails": [],
-   "ms": 1681
+   "ms": 1843
   },
   {
    "id": "tr-21",
@@ -852,7 +852,327 @@
    "tool": "local",
    "pass": true,
    "fails": [],
-   "ms": 30205
+   "ms": 27346
+  },
+  {
+   "id": "lean-01",
+   "category": "lean_modes",
+   "tool": "get_crisis_help",
+   "pass": true,
+   "fails": [],
+   "ms": 7423
+  },
+  {
+   "id": "lean-02",
+   "category": "lean_modes",
+   "tool": "read_scripture",
+   "pass": true,
+   "fails": [],
+   "ms": 1291
+  },
+  {
+   "id": "lean-03",
+   "category": "lean_modes",
+   "tool": "read_scripture",
+   "pass": true,
+   "fails": [],
+   "ms": 317
+  },
+  {
+   "id": "lean-04",
+   "category": "lean_modes",
+   "tool": "read_scripture",
+   "pass": true,
+   "fails": [],
+   "ms": 175
+  },
+  {
+   "id": "lean-05",
+   "category": "lean_modes",
+   "tool": "find_scripture_for",
+   "pass": true,
+   "fails": [],
+   "ms": 87
+  },
+  {
+   "id": "lean-06",
+   "category": "lean_modes",
+   "tool": "find_scripture_for",
+   "pass": true,
+   "fails": [],
+   "ms": 255
+  },
+  {
+   "id": "lean-07",
+   "category": "lean_modes",
+   "tool": "learn_the_faith",
+   "pass": true,
+   "fails": [],
+   "ms": 122
+  },
+  {
+   "id": "lean-08",
+   "category": "lean_modes",
+   "tool": "learn_the_faith",
+   "pass": true,
+   "fails": [],
+   "ms": 283
+  },
+  {
+   "id": "lean-09",
+   "category": "lean_modes",
+   "tool": "learn_the_faith",
+   "pass": true,
+   "fails": [],
+   "ms": 84
+  },
+  {
+   "id": "lean-10",
+   "category": "lean_modes",
+   "tool": "learn_the_faith",
+   "pass": true,
+   "fails": [],
+   "ms": 49
+  },
+  {
+   "id": "lean-11",
+   "category": "lean_modes",
+   "tool": "learn_the_faith",
+   "pass": true,
+   "fails": [],
+   "ms": 77
+  },
+  {
+   "id": "lean-12",
+   "category": "lean_modes",
+   "tool": "learn_the_faith",
+   "pass": true,
+   "fails": [],
+   "ms": 161
+  },
+  {
+   "id": "lean-13",
+   "category": "lean_modes",
+   "tool": "learn_the_faith",
+   "pass": true,
+   "fails": [],
+   "ms": 65
+  },
+  {
+   "id": "lean-14",
+   "category": "lean_modes",
+   "tool": "learn_the_faith",
+   "pass": true,
+   "fails": [],
+   "ms": 165
+  },
+  {
+   "id": "lean-15",
+   "category": "lean_modes",
+   "tool": "learn_the_faith",
+   "pass": true,
+   "fails": [],
+   "ms": 472
+  },
+  {
+   "id": "lean-16",
+   "category": "lean_modes",
+   "tool": "learn_the_faith",
+   "pass": true,
+   "fails": [],
+   "ms": 126
+  },
+  {
+   "id": "lean-17",
+   "category": "lean_modes",
+   "tool": "learn_the_faith",
+   "pass": true,
+   "fails": [],
+   "ms": 111
+  },
+  {
+   "id": "lean-18",
+   "category": "lean_modes",
+   "tool": "learn_the_faith",
+   "pass": true,
+   "fails": [],
+   "ms": 118
+  },
+  {
+   "id": "lean-19",
+   "category": "lean_modes",
+   "tool": "find_churches",
+   "pass": true,
+   "fails": [],
+   "ms": 259
+  },
+  {
+   "id": "lean-20",
+   "category": "lean_modes",
+   "tool": "find_gatherings",
+   "pass": true,
+   "fails": [],
+   "ms": 167
+  },
+  {
+   "id": "lean-21",
+   "category": "lean_modes",
+   "tool": "find_people_to_pray_with",
+   "pass": true,
+   "fails": [],
+   "ms": 872
+  },
+  {
+   "id": "lean-22",
+   "category": "lean_modes",
+   "tool": "find_people_to_pray_with",
+   "pass": true,
+   "fails": [],
+   "ms": 509
+  },
+  {
+   "id": "lean-23",
+   "category": "lean_modes",
+   "tool": "find_people_to_pray_with",
+   "pass": true,
+   "fails": [],
+   "ms": 103
+  },
+  {
+   "id": "lean-24",
+   "category": "lean_modes",
+   "tool": "find_people_to_pray_with",
+   "pass": true,
+   "fails": [],
+   "ms": 186
+  },
+  {
+   "id": "lean-25",
+   "category": "lean_modes",
+   "tool": "find_communities",
+   "pass": true,
+   "fails": [],
+   "ms": 199
+  },
+  {
+   "id": "lean-26",
+   "category": "lean_modes",
+   "tool": "see_the_kingdom",
+   "pass": true,
+   "fails": [],
+   "ms": 347
+  },
+  {
+   "id": "lean-27",
+   "category": "lean_modes",
+   "tool": "see_the_kingdom",
+   "pass": true,
+   "fails": [],
+   "ms": 341
+  },
+  {
+   "id": "lean-28",
+   "category": "lean_modes",
+   "tool": "see_the_kingdom",
+   "pass": true,
+   "fails": [],
+   "ms": 410
+  },
+  {
+   "id": "lean-29",
+   "category": "lean_modes",
+   "tool": "start_with_christ",
+   "pass": true,
+   "fails": [],
+   "ms": 61
+  },
+  {
+   "id": "lean-30",
+   "category": "lean_modes",
+   "tool": "search",
+   "pass": true,
+   "fails": [],
+   "ms": 1712
+  },
+  {
+   "id": "lean-31",
+   "category": "lean_modes",
+   "tool": "search",
+   "pass": true,
+   "fails": [],
+   "ms": 249
+  },
+  {
+   "id": "lean-32",
+   "category": "lean_modes",
+   "tool": "fetch",
+   "pass": true,
+   "fails": [],
+   "ms": 65
+  },
+  {
+   "id": "lean-33",
+   "category": "lean_modes",
+   "tool": "find_ways_to_serve",
+   "pass": true,
+   "fails": [],
+   "ms": 436
+  },
+  {
+   "id": "lean-34",
+   "category": "lean_modes",
+   "tool": "find_gatherings",
+   "pass": true,
+   "fails": [],
+   "ms": 566
+  },
+  {
+   "id": "lean-35",
+   "category": "lean_modes",
+   "tool": "read_scripture",
+   "pass": true,
+   "fails": [],
+   "ms": 130
+  },
+  {
+   "id": "named-01",
+   "category": "named_endpoints",
+   "tool": "list",
+   "pass": true,
+   "fails": [],
+   "ms": 3042
+  },
+  {
+   "id": "named-02",
+   "category": "named_endpoints",
+   "tool": "list",
+   "pass": true,
+   "fails": [],
+   "ms": 1144
+  },
+  {
+   "id": "named-03",
+   "category": "named_endpoints",
+   "tool": "scripture_passage",
+   "pass": true,
+   "fails": [],
+   "ms": 371
+  },
+  {
+   "id": "named-04",
+   "category": "named_endpoints",
+   "tool": "find_churches_near",
+   "pass": true,
+   "fails": [],
+   "ms": 1124
+  },
+  {
+   "id": "named-05",
+   "category": "named_endpoints",
+   "tool": "invite_someone",
+   "pass": true,
+   "fails": [],
+   "ms": 455
   }
  ]
 }

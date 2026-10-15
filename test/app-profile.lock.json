@@ -1,0 +1,947 @@
+{
+ "$comment": "The /app (ChatGPT plugin) profile as listed by https://mcp.living-bread.org on 2026-10-06. Changing it is a plugin resubmission: update only on purpose.",
+ "tools": [
+  {
+   "name": "a_person_now",
+   "title": "A person now: who is keeping watch, and the door to be met",
+   "annotations": {
+    "title": "A person now: who is keeping watch, and the door to be met",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "language",
+    "want"
+   ],
+   "required": []
+  },
+  {
+   "name": "a_prayer_for",
+   "title": "A prayer for a situation (the house's own prayers)",
+   "annotations": {
+    "title": "A prayer for a situation (the house's own prayers)",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "situation"
+   ],
+   "required": [
+    "situation"
+   ]
+  },
+  {
+   "name": "ask_living_bread",
+   "title": "Ask The Living Bread",
+   "annotations": {
+    "title": "Ask The Living Bread",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "question"
+   ],
+   "required": [
+    "question"
+   ]
+  },
+  {
+   "name": "begin",
+   "title": "Begin on The Living Bread",
+   "annotations": {
+    "title": "Begin on The Living Bread",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [],
+   "required": []
+  },
+  {
+   "name": "belief",
+   "title": "What Christians believe",
+   "annotations": {
+    "title": "What Christians believe",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "topic"
+   ],
+   "required": [
+    "topic"
+   ]
+  },
+  {
+   "name": "family_activity_today",
+   "title": "What the family did today",
+   "annotations": {
+    "title": "What the family did today",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [],
+   "required": []
+  },
+  {
+   "name": "christianity_and_other_faiths",
+   "title": "Come and See: for a seeker from another faith, or none",
+   "annotations": {
+    "title": "Come and See: for a seeker from another faith, or none",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "background"
+   ],
+   "required": [
+    "background"
+   ]
+  },
+  {
+   "name": "church",
+   "title": "One church, as open data",
+   "annotations": {
+    "title": "One church, as open data",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "country",
+    "slug"
+   ],
+   "required": [
+    "country",
+    "slug"
+   ]
+  },
+  {
+   "name": "communities_to_join",
+   "title": "Communities a person can join",
+   "annotations": {
+    "title": "Communities a person can join",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "cursor",
+    "limit",
+    "query"
+   ],
+   "required": []
+  },
+  {
+   "name": "compare_translations",
+   "title": "Compare Bible translations",
+   "annotations": {
+    "title": "Compare Bible translations",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "include_original",
+    "language",
+    "reference",
+    "translations"
+   ],
+   "required": [
+    "reference"
+   ]
+  },
+  {
+   "name": "cross_references",
+   "title": "Cross references for a verse",
+   "annotations": {
+    "title": "Cross references for a verse",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "include_text",
+    "language",
+    "limit",
+    "reference",
+    "translation"
+   ],
+   "required": [
+    "reference"
+   ]
+  },
+  {
+   "name": "daily_bread",
+   "title": "The Daily Bread",
+   "annotations": {
+    "title": "The Daily Bread",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "date",
+    "language",
+    "translation"
+   ],
+   "required": []
+  },
+  {
+   "name": "denomination_compare",
+   "title": "Two traditions, side by side, charitably",
+   "annotations": {
+    "title": "Two traditions, side by side, charitably",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "a",
+    "b"
+   ],
+   "required": [
+    "a",
+    "b"
+   ]
+  },
+  {
+   "name": "events_this_week",
+   "title": "Gatherings this week near a place",
+   "annotations": {
+    "title": "Gatherings this week near a place",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "city",
+    "limit"
+   ],
+   "required": []
+  },
+  {
+   "name": "faith_in_a_hard_season",
+   "title": "Christ in a hard season of life",
+   "annotations": {
+    "title": "Christ in a hard season of life",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "life_event"
+   ],
+   "required": [
+    "life_event"
+   ]
+  },
+  {
+   "name": "fetch",
+   "title": "Fetch one search result",
+   "annotations": {
+    "title": "Fetch one search result",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "id"
+   ],
+   "required": [
+    "id"
+   ]
+  },
+  {
+   "name": "find_churches_near",
+   "title": "Find churches near a place",
+   "annotations": {
+    "title": "Find churches near a place",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "city",
+    "denomination",
+    "limit"
+   ],
+   "required": []
+  },
+  {
+   "name": "find_gatherings_near",
+   "title": "Find gatherings near a place",
+   "annotations": {
+    "title": "Find gatherings near a place",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "city",
+    "cursor",
+    "days",
+    "limit",
+    "online"
+   ],
+   "required": []
+  },
+  {
+   "name": "gatherings_tonight",
+   "title": "Gatherings tonight",
+   "annotations": {
+    "title": "Gatherings tonight",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "city",
+    "country",
+    "hours"
+   ],
+   "required": [
+    "city"
+   ]
+  },
+  {
+   "name": "hear_the_kingdom_pray",
+   "title": "Hear the Kingdom pray",
+   "annotations": {
+    "title": "Hear the Kingdom pray",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [],
+   "required": []
+  },
+  {
+   "name": "heritage_lookup",
+   "title": "Denomination, saint, sacred site, biblical figure or Bible place",
+   "annotations": {
+    "title": "Denomination, saint, sacred site, biblical figure or Bible place",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "kind",
+    "name"
+   ],
+   "required": [
+    "kind",
+    "name"
+   ]
+  },
+  {
+   "name": "hymn",
+   "title": "A hymn and its story",
+   "annotations": {
+    "title": "A hymn and its story",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "title"
+   ],
+   "required": [
+    "title"
+   ]
+  },
+  {
+   "name": "journey_next_steps",
+   "title": "Next steps for a faith journey (six journeys, end to end)",
+   "annotations": {
+    "title": "Next steps for a faith journey (six journeys, end to end)",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "journey",
+    "language",
+    "passage",
+    "place"
+   ],
+   "required": [
+    "journey"
+   ]
+  },
+  {
+   "name": "kingdom_map",
+   "title": "The Kingdom map: believers by city",
+   "annotations": {
+    "title": "The Kingdom map: believers by city",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "limit",
+    "place"
+   ],
+   "required": []
+  },
+  {
+   "name": "kingdom_protocol_lookup",
+   "title": "Look up a Kingdom Protocol object",
+   "annotations": {
+    "title": "Look up a Kingdom Protocol object",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "urn"
+   ],
+   "required": [
+    "urn"
+   ]
+  },
+  {
+   "name": "list_translations",
+   "title": "The Bible translations held",
+   "annotations": {
+    "title": "The Bible translations held",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "include_license_text",
+    "language"
+   ],
+   "required": []
+  },
+  {
+   "name": "miracle",
+   "title": "A miracle of Jesus",
+   "annotations": {
+    "title": "A miracle of Jesus",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "name"
+   ],
+   "required": [
+    "name"
+   ]
+  },
+  {
+   "name": "my_day",
+   "title": "My day on The Living Bread",
+   "annotations": {
+    "title": "My day on The Living Bread",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [],
+   "required": []
+  },
+  {
+   "name": "my_family",
+   "title": "My family in Christ",
+   "annotations": {
+    "title": "My family in Christ",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "gatherings"
+   ],
+   "required": []
+  },
+  {
+   "name": "my_walk",
+   "title": "My walk: what I said yes to",
+   "annotations": {
+    "title": "My walk: what I said yes to",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "limit"
+   ],
+   "required": []
+  },
+  {
+   "name": "name_meaning",
+   "title": "The meaning of a biblical name",
+   "annotations": {
+    "title": "The meaning of a biblical name",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "name"
+   ],
+   "required": [
+    "name"
+   ]
+  },
+  {
+   "name": "needs_near",
+   "title": "Open Serve needs near a place",
+   "annotations": {
+    "title": "Open Serve needs near a place",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "city",
+    "country",
+    "limit"
+   ],
+   "required": []
+  },
+  {
+   "name": "original_words",
+   "title": "The Hebrew or Greek words of a verse",
+   "annotations": {
+    "title": "The Hebrew or Greek words of a verse",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "reference",
+    "strong"
+   ],
+   "required": [
+    "reference"
+   ]
+  },
+  {
+   "name": "parable",
+   "title": "A parable of Jesus",
+   "annotations": {
+    "title": "A parable of Jesus",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "name"
+   ],
+   "required": [
+    "name"
+   ]
+  },
+  {
+   "name": "prayers_i_offered",
+   "title": "Prayers I gave",
+   "annotations": {
+    "title": "Prayers I gave",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "limit"
+   ],
+   "required": []
+  },
+  {
+   "name": "prayers_left_near",
+   "title": "Prayers left near a place (Prayer in Place)",
+   "annotations": {
+    "title": "Prayers left near a place (Prayer in Place)",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "city",
+    "limit",
+    "radius_km"
+   ],
+   "required": []
+  },
+  {
+   "name": "prayers_waiting_for_me",
+   "title": "Prayers prayed over me",
+   "annotations": {
+    "title": "Prayers prayed over me",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "limit",
+    "only_unheard"
+   ],
+   "required": []
+  },
+  {
+   "name": "reading_plans",
+   "title": "Reading plans: a daily rhythm in the Word",
+   "annotations": {
+    "title": "Reading plans: a daily rhythm in the Word",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "day",
+    "plan"
+   ],
+   "required": []
+  },
+  {
+   "name": "real_people_will_pray",
+   "title": "Real people who will pray for you",
+   "annotations": {
+    "title": "Real people who will pray for you",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [],
+   "required": []
+  },
+  {
+   "name": "saint_of_the_day",
+   "title": "Saint of the day",
+   "annotations": {
+    "title": "Saint of the day",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "date"
+   ],
+   "required": []
+  },
+  {
+   "name": "scripture_context",
+   "title": "A passage with its surrounding verses",
+   "annotations": {
+    "title": "A passage with its surrounding verses",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "around",
+    "language",
+    "reference",
+    "translation"
+   ],
+   "required": [
+    "reference"
+   ]
+  },
+  {
+   "name": "scripture_passage",
+   "title": "Scripture passage",
+   "annotations": {
+    "title": "Scripture passage",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "language",
+    "reference",
+    "translation"
+   ],
+   "required": [
+    "reference"
+   ]
+  },
+  {
+   "name": "scripture_search",
+   "title": "Search the words of the Bible",
+   "annotations": {
+    "title": "Search the words of the Bible",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "book",
+    "cursor",
+    "language",
+    "limit",
+    "parallel",
+    "query",
+    "testament",
+    "translation",
+    "whole_words"
+   ],
+   "required": [
+    "query"
+   ]
+  },
+  {
+   "name": "search",
+   "title": "Search The Living Bread",
+   "annotations": {
+    "title": "Search The Living Bread",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "query"
+   ],
+   "required": [
+    "query"
+   ]
+  },
+  {
+   "name": "tables_live_now",
+   "title": "Tables open now",
+   "annotations": {
+    "title": "Tables open now",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [],
+   "required": []
+  },
+  {
+   "name": "teaching_of_jesus",
+   "title": "What Jesus said about a topic",
+   "annotations": {
+    "title": "What Jesus said about a topic",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "topic"
+   ],
+   "required": [
+    "topic"
+   ]
+  },
+  {
+   "name": "testimonies",
+   "title": "Real testimonies shared with the Body",
+   "annotations": {
+    "title": "Real testimonies shared with the Body",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "limit",
+    "word"
+   ],
+   "required": []
+  },
+  {
+   "name": "the_gospel",
+   "title": "The Gospel, in the house's words",
+   "annotations": {
+    "title": "The Gospel, in the house's words",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [],
+   "required": []
+  },
+  {
+   "name": "the_watch_tonight",
+   "title": "The watch tonight: kept hours and gaps",
+   "annotations": {
+    "title": "The watch tonight: kept hours and gaps",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "hours",
+    "time_zone"
+   ],
+   "required": []
+  },
+  {
+   "name": "universities",
+   "title": "Christian community at a university",
+   "annotations": {
+    "title": "Christian community at a university",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "place"
+   ],
+   "required": [
+    "place"
+   ]
+  },
+  {
+   "name": "verify_scripture_quote",
+   "title": "Verify a Scripture quotation",
+   "annotations": {
+    "title": "Verify a Scripture quotation",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "quote",
+    "reference"
+   ],
+   "required": [
+    "quote"
+   ]
+  },
+  {
+   "name": "verses_for",
+   "title": "Verses for a need or feeling",
+   "annotations": {
+    "title": "Verses for a need or feeling",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "language",
+    "limit",
+    "need",
+    "translation"
+   ],
+   "required": [
+    "need"
+   ]
+  },
+  {
+   "name": "what_the_bible_says_about",
+   "title": "What the Bible says about a topic",
+   "annotations": {
+    "title": "What the Bible says about a topic",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true
+   },
+   "input": [
+    "topic"
+   ],
+   "required": [
+    "topic"
+   ]
+  },
+  {
+   "name": "where_can_i_serve_publicly",
+   "title": "Where can I serve (publicly listed needs)",
+   "annotations": {
+    "title": "Where can I serve (publicly listed needs)",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "city",
+    "country",
+    "remote_only"
+   ],
+   "required": []
+  },
+  {
+   "name": "who_am_i",
+   "title": "Who am I on The Living Bread",
+   "annotations": {
+    "title": "Who am I on The Living Bread",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [],
+   "required": []
+  },
+  {
+   "name": "worship_now",
+   "title": "Worship now",
+   "annotations": {
+    "title": "Worship now",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": [
+    "language",
+    "local_hour",
+    "mood"
+   ],
+   "required": []
+  }
+ ]
+}

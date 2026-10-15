@@ -71,6 +71,17 @@ export async function kjvByRef(env: Env, ref: string): Promise<Passage | null> {
   return p ? kjvPassage(env, p) : null;
 }
 
+/** One verse a tool answer closes with, read from the stored KJV (never typed); null when it cannot be read, and then the line is left out. */
+export interface HeldVerse { ref: string; text: string; translation: 'KJV' }
+export async function heldVerse(env: Env, ref: string): Promise<HeldVerse | null> {
+  const p = await kjvByRef(env, ref);
+  return p ? { ref: p.ref, text: p.text, translation: 'KJV' } : null;
+}
+/** The quotation line for a held verse: the reference and the stored words, verbatim. */
+export function quoted(v: HeldVerse | null): string | null {
+  return v ? `${v.ref} (KJV): "${v.text}"` : null;
+}
+
 /* ---- the cross-references (OpenBible.info, CC BY), split by book by scripts/build-corpus.py ----
    Shape: { "<chapter>.<verse>": [[ "<book>.<ch>.<v>", "<book>.<ch>.<v>" | null, votes ], ...] }. */
 export type XrefTarget = [string, string | null, number];

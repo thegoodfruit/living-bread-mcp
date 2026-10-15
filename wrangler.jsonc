@@ -48,6 +48,11 @@
     // sessions and useful/empty/error calls. Keep "0" until 0840 is applied: a call to a function
     // that does not exist yet is held by PostgREST for minutes.
     "MCP_METRICS": "0",
+    "MCP_CALL_LOG": "1",
+    // The handoffs shown (migration 1880, src/telemetry.ts): type and id only, never text. Keep "0"
+    // until 1880 is applied; then "1" lets the arrival funnel join a shown link to an open, a signup and a first action.
+    "MCP_HANDOFF_LOG": "1",
+    "MCP_LINK_REF": "1",
     "SUPABASE_URL": "https://eiekmrbmscorzjogpbzf.supabase.co",
     // The public anon key, already shipped in the app's web bundle and in render-service. RLS and
     // the anon-granted ai_* functions decide what it can read: city-level church data, public

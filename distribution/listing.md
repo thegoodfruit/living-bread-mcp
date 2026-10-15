@@ -9,6 +9,7 @@ Use these words as they are. No dashes, no claims of adoption or partnership, no
 - **Homepage and install hub:** https://mcp.living-bread.org/
 - **Source (MIT):** https://github.com/thegoodfruit/living-bread-mcp
 - **Privacy:** https://mcp.living-bread.org/privacy . **Support:** https://living-bread.org/support . **Status:** https://mcp.living-bread.org/status
+- **Tools on /mcp (13, one naming pattern, a mode each):** `get_crisis_help` (first, in danger), `read_scripture` (passage, context, search, compare, original_words, cross_references, verify, translations), `find_scripture_for` (need, topic, words_of_jesus, daily_bread), `learn_the_faith` (gospel, belief, parable, miracle, hymn, name_meaning, saint, saint_of_the_day, heritage, compare_traditions, other_faiths, hard_season, a_prayer_for), `find_churches` (near, by_id), `find_gatherings` (tonight, this_week, any), `find_people_to_pray_with` (a_person_now, the_watch, real_people_will_pray, live_tables, prayers_near, hear_the_kingdom_pray, pray_for_someone), `find_ways_to_serve` (near, public_needs), `find_communities` (to_join, university), `see_the_kingdom` (map, today, testimonies, worship), `start_with_christ` (begin, next_steps, reading_plans), `search` (results, answer, protocol) and `fetch`.
 - **Price:** free, no key, no ads.
 - **Categories:** Knowledge, Religion and spirituality (Christian), Community, Education.
 - **Tags:** bible, scripture, christian, prayer, church, community, kjv, cross-references, faith

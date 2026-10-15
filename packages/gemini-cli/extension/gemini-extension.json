@@ -1,0 +1,11 @@
+{
+  "name": "living-bread",
+  "version": "1.1.0",
+  "description": "The Living Bread: Scripture read word for word from a stored text, real churches, communities and gatherings with honest freshness, prayer doors, and six skills. Everything points to Jesus Christ.",
+  "contextFileName": "GEMINI.md",
+  "mcpServers": {
+    "living-bread": {
+      "httpUrl": "https://mcp.living-bread.org/mcp"
+    }
+  }
+}

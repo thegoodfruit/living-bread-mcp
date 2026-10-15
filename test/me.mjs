@@ -38,11 +38,25 @@ function envFile() {
   return out;
 }
 
-async function connect(token) {
+async function connect(token, endpoint = 'me') {
   const client = new Client({ name: 'living-bread-me-test', version: '1.1.0' });
-  await client.connect(new StreamableHTTPClientTransport(new URL(`${base}/me`), { requestInit: { headers: { authorization: `Bearer ${token}` } } }));
+  await client.connect(new StreamableHTTPClientTransport(new URL(`${base}/${endpoint}`), { requestInit: { headers: { authorization: `Bearer ${token}` } } }));
   return client;
 }
+
+/* The named public tools (every mode of the lean set answers for one) and the stored KJV, read here as the server reads them. */
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const LEAN = JSON.parse(readFileSync(path.join(HERE, '..', 'src', 'data', 'lean-map.json'), 'utf8')).tools;
+const NAMED_PUBLIC = [...new Set(Object.values(LEAN).flatMap((e) => Object.values(e.modes).map((m) => m.tool)))];
+const APP_DENY = ['crisis_resources', 'someone_to_talk_to', 'who_is_available_now', 'find_help_for_my_need', 'say_amen', 'pray_for_someone', 'speak_a_blessing', 'bring_what_i_carry', 'say_yes', 'going_to_gathering', 'set_a_table', 'offer_to_serve', 'shepherd_doors', 'who_has_gone_quiet', 'my_congregation'];
+const BOOK_IDS = { 'Matthew': 'matthew', '1 Peter': '1peter', 'Proverbs': 'proverbs', 'Psalm': 'psalms' };
+function storedVerse(ref) {
+  const m = String(ref ?? '').match(/^(.*?) (\d+):(\d+)$/);
+  if (!m || !BOOK_IDS[m[1]]) return null;
+  const book = JSON.parse(readFileSync(path.join(HERE, '..', '..', 'assets', 'bible', 'books', `${BOOK_IDS[m[1]]}.json`), 'utf8'));
+  return book.c?.[Number(m[2]) - 1]?.[Number(m[3]) - 1]?.trim().replace(/[,;:]\s*$/, '') ?? null;  // as joinVerses (src/scripture.ts) returns one verse
+}
+const verbatim = (sc, ref) => sc?.scripture?.ref === ref && typeof sc.scripture.text === 'string' && sc.scripture.text === storedVerse(ref);
 
 // 1. no token -> 401 with the challenge
 const r401 = await fetch(`${base}/me`, { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream' }, body: '{}' });
@@ -79,6 +93,9 @@ const names = tools.map((t) => t.name);
 for (const want of ['who_am_i', 'prayers_waiting_for_me', 'prayers_i_offered', 'say_amen', 'my_walk', 'my_family', 'my_day', 'pray_for_someone', 'speak_a_blessing', 'bring_what_i_carry', 'say_yes', 'going_to_gathering', 'set_a_table', 'someone_to_talk_to', 'offer_to_serve', 'invite_someone', 'my_church', 'my_invitations', 'family_saying_yes', 'tables_live_now', 'scripture_passage', 'find_churches_near', 'the_gospel', 'crisis_resources']) check(`tool ${want} listed`, names.includes(want));
 check('every tool carries annotations.title', tools.every((t) => typeof t.annotations?.title === 'string' && t.annotations.title.length > 0), tools.filter((t) => !t.annotations?.title).map((t) => t.name).join(','));
 check('every tool carries an explicit destructiveHint', tools.every((t) => typeof t.annotations?.destructiveHint === 'boolean'));
+check('/me keeps every named public tool by its own name (1.3.0 lean /mcp changes nothing here)', NAMED_PUBLIC.every((n) => names.includes(n)), NAMED_PUBLIC.filter((n) => !names.includes(n)).join(','));
+check('/me lists no lean tool name', !['read_scripture', 'get_crisis_help', 'learn_the_faith', 'find_churches'].some((n) => names.includes(n)));
+check('going_to_gathering is marked destructive (it can take an RSVP back)', tools.find((t) => t.name === 'going_to_gathering')?.annotations?.destructiveHint === true);
 check('the acting pray_for_someone replaced the door tool on /me', (tools.find((t) => t.name === 'pray_for_someone')?.inputSchema?.properties ?? {}).confirmed !== undefined);
 for (const shep of ['my_congregation', 'shepherd_doors', 'who_has_gone_quiet']) check(`shepherd tool ${shep} ABSENT for a non-pastor`, !names.includes(shep));
 
@@ -89,6 +106,19 @@ for (const [name, args] of [['who_am_i', {}], ['prayers_waiting_for_me', { limit
   check(`${name} text has no dash`, !/[–—]/.test(text));
   console.log(`       ${text.slice(0, 220)}`);
 }
+
+// invite_someone closes with Scripture read from the stored text, never a paraphrase
+const inv = await client.callTool({ name: 'invite_someone', arguments: {} });
+check('invite_someone quotes Matthew 28:19 verbatim from the stored KJV', verbatim(inv.structuredContent, 'Matthew 28:19') && textOf(inv).includes(inv.structuredContent.scripture.text), JSON.stringify(inv.structuredContent?.scripture ?? null).slice(0, 160));
+
+// 2b. the ChatGPT profile /app keeps its named, read-only set
+const app = await connect(houseToken, 'app');
+const appNames = (await app.listTools()).tools.map((t) => t.name);
+check('/app lists every named public tool except the denied ones', NAMED_PUBLIC.filter((n) => !APP_DENY.includes(n)).every((n) => appNames.includes(n)), NAMED_PUBLIC.filter((n) => !APP_DENY.includes(n) && !appNames.includes(n)).join(','));
+check('/app lists no denied tool and no lean tool name', !appNames.some((n) => APP_DENY.includes(n) || ['read_scripture', 'get_crisis_help', 'learn_the_faith'].includes(n)), appNames.filter((n) => APP_DENY.includes(n)).join(','));
+const appRead = await app.callTool({ name: 'scripture_passage', arguments: { reference: 'John 3:16' } });
+check('/app scripture_passage answers by its own name', !appRead.isError && /For God so loved/.test(appRead.structuredContent?.text ?? ''));
+await app.close();
 
 // 3. widgets list and read
 const { resources } = await client.listResources();
@@ -190,6 +220,7 @@ if (!givenToken) {
   const talk = await client.callTool({ name: 'someone_to_talk_to', arguments: { audience: 'any', note: 'MCP proof, not a real request' } });
   check('someone_to_talk_to without confirmed restates only', talk.structuredContent?.needs_confirmation === true && talk.structuredContent?.done === false, textOf(talk).slice(0, 160));
   const tbl = await client.callTool({ name: 'set_a_table', arguments: { title: 'MCP proof table', place: 'nowhere', starts_at: new Date(Date.now() + 86400000).toISOString() } });
+  check('set_a_table restatement carries no paraphrased verse', !/two or three gather/i.test(textOf(tbl)));
   check('set_a_table without confirmed restates only', tbl.structuredContent?.needs_confirmation === true, textOf(tbl).slice(0, 160));
   const amen = await client.callTool({ name: 'say_amen', arguments: { prayer_id: '00000000-0000-4000-8000-000000000000' } });
   check('say_amen without confirmed restates only', amen.structuredContent?.needs_confirmation === true, textOf(amen).slice(0, 160));
@@ -220,6 +251,7 @@ if (!givenToken) {
     const doors = await rc.callTool({ name: 'shepherd_doors', arguments: {} });
     check('shepherd_doors answers with the three routes', !doors.isError && doors.structuredContent?.pray_now === `https://living-bread.org/rooms/pastor-${reviewId}`, textOf(doors).slice(0, 160));
     console.log(`       ${textOf(doors).slice(0, 240)}`);
+    check('shepherd_doors quotes 1 Peter 5:2 verbatim from the stored KJV', verbatim(doors.structuredContent, '1 Peter 5:2') && !/Be shepherds of God/.test(textOf(doors)), JSON.stringify(doors.structuredContent?.scripture ?? null).slice(0, 160));
     const cong = await rc.callTool({ name: 'my_congregation', arguments: { limit: 5 } });
     check('my_congregation answers', !cong.isError, textOf(cong).slice(0, 160));
     const quiet = await rc.callTool({ name: 'who_has_gone_quiet', arguments: {} });

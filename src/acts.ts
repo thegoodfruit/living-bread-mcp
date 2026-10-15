@@ -15,7 +15,13 @@ import { type Believer, restAs, rpcAs, selectAs } from './auth';
 import { consent, declined, notYet } from './consent';
 import { DOORS, SITE } from './doors';
 import { list, paragraph } from './render';
+import { layers } from './evidence';
+import { heldVerse, quoted } from './kjv';
 import { fail, firstName, isUuid, ok, out, tool, WRITES, WRITES_ONCE, READS } from './shared';
+
+/* A closing verse is read from the stored KJV and quoted verbatim with its reference, never paraphrased. */
+const VERSE_LAYER = layers({ scripture: ['scripture.text'] });
+const SCRIPTURE_OUT = z.looseObject({ ref: z.string(), text: z.string(), translation: z.string() }).nullable().optional().describe('The verse the answer closes with: reference and text read verbatim from the stored KJV; null when it could not be read (the line is then left out).');
 
 const CONSENT_LAW = 'Two-step consent: without confirmed it writes nothing and returns the exact act in `would` (or asks the person directly when the client supports elicitation); call again with confirmed true only after they say yes. Acts as the signed-in believer; an idempotency_key or an identical confirmed retry within ten minutes never acts twice.';
 
@@ -202,17 +208,18 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
     const d = (r.data ?? {}) as { ok?: boolean; id?: string; feeling?: string; audience?: string; replaced?: boolean; route?: string | null };
     if (r.error || !d.id) return fail(paragraph([`That did not save${r.error ? ` (${r.error})` : ''}`, `Nothing was lost; the door is open at ${DOORS.carrying}`]));
     const door = d.route ? `${SITE}${d.route}` : DOORS.carrying;
+    const verse = await heldVerse(env, 'Matthew 11:28');
     return ok(paragraph([
       `Saved: they are carrying ${d.feeling ?? feeling} today${d.replaced ? ' (it replaced what they had named earlier today)' : ''}`,
       share_with_body ? `The Body can see it and pray; they will be told when someone does, at ${door}` : `It is private, between them and God; the Word for it waits at ${DOORS.carrying}`,
-      'Christ carries it with them (Matthew 11:28)',
-    ]), { done: true, needs_confirmation: false, id: d.id, feeling: d.feeling ?? feeling, audience: d.audience ?? (share_with_body ? 'kingdom' : 'private'), replaced: Boolean(d.replaced), door });
+      quoted(verse),
+    ]), { done: true, needs_confirmation: false, id: d.id, feeling: d.feeling ?? feeling, audience: d.audience ?? (share_with_body ? 'kingdom' : 'private'), replaced: Boolean(d.replaced), door, scripture: verse, content_layers: VERSE_LAYER });
   });
 
   // ---- say_yes: say_yes (lib/kingdomWork.ts, migration 0580) ----
   tool(server, 'say_yes', {
     title: 'Say yes: write a yes into my walk',
-    description: `Create a new "yes" in the signed-in believer's walk (the app's My Yes): one concrete thing they will do, in their own words, with an optional verse reference, private by default or shared so others can stand with it. Creates a new entry on every confirmed call; there are no streaks or scores. Use for "write down my yes: call my mother tonight". To read their past yeses use my_walk; to see yeses others shared use family_saying_yes; for a feeling rather than a commitment use bring_what_i_carry. ${CONSENT_LAW}`,
+    description: `Create a new "yes" in the signed-in believer's walk (the app's Live Your Faith, the weekly commitment; this is not the profession of faith in Christ): one concrete thing they will do, in their own words, with an optional verse reference, private by default or shared so others can stand with it. Creates a new entry on every confirmed call; there are no streaks or scores. Use for "write down my yes: call my mother tonight". To read their past yeses use my_walk; to see yeses others shared use family_saying_yes; for a feeling rather than a commitment use bring_what_i_carry. ${CONSENT_LAW}`,
     inputSchema: {
       words: z.string().min(1).max(600).describe('The commitment in the believer\'s own words, 1 to 600 characters: "call my mother tonight".'),
       verse_ref: z.string().max(80).optional().describe('Optional Bible reference they are holding, e.g. "Matthew 6:14". A reference, not verse text.'),
@@ -250,7 +257,8 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
       going: z.boolean().optional().describe('The RSVP state after the call.'),
       title: z.string().optional().describe('Gathering title.'),
     }),
-    annotations: WRITES_ONCE,
+    /* destructive: going false removes an RSVP the believer may want kept, and the host and circle see either change */
+    annotations: { ...WRITES_ONCE, destructiveHint: true },
   }, async ({ gathering_id, going, confirmed }) => {
     const g = await rpcAs(env, me, 'group_gathering', { p_event: gathering_id });
     const row = (Array.isArray(g.data) ? g.data[0] : g.data) as GatheringJson | null;
@@ -285,7 +293,7 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
       country: z.string().max(80).optional().describe('Country name or ISO code.'),
       confirmed: confirmedInput,
     },
-    outputSchema: out({ ...ACT_FIELDS, table_id: z.string().optional().describe('Id of the new Table.') }),
+    outputSchema: out({ ...ACT_FIELDS, table_id: z.string().optional().describe('Id of the new Table.'), scripture: SCRIPTURE_OUT }),
     annotations: WRITES,
   }, async ({ title, place, starts_at, seats, who, how, city, country, confirmed }) => {
     const when = Date.parse(starts_at);
@@ -302,7 +310,8 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
     const id = typeof r.data === 'string' ? r.data : null;
     if (r.error || !id) return fail(paragraph([`The Table was not set${r.error ? ` (${r.error})` : ''}`, `It can be set in the app at ${DOORS.tables}/new`]));
     const door = `${SITE}/tables/${id}`;
-    return ok(paragraph([`Set: "${title}" at ${place}, ${new Date(when).toUTCString().replace(' GMT', ' UTC')}`, `The family can save a seat at ${door}; all Tables are at ${DOORS.tables}`, 'Where two or three gather in His name, He is there (Matthew 18:20)']), { done: true, needs_confirmation: false, table_id: id, door });
+    const verse = await heldVerse(env, 'Matthew 18:20');
+    return ok(paragraph([`Set: "${title}" at ${place}, ${new Date(when).toUTCString().replace(' GMT', ' UTC')}`, `The family can save a seat at ${door}; all Tables are at ${DOORS.tables}`, quoted(verse)]), { done: true, needs_confirmation: false, table_id: id, door, scripture: verse, content_layers: VERSE_LAYER });
   });
 
   // ---- someone_to_talk_to: the care match (lib/care.ts, migration 0348), with the app's own fallback ----
@@ -335,11 +344,13 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
     if (reached === 0) {
       const wide = await rpcAs(env, me, 'call_for_someone', { p_kind: 'talk', p_note: note ?? null });
       const door = `${SITE}/need-someone`;
+      const verse = await heldVerse(env, 'Psalm 34:18');
       return ok(paragraph([
         'No one is on call this very minute, so, as the app does, the wider family was asked for them instead' + (wide.error ? ` (that call did not go through: ${wide.error}; the prayer wall is always open at ${DOORS.prayer})` : ''),
         `They can watch who answers at ${door}`,
-        'They are not alone: the Body is awake somewhere, and Christ is near (Psalm 34:18)',
-      ]), { done: true, needs_confirmation: false, request_id: row.id, reached: 0, available_now: n, door });
+        'They are not alone: the Body is awake somewhere',
+        quoted(verse),
+      ]), { done: true, needs_confirmation: false, request_id: row.id, reached: 0, available_now: n, door, scripture: verse, content_layers: VERSE_LAYER });
     }
     const door = `${SITE}/talk/${row.id}`;
     return ok(paragraph([`Asked: ${reached} ${reached === 1 ? 'person was' : 'people were'} told that they want to talk now`, `The first to answer meets them in a private room at ${door}`]), { done: true, needs_confirmation: false, request_id: row.id, reached, available_now: n, door });
@@ -357,6 +368,7 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
     outputSchema: out({
       ...ACT_FIELDS,
       commitment_id: z.string().optional().describe('Id of the recorded commitment.'),
+      scripture: SCRIPTURE_OUT,
       need: z.looseObject({ id: z.string(), title: z.string() }).optional().describe('The need committed to.'),
     }),
     annotations: WRITES,
@@ -373,7 +385,8 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
     const id = typeof r.data === 'string' ? r.data : null;
     if (r.error || !id) return fail(paragraph([`The promise was not recorded${r.error ? ` (${r.error})` : ''}`, `The need is at ${DOORS.serve}`]));
     const door = DOORS.serve; // serve/<id> has no web shell yet (404 on the web, 2026-10-05)
-    return ok(paragraph([`Recorded: they will meet "${need.title}"`, `The need, and the partner behind it, are at ${door}; all Serve is at ${DOORS.serve}`, 'Whoever is kind to the poor lends to the LORD (Proverbs 19:17)']), { done: true, needs_confirmation: false, commitment_id: id, need: { id: need.id, title: need.title }, door });
+    const verse = await heldVerse(env, 'Proverbs 19:17');
+    return ok(paragraph([`Recorded: they will meet "${need.title}"`, `The need, and the partner behind it, are at ${door}; all Serve is at ${DOORS.serve}`, quoted(verse)]), { done: true, needs_confirmation: false, commitment_id: id, need: { id: need.id, title: need.title }, door, scripture: verse, content_layers: VERSE_LAYER });
   });
 
   // ---- signed-in reads ----
@@ -386,6 +399,7 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
       code: z.string().nullable().describe('Their personal invite code, or null if none exists yet.'),
       how: z.string().describe('What happens when someone joins through the link.'),
       door: z.string().describe('The app\'s Invite page, with a QR code.'),
+      scripture: SCRIPTURE_OUT,
     }),
     annotations: READS,
   }, async () => {
@@ -393,7 +407,8 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
     const code = rows?.[0]?.invite_code ?? null;
     const link = `${SITE}/i/${code ?? 'join'}`;
     const how = code ? 'Anyone who opens this link and begins is placed beside them in the family, and they are told when that person arrives.' : 'They have no personal code yet; the app makes one the first time they share from Invite. Until then the general door works and the family still welcomes whoever comes.';
-    return ok(paragraph([`Their invitation: ${link}`, how, `Invite, with a QR code to show in person, is at ${SITE}/invite`, 'Go and make disciples (Matthew 28:19)']), { link, code, how, door: `${SITE}/invite` });
+    const verse = await heldVerse(env, 'Matthew 28:19');
+    return ok(paragraph([`Their invitation: ${link}`, how, `Invite, with a QR code to show in person, is at ${SITE}/invite`, quoted(verse)]), { link, code, how, door: `${SITE}/invite`, scripture: verse, content_layers: VERSE_LAYER });
   });
 
   interface ChurchEvent { id: string; title: string; kind: string; starts_at: string; location: string | null; going_count: number; i_rsvped: boolean; is_online: boolean; cancelled_at: string | null }
@@ -462,7 +477,7 @@ export function registerActs(server: McpServer, env: Env, me: Believer): void {
     annotations: READS,
   }, async ({ limit }) => {
     const r = await rpcAs(env, me, 'family_yeses', { p_limit: limit });
-    if (r.error) return fail(`The family's yeses could not be read just now (${r.error}). The room is at ${DOORS.yesFamily}.`);
+    if (r.error) return fail(`The shared commitments could not be read just now (${r.error}). The room is at ${DOORS.yesFamily}.`);
     const yeses = (Array.isArray(r.data) ? (r.data as FamilyYes[]) : []).map((y) => ({ id: y.id, from: firstName(y.name), words: y.words, verse_ref: y.verse_ref, state: y.state, with: y.n_with, i_am_with: y.i_am_with, when: y.created_at, door: `${SITE}/yes/${y.id}` }));
     if (!yeses.length) return ok(paragraph(['No yes is open to the Body right now', `The believer's own yes is at ${DOORS.myYes}`]), { count: 0, yeses: [], door: DOORS.yesFamily });
     return ok(paragraph([`${yeses.length} ${yeses.length === 1 ? 'yes' : 'yeses'} open to the family${yeses.some((y) => y.state === 'needs_support') ? ', the heavy ones first' : ''}: ${list(yeses.slice(0, 6).map((y) => `${y.from}: "${y.words.slice(0, 70)}"${y.verse_ref ? ` (${y.verse_ref})` : ''}${y.state === 'needs_support' ? ', heavier than they thought' : ''}, ${y.with} with it`), 6)}`, `Stand with one at its door, or see them all at ${DOORS.yesFamily}`]), { count: yeses.length, yeses, door: DOORS.yesFamily });

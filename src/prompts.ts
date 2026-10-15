@@ -45,7 +45,7 @@ export function registerPrompts(server: McpServer): void {
   prompt(server, 'someone_i_love_died', 'Someone I love died', 'For grief: no explanation, presence first, then the Word read from the tools, a prayer, and the door to real people and to Christ who wept.', { who: z.string().optional().describe('Who died, as they name them.') }, (a) => [
     `Someone I love died${a.who ? `: ${a.who}` : ''}`,
     'Do not explain my loss or hurry me. Say first that you are sorry and that I am allowed to grieve',
-    'Call threshold with "grief" and read me, in the house\'s words, that Jesus wept and what Christians hold onto. Call verses_for with "grief" and read one or two verses exactly as returned',
+    'Call faith_in_a_hard_season with "grief" and read me, in the house\'s words, that Jesus wept and what Christians hold onto. Call verses_for with "grief" and read one or two verses exactly as returned',
     'Call a_prayer_for with "a dying loved one" or "grief" and offer me the house\'s prayer',
     CRISIS,
     GENTLE,
@@ -92,7 +92,7 @@ export function registerPrompts(server: McpServer): void {
   prompt(server, 'i_am_alone_tonight', 'I am alone tonight', 'For loneliness at night: presence, the Word read from the tools, where the family is awake, and someone to talk to.', {}, () => [
     'I am alone tonight',
     'Stay with me first. Then call verses_for with "lonely" and read me one verse exactly as returned',
-    'Call body_today and tell me, honestly, what the family is doing right now, and call hear_the_kingdom_pray for the door where I can hear believers praying over the whole family',
+    'Call family_activity_today and tell me, honestly, what the family is doing right now, and call hear_the_kingdom_pray for the door where I can hear believers praying over the whole family',
     'Call worship_now with my hour for something to listen to tonight',
     CRISIS,
     GENTLE,

@@ -13,7 +13,8 @@ import { z } from 'zod';
 import { type Believer, rpcAs } from './auth';
 import crisisData from './data/crisis.json';
 import plansData from './data/plans.json';
-import { DOORS, KNOWLEDGE_API, SITE } from './doors';
+import { DOORS, KNOWLEDGE_API, prayerOfferLine, SITE } from './doors';
+import { chairDoorLive } from './openChair';
 import { CONFESSION, GOSPEL_STEPS, THE_YES, WHO_IS_JESUS } from './gospel';
 import { housePage, hubEntries, pickEntry, prose, versesNamedIn, type HouseLink } from './house';
 import { HOUSE_TRADITION, layers } from './evidence';
@@ -114,15 +115,20 @@ function registerPageFamily(server: McpServer, env: Env, f: PageFamily): void {
     const page = await housePage(pick.entry.href);
     if (!page) return unavailable(`the page ${SITE}${pick.entry.href}`, `${SITE}${pick.entry.href}`);
     const verses = await versesNamedIn(env, page.blocks, 4);
+    if (COMFORT_PAGES.has(f.name)) await chairDoorLive();
     const body = prose(page.blocks, 1600);
     const related = page.links.filter((l) => f.accept(l.href) && l.href !== pick.entry.href).slice(0, 5).map((l) => ({ title: l.label.slice(0, 80), url: `${SITE}${l.href}` }));
     return ok(paragraph([
       `${page.title || pick.entry.label}${pick.exact ? '' : ` (the closest page to "${query}")`}: ${body}`,
       verses.length ? `Scripture on it, read from the stored text: ${list(verses.map((v) => `${v.ref} "${v.text}"`), 4)}` : null,
       `The page itself is ${page.url}; ${f.door === page.url ? '' : `the door is ${f.door}`}`,
+      COMFORT_PAGES.has(f.name) ? prayerOfferLine() : null,
     ]), { matched: pick.entry.href, exact: pick.exact, title: page.title, url: page.url, summary: page.description ?? undefined, body, verses, related, hub: `${SITE}${f.hub}`, door: f.door, ...ATTRIBUTION, content_layers: layers({ scripture: ['verses[].text'], interpretation: ['summary', 'body'] }, HOUSE_TRADITION) });
   });
 }
+
+/** The house-page tools whose answers meet a person in a hard moment: each closes with the prayer offer. */
+const COMFORT_PAGES = new Set(['a_prayer_for', 'faith_in_a_hard_season', 'what_the_bible_says_about']);
 
 /* ------------------------------------------------------------------ register everything */
 export function registerMore(server: McpServer, env: Env, me: Believer | null): void {
@@ -278,7 +284,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
       hit.childHelp ? `Children: ${hit.childHelp.name}, ${hit.childHelp.number}` : null,
       `Source: ${hit.source} (checked ${hit.verifiedAt}, ${hit.confidence.replace('_', ' ')})`,
       rule,
-      `When the person is safe: the family will pray for them by name at ${DOORS.prayer}, someone to talk to is at ${SITE}/talk, and the app's crisis door is ${door}. The Lord is near to the broken-hearted (Psalm 34:18, read it with scripture_passage)`,
+      `When the person is safe: the family will pray for them by name at ${DOORS.prayer}, someone to talk to is at ${SITE}/talk, and the app's crisis door is ${door}. When Scripture is wanted, Psalm 34:18 is one many hold onto: read it word for word with scripture_passage, never from memory`,
     ]), { country: { code: hit.countryCode, name: hit.countryName }, emergency: hit.emergency, crisis_line: cl, text_line: hit.textLine ?? null, domestic_violence: hit.domesticViolence ?? null, child_help: hit.childHelp ?? null, source: hit.source, verified_at: hit.verifiedAt, confidence: hit.confidence, rule, door });
   });
 
@@ -311,7 +317,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
   interface PlaceRow { id: string; cell7: string; place_kind: string | null; place_name: string | null; anonymous: boolean; kind: string; seconds: number; words: string | null; scripture_ref: string | null; title: string | null; intention: string | null; heard_count: number; prayed_with_count: number; created_at: string; author_name: string | null; distance_m: number }
   tool(server, 'prayers_left_near', {
     title: 'Prayers left near a place (Prayer in Place)',
-    description: 'List public prayers members have left at physical places (Prayer in Place: a street, hospital, school or town) within a radius of a point, nearest first: voice or written, the written words, a Scripture reference, who left it (first name or "someone"), how many prayed along, and when; plus worldwide totals. Use for "has anyone prayed near this hospital" or "prayers left in my town". Not for recorded prayers over the whole family (hear_the_kingdom_pray) or what people are carrying today (body_today). Needs lat+lng or city, else an error. Locations are the centre of an approximate grid cell (about 150 m), never the exact spot. None within the radius returns count 0 with the totals.',
+    description: 'List public prayers members have left at physical places (Prayer in Place: a street, hospital, school or town) within a radius of a point, nearest first: voice or written, the written words, a Scripture reference, who left it (first name or "someone"), how many prayed along, and when; plus worldwide totals. Use for "has anyone prayed near this hospital" or "prayers left in my town". Not for recorded prayers over the whole family (hear_the_kingdom_pray) or what people are carrying today (family_activity_today). Needs lat+lng or city, else an error. Locations are the centre of an approximate grid cell (about 150 m), never the exact spot. None within the radius returns count 0 with the totals.',
     inputSchema: {
       ...placeInput,
       radius_km: z.number().min(0.1).max(50).default(5).describe('Search radius in km around the point, 0.1 to 50 (default 5).'),
@@ -390,9 +396,9 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     ]), { searched, count: shown.length, needs: shown, door: DOORS.serve, ...ATTRIBUTION });
   });
 
-  // ---- body_today --------------------------------------------------------------------------
-  tool(server, 'body_today', {
-    title: 'The Body today',
+  // ---- family_activity_today --------------------------------------------------------------------------
+  tool(server, 'family_activity_today', {
+    title: 'What the family did today',
     description: 'Return today\'s aggregate activity across all of The Living Bread, as counts only and never names: people prayed for, encouraged, offered a talk, offered help and met in person; what members are carrying today by feeling, with how many were prayed over; worldwide Prayer in Place totals; and, on the signed-in /me endpoint only, Table counts (tables is null on the public endpoint). Use for "what is the family doing today" or "what are people carrying". For believer counts by city use kingdom_map; for individual stories use testimonies; for prayers at one place use prayers_left_near. Read live at call time; "today" is the database\'s current day.',
     inputSchema: {},
     outputSchema: out({
@@ -446,13 +452,15 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
     const doors = { worship: DOORS.worship, together: DOORS.worshipTogether, hymns: `${SITE}/hymns` };
     const live = 'What a Worship Together room is playing this minute travels over live presence between the people in it and is not readable from here; the door is open to anyone.';
     if (!home) return unavailable('the worship catalogue', DOORS.worship);
+    const verse = await kjvByRef(env, 'Psalm 96:1');
     const shelves = (home.shelves ?? []).slice(0, 5).map((s) => ({ title: s.title, reason: s.reason, songs: (s.songs ?? []).slice(0, 6).map((x) => ({ title: x.title, artist: x.artist ?? null, hymn: Boolean(x.hymn), door: `${SITE}/worship/song/${x.slug}` })) }));
     return ok(paragraph([
       home.greeting ? `${home.greeting}` : null,
       shelves.length ? `For this ${home.part_of_day ?? 'hour'}: ${list(shelves.map((s) => `${s.title} (${s.reason}): ${list(s.songs.map((x) => x.title + (x.artist ? `, ${x.artist}` : '')), 4)}`), 5)}` : 'The catalogue has no shelf for this hour',
       live,
-      `Worship: ${doors.worship}. Together, live: ${doors.together}. The great hymns, words and stories: ${doors.hymns}. O sing unto the LORD a new song (Psalm 96:1)`,
-    ]), { part_of_day: home.part_of_day ?? null, greeting: home.greeting ?? null, shelves, live_room: live, doors, ...ATTRIBUTION });
+      `Worship: ${doors.worship}. Together, live: ${doors.together}. The great hymns, words and stories: ${doors.hymns}`,
+      verse ? `${verse.ref} (KJV): "${verse.text}"` : null,
+    ]), { part_of_day: home.part_of_day ?? null, greeting: home.greeting ?? null, shelves, live_room: live, doors, scripture: verse ? { ref: verse.ref, text: verse.text, translation: 'KJV' } : null, ...ATTRIBUTION, content_layers: layers({ scripture: ['scripture.text'] }) });
   });
 
   // ---- the house-page families ------------------------------------------------------------
@@ -566,7 +574,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
   interface MapRow { city: string; country: string; lat: number; lon: number; believers: number; actions: number }
   tool(server, 'kingdom_map', {
     title: 'The Kingdom map: believers by city',
-    description: 'Count Living Bread members by city and country (counts only, never names), largest first, optionally filtered by a city or country word. Use for "are there believers on Living Bread in Nairobi" or "how many are in Brazil". Not for churches (find_churches_near), today\'s activity (body_today), or people available now (who_is_available_now on /me). place is a case-insensitive substring of "city country", so "bra" matches Brazil and Bratislava. Counts only places members chose to name, so they understate the real number. No match returns count 0.',
+    description: 'Count Living Bread members by city and country (counts only, never names), largest first, optionally filtered by a city or country word. Use for "are there believers on Living Bread in Nairobi" or "how many are in Brazil". Not for churches (find_churches_near), today\'s activity (family_activity_today), or people available now (who_is_available_now on /me). place is a case-insensitive substring of "city country", so "bra" matches Brazil and Bratislava. Counts only places members chose to name, so they understate the real number. No match returns count 0.',
     inputSchema: {
       place: z.string().max(80).optional().describe('Optional filter, matched as a substring of "city country": "Nairobi", "Brazil".'),
       limit: z.number().int().min(1).max(50).default(12).describe('Maximum places to return, 1 to 50 (default 12).'),
@@ -592,7 +600,7 @@ export function registerMore(server: McpServer, env: Env, me: Believer | null): 
   interface Testimony { id: string; excerpt: string; journey: string | null; city: string | null; created_at: string }
   tool(server, 'testimonies', {
     title: 'Real testimonies shared with the Body',
-    description: 'List testimonies members chose to share publicly on The Living Bread\'s testimony wall, newest first, optionally filtered by a word: the excerpt in their words, a journey label, city when given, and date; no names. Use for "has anyone found faith after addiction" or "real stories of people meeting Jesus". Not for aggregate activity (body_today) or yeses members are living out (family_saying_yes on /me). word is one case-insensitive substring checked in excerpts and journey labels; it scans the 60 newest only, so older matches can be missed. None returns count 0.',
+    description: 'List testimonies members chose to share publicly on The Living Bread\'s testimony wall, newest first, optionally filtered by a word: the excerpt in their words, a journey label, city when given, and date; no names. Use for "has anyone found faith after addiction" or "real stories of people meeting Jesus". Not for aggregate activity (family_activity_today) or yeses members are living out (family_saying_yes on /me). word is one case-insensitive substring checked in excerpts and journey labels; it scans the 60 newest only, so older matches can be missed. None returns count 0.',
     inputSchema: {
       limit: z.number().int().min(1).max(30).default(8).describe('Maximum testimonies to return, 1 to 30 (default 8).'),
       word: z.string().max(60).optional().describe('Optional word to find in excerpts or journey labels: "addiction", "grief", "prison", "doubt".'),

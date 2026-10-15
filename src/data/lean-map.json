@@ -1,0 +1,111 @@
+{
+  "$comment": "The lean public set on /mcp (docs/MCP_LEAN_PUBLIC.md). Each lean tool has modes; each mode dispatches to ONE named tool's own implementation (the same callback /me and /app register). rename maps a lean parameter to the named tool's parameter; fixed adds arguments the mode always passes; alias marks an extra door to a named tool that already has its primary mode. mode_param false means the tool has one purpose and takes no mode. Read by src/lean.ts, tests/mcpLean.test.ts, test/client.mjs and the eval conversion.",
+  "tools": {
+    "get_crisis_help": {
+      "mode_param": false,
+      "modes": { "country": { "tool": "crisis_resources" } }
+    },
+    "read_scripture": {
+      "modes": {
+        "passage": { "tool": "scripture_passage" },
+        "context": { "tool": "scripture_context" },
+        "search": { "tool": "scripture_search" },
+        "compare": { "tool": "compare_translations" },
+        "original_words": { "tool": "original_words" },
+        "cross_references": { "tool": "cross_references" },
+        "verify": { "tool": "verify_scripture_quote" },
+        "translations": { "tool": "list_translations" }
+      }
+    },
+    "find_scripture_for": {
+      "modes": {
+        "need": { "tool": "verses_for", "rename": { "subject": "need" } },
+        "topic": { "tool": "what_the_bible_says_about", "rename": { "subject": "topic" } },
+        "words_of_jesus": { "tool": "teaching_of_jesus", "rename": { "subject": "topic" } },
+        "daily_bread": { "tool": "daily_bread" }
+      }
+    },
+    "learn_the_faith": {
+      "modes": {
+        "gospel": { "tool": "the_gospel" },
+        "belief": { "tool": "belief", "rename": { "subject": "topic" } },
+        "parable": { "tool": "parable", "rename": { "subject": "name" } },
+        "miracle": { "tool": "miracle", "rename": { "subject": "name" } },
+        "hymn": { "tool": "hymn", "rename": { "subject": "title" } },
+        "name_meaning": { "tool": "name_meaning", "rename": { "subject": "name" } },
+        "saint": { "tool": "heritage_lookup", "rename": { "subject": "name" }, "fixed": { "kind": "saint" }, "alias": true },
+        "saint_of_the_day": { "tool": "saint_of_the_day" },
+        "heritage": { "tool": "heritage_lookup", "rename": { "subject": "name" } },
+        "compare_traditions": { "tool": "denomination_compare", "rename": { "subject": "a", "compare_with": "b" } },
+        "other_faiths": { "tool": "christianity_and_other_faiths", "rename": { "subject": "background" } },
+        "hard_season": { "tool": "faith_in_a_hard_season", "rename": { "subject": "life_event" } },
+        "a_prayer_for": { "tool": "a_prayer_for", "rename": { "subject": "situation" } }
+      }
+    },
+    "find_churches": {
+      "modes": {
+        "near": { "tool": "find_churches_near" },
+        "by_id": { "tool": "church" }
+      }
+    },
+    "find_gatherings": {
+      "modes": {
+        "any": { "tool": "find_gatherings_near" },
+        "tonight": { "tool": "gatherings_tonight" },
+        "this_week": { "tool": "events_this_week" }
+      }
+    },
+    "find_people_to_pray_with": {
+      "modes": {
+        "a_person_now": { "tool": "a_person_now" },
+        "the_watch": { "tool": "the_watch_tonight" },
+        "real_people_will_pray": { "tool": "real_people_will_pray" },
+        "live_tables": { "tool": "tables_live_now" },
+        "prayers_near": { "tool": "prayers_left_near" },
+        "hear_the_kingdom_pray": { "tool": "hear_the_kingdom_pray" },
+        "pray_for_someone": { "tool": "pray_for_someone" },
+        "ask_the_family": { "tool": "the_open_chair" }
+      }
+    },
+    "find_ways_to_serve": {
+      "modes": {
+        "near": { "tool": "needs_near" },
+        "public_needs": { "tool": "where_can_i_serve_publicly" }
+      }
+    },
+    "find_communities": {
+      "modes": {
+        "to_join": { "tool": "communities_to_join" },
+        "university": { "tool": "universities" }
+      }
+    },
+    "see_the_kingdom": {
+      "modes": {
+        "map": { "tool": "kingdom_map" },
+        "today": { "tool": "family_activity_today" },
+        "testimonies": { "tool": "testimonies" },
+        "worship": { "tool": "worship_now" }
+      }
+    },
+    "start_with_christ": {
+      "modes": {
+        "begin": { "tool": "begin" },
+        "next_steps": { "tool": "journey_next_steps" },
+        "reading_plans": { "tool": "reading_plans" },
+        "for_my_need": { "tool": "plan_my_next_step" }
+      }
+    },
+    "search": {
+      "default_mode": "results",
+      "modes": {
+        "results": { "tool": "search" },
+        "answer": { "tool": "ask_living_bread", "rename": { "query": "question" } },
+        "protocol": { "tool": "kingdom_protocol_lookup", "rename": { "query": "urn" } }
+      }
+    },
+    "fetch": {
+      "mode_param": false,
+      "modes": { "id": { "tool": "fetch" } }
+    }
+  }
+}

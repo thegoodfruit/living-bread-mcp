@@ -25,7 +25,7 @@ import versions from './data/versions.json';
 import { count } from './metrics';
 import { status } from './status';
 import { a2aRoute } from './a2a';
-import { EXCELLENCE_TOOL_SUMMARY } from './excellence';
+import { LEAN_NAMES, LEAN_TOOLS } from './lean';
 
 /** Count an MCP initialize by the client name it announces. Reads at most 64 KB of a JSON body; never blocks the request. */
 async function countInitialize(env: Env, req: Request, path: string): Promise<void> {
@@ -60,6 +60,18 @@ const sseHandler = LivingBreadMCP.serveSSE('/sse', { binding: 'MCP_OBJECT', cors
 const meHandler = LivingBreadMCP.serve(ME_PATH, { binding: 'MCP_OBJECT', corsOptions: CORS });
 const appHandler = LivingBreadMCP.serve(APP_PATH, { binding: 'MCP_OBJECT', corsOptions: CORS });
 
+/** The Worker tells the session which door a call came through and the coarse place Cloudflare reports
+ *  (country; city only on the public endpoint). Anything a client sent under these names is dropped first. */
+function withDoor(request: Request, endpoint: 'mcp' | 'sse' | 'me' | 'app'): Request {
+  const r = new Request(request);
+  for (const k of ['x-lb-endpoint', 'x-lb-country', 'x-lb-city']) r.headers.delete(k);
+  r.headers.set('x-lb-endpoint', endpoint);
+  const cf = (request as Request & { cf?: { country?: unknown; city?: unknown } }).cf;
+  if (typeof cf?.country === 'string' && /^[A-Z]{2}$/.test(cf.country)) r.headers.set('x-lb-country', cf.country);
+  if ((endpoint === 'mcp' || endpoint === 'sse') && typeof cf?.city === 'string' && cf.city.length <= 60) r.headers.set('x-lb-city', encodeURIComponent(cf.city));
+  return r;
+}
+
 function text(body: string, type: string, status = 200, extra: Record<string, string> = {}): Response {
   return new Response(body, { status, headers: { 'content-type': type, 'access-control-allow-origin': '*', ...extra } });
 }
@@ -88,18 +100,18 @@ export default {
     // (/me and /app are counted only after their token is verified, below.)
     if (request.method === 'POST' && /^\/(mcp|sse)(\/message)?$/.test(p)) ctx.waitUntil(countInitialize(env, request.clone(), p));
 
-    if (p === '/mcp' || p.startsWith('/mcp/')) return mcpHandler.fetch(request, env, ctx);
+    if (p === '/mcp' || p.startsWith('/mcp/')) return mcpHandler.fetch(withDoor(request, 'mcp'), env, ctx);
     // A Streamable HTTP client given the registry's /sse remote POSTs to /sse itself (366 such 404s on
     // 2026-10-03..05). /sse alone never takes a POST in the SSE protocol (messages go to /sse/message),
     // so it is answered as Streamable HTTP, exactly as /mcp would.
-    if (p === '/sse' && request.method === 'POST') return mcpHandler.fetch(new Request(`${url.origin}/mcp${url.search}`, request), env, ctx);
-    if (p === '/sse' || p.startsWith('/sse/')) return sseHandler.fetch(request, env, ctx);
+    if (p === '/sse' && request.method === 'POST') return mcpHandler.fetch(withDoor(new Request(`${url.origin}/mcp${url.search}`, request), 'sse'), env, ctx);
+    if (p === '/sse' || p.startsWith('/sse/')) return sseHandler.fetch(withDoor(request, 'sse'), env, ctx);
     if (p === APP_PATH || p.startsWith(APP_PATH + '/')) {
       const me = await verifyBearer(env, request.headers.get('authorization'));
       if (!me) return unauthorized('A signed-in connection needs a bearer token issued by The Living Bread.', APP_PATH);
       (ctx as ExecutionContext & { props?: unknown }).props = { ...me, profile: 'app' };
       if (request.method === 'POST') ctx.waitUntil(countInitialize(env, request.clone(), p));
-      return appHandler.fetch(request, env, ctx);
+      return appHandler.fetch(withDoor(request, 'app'), env, ctx);
     }
     if (p === ME_PATH || p.startsWith(ME_PATH + '/')) {
       // OAuth 2.1 resource server (RFC 9728): no valid token, one honest 401 that names the
@@ -108,7 +120,7 @@ export default {
       if (!me) return unauthorized('A signed-in connection needs a bearer token issued by The Living Bread.');
       (ctx as ExecutionContext & { props?: unknown }).props = me;
       if (request.method === 'POST') ctx.waitUntil(countInitialize(env, request.clone(), p));
-      return meHandler.fetch(request, env, ctx);
+      return meHandler.fetch(withDoor(request, 'me'), env, ctx);
     }
     // Some clients look for the authorization server's metadata on the resource host
     // (RFC 8414 path-insensitive fallbacks). Mirror Supabase's document so a scan never dead-ends.
@@ -132,7 +144,8 @@ export default {
       return text(JSON.stringify({
         name: SERVER_NAME, version: SERVER_VERSION, ok: true,
         transports: { streamable_http: MCP_URL, sse: SSE_URL },
-        tools: [...TOOL_SUMMARY.flatMap(([n]) => n.split(', ')), ...EXCELLENCE_TOOL_SUMMARY.map(([n]) => n)], a2a: 'https://mcp.living-bread.org/.well-known/agent-card.json', prompts: PROMPTS, resources: RESOURCES,
+        tools: LEAN_NAMES, tool_modes: Object.fromEntries(LEAN_NAMES.map((n) => [n, Object.keys(LEAN_TOOLS[n].modes)])),
+        named_tools: { endpoints: ['https://mcp.living-bread.org/me', 'https://mcp.living-bread.org/app'], public: TOOL_SUMMARY.flatMap(([n]) => n.split(', ')) }, a2a: 'https://mcp.living-bread.org/.well-known/agent-card.json', prompts: PROMPTS, resources: RESOURCES,
         signed_in: { endpoint: 'https://mcp.living-bread.org/me', tools: [...PERSONAL_TOOL_SUMMARY, ...SIGNED_IN_READ_SUMMARY, ...ACT_TOOL_SUMMARY].map(([n]) => n), shepherd_tools: SHEPHERD_TOOL_SUMMARY.map(([n]) => n) },
         auth: 'none on /mcp; OAuth 2.1 (Supabase Auth) on /me', confession: 'Jesus Christ is God and Lord.',
       }, null, 2), 'application/json; charset=utf-8', 200, { 'cache-control': 'no-store' });

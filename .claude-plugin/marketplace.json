@@ -1,0 +1,16 @@
+{
+  "name": "living-bread",
+  "owner": { "name": "The Living Bread", "email": "support@living-bread.org" },
+  "metadata": { "description": "Skills and the remote MCP server for The Living Bread: find your family in Christ, pray with someone, meet Christ in the Word, take one step together, bring your people together." },
+  "plugins": [
+    {
+      "name": "living-bread",
+      "source": "./packages/claude-code/plugin",
+      "description": "Six skills and the Living Bread MCP server (https://mcp.living-bread.org/mcp): find real communities and churches, share a prayer, read Scripture from a stored text, serve a verified need, and bring a group together. Read only on the public endpoint.",
+      "category": "community",
+      "keywords": ["bible", "prayer", "church", "community", "scripture", "christian"],
+      "homepage": "https://mcp.living-bread.org",
+      "license": "MIT"
+    }
+  ]
+}

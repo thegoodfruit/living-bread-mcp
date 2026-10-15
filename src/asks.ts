@@ -65,6 +65,9 @@ export function guessLanguage(s: string): string {
 export function logAsk(env: Env, server: McpServer, toolName: string, ask: string, answered: boolean): void {
   try {
     if (!LOGGED_TOOLS.has(toolName)) return;
+    /* Superseded by src/telemetry.ts (mcp_log_call writes the question to mcp_asks itself);
+       this older road runs only when that log is switched off with MCP_CALL_LOG=0. */
+    if (String((env as { MCP_CALL_LOG?: unknown }).MCP_CALL_LOG ?? '1') !== '0') return;
     if (String((env as { MCP_ASK_LOG?: unknown }).MCP_ASK_LOG ?? '1') === '0') return;
     const text = ask.replace(/\s+/g, ' ').trim().slice(0, 200);
     if (!text) return;

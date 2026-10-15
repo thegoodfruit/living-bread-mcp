@@ -16,6 +16,8 @@ import { z } from 'zod';
 
 import { type Believer, rpcAs, selectAs } from './auth';
 import { DOORS, SITE } from './doors';
+import { layers } from './evidence';
+import { heldVerse, quoted } from './kjv';
 import { list, paragraph, sinceWordOf } from './render';
 import { fail, firstName, ok, out, READS, tool } from './shared';
 
@@ -91,17 +93,20 @@ export function registerShepherd(server: McpServer, env: Env, me: Believer, past
       available: z.boolean().describe('Whether they marked themselves available.'),
       verified: z.boolean().describe('Whether The Living Bread verified them.'),
       role: z.string().nullable().describe('Their stated role, e.g. Pastor, Priest, or null.'),
+      scripture: z.looseObject({ ref: z.string(), text: z.string(), translation: z.string() }).nullable().optional().describe('The closing verse, reference and text read verbatim from the stored KJV; null when it could not be read.'),
     }),
     annotations: READS,
   }, async () => {
     const doors = { pray_now: `${SITE}/rooms/pastor-${me.userId}`, meet_online: `${SITE}/video/pastor-video-${me.userId}`, meet_nearby: DOORS.shepherdCare, public_page: `${SITE}/pastor/${me.userId}`, console: DOORS.shepherdCare };
+    /* the closing verse is read from the stored KJV and quoted verbatim, never paraphrased */
+    const verse = await heldVerse(env, '1 Peter 5:2');
     return ok(paragraph([
       `Pray with someone now: ${doors.pray_now} (their live voice room; a seeker who presses the door lands there with them)`,
       `Meet online: ${doors.meet_online} (their video room)`,
       `Meet nearby: the requests of kind "nearby" wait in the console at ${doors.meet_nearby}, each with the seeker's preferred time`,
       `Their public page is ${doors.public_page}, ${pastor.page_on ? 'on' : 'off'}${pastor.page_on ? `, ${pastor.available ? 'available now' : 'resting (not available this minute)'}` : ''}${pastor.verified ? ', verified by the house' : ''}${pastor.role ? `, calling: ${pastor.role}` : ''}`,
-      'Be shepherds of God\'s flock that is under your care (1 Peter 5:2)',
-    ]), { ...doors, page_on: pastor.page_on, available: pastor.available, verified: pastor.verified, role: pastor.role });
+      quoted(verse),
+    ]), { ...doors, page_on: pastor.page_on, available: pastor.available, verified: pastor.verified, role: pastor.role, scripture: verse, content_layers: layers({ scripture: ['scripture.text'] }) });
   });
 
   tool(server, 'who_has_gone_quiet', {

@@ -1,0 +1,18 @@
+{
+  "name": "living-bread",
+  "version": "1.0.0",
+  "description": "The Living Bread: six skills, a rule and the remote MCP server. Find your family in Christ, pray with someone, meet Christ in the Word, take one step together, bring your people together.",
+  "author": {
+    "name": "The Living Bread",
+    "email": "support@living-bread.org"
+  },
+  "homepage": "https://mcp.living-bread.org",
+  "repository": "https://github.com/thegoodfruit/living-bread-mcp",
+  "license": "MIT",
+  "keywords": [
+    "bible",
+    "prayer",
+    "church",
+    "community"
+  ]
+}

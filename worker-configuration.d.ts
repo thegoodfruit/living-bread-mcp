@@ -7,6 +7,8 @@ interface __BaseEnv_Env {
 	SITE: "https://living-bread.org";
 	KNOWLEDGE_API: "https://discover.living-bread.org";
 	MCP_ASK_LOG: "1";
+	MCP_CALL_LOG: "1";
+	MCP_LINK_REF: "1";
 	SUPABASE_URL: "https://eiekmrbmscorzjogpbzf.supabase.co";
 	SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpZWttcmJtc2Nvcnpqb2dwYnpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4ODMzMTUsImV4cCI6MjA5NjQ1OTMxNX0.uugKXNhivmxZ3ES-kFLdqJrpWIfWpAaegp9wQOlXTyE";
 	MCP_OBJECT: DurableObjectNamespace<import("./src/index").LivingBreadMCP>;

@@ -1,0 +1,15 @@
+{
+  "$comment": "Phrases a Living Bread skill, package or doc may not say as its own claim. A line that quotes the phrase to forbid it (never, must not, do not, forbidden_behaviours, unless) is allowed. Checked by mcp/scripts/validate-skills.mjs.",
+  "phrases": [
+    "\\bGod (told|is telling|wants) you to\\b",
+    "\\bguaranteed? (to )?(heal|answer|respond|work)",
+    "\\bact now\\b",
+    "\\blimited time\\b",
+    "\\bdon'?t miss out\\b",
+    "\\byou will be healed\\b",
+    "\\bpeople are praying for you right now\\b",
+    "\\b(someone|somebody) (is|will be) (praying|there)\\b",
+    "\\bvery active community\\b",
+    "\\bwelcoming (to )?newcomers\\b"
+  ]
+}

@@ -71,6 +71,7 @@ export const PERSONAL_TOOL_SUMMARY: ReadonlyArray<[string, string]> = [
   ['say_amen', 'answer a prayer prayed over them with Amen, and thank you'],
   ['my_walk', 'what they have said yes to Christ about, in their own words'],
   ['my_family', 'their circles and the next gatherings, with the room to join'],
+  ['communities_i_lead', 'the communities they created or lead, each with a way to open it and welcome members; nothing from any other group'],
 ];
 
 export function registerPersonal(server: McpServer, env: Env, me: Believer): void {

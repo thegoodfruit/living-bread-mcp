@@ -148,6 +148,9 @@ export interface Community {
   next_gathering_title: string | null;
   next_gathering_at: string | null;
   rhythm_title: string | null;
+  rhythm_weekdays?: number[] | null;
+  rhythm_hour?: number | null;
+  rhythm_minute?: number | null;
 }
 
 export function findChurches(env: Env, args: { lat: number | null; lon: number | null; place: string | null; limit: number }) {

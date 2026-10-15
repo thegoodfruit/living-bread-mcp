@@ -106,7 +106,7 @@ async function house() {
 const clients = {};
 async function client(endpoint) {
   if (clients[endpoint]) return clients[endpoint];
-  const c = new Client({ name: 'living-bread-eval', version: '1.2.0' });
+  const c = new Client({ name: 'living-bread-eval', version: '1.3.0' });
   const opts = endpoint === 'mcp' ? {} : { requestInit: { headers: { authorization: `Bearer ${await house()}` } } };
   await c.connect(new StreamableHTTPClientTransport(new URL(`${base}/${endpoint}`), opts));
   clients[endpoint] = c;
@@ -229,6 +229,11 @@ async function runList(cs) {
     if (op === 'toolPresent' && !by[name]) fails.push(`${name} is missing on /${cs.endpoint}`);
     if (op === 'noInputField' && by[name] && by[name].inputSchema?.properties?.[field]) fails.push(`${name} asks for ${field}`);
     if (op === 'inputField' && !by[name]?.inputSchema?.properties?.[field]) fails.push(`${name} lacks ${field}`);
+    if (op === 'toolCount' && tools.length !== name) fails.push(`/${cs.endpoint} lists ${tools.length} tools, wanted ${name}`);
+    if (op === 'firstTool' && tools[0]?.name !== name) fails.push(`the first tool is ${tools[0]?.name}, wanted ${name}`);
+    if (op === 'allReadOnly') { const bad = tools.filter((t) => t.annotations?.readOnlyHint !== true || t.annotations?.destructiveHint !== false); if (bad.length) fails.push(`not read only: ${bad.map((t) => t.name).join(', ')}`); }
+    if (op === 'destructive' && by[name]?.annotations?.destructiveHint !== true) fails.push(`${name} is not marked destructive`);
+    if (op === 'modeEnum' && !(by[name]?.inputSchema?.properties?.mode?.enum ?? []).includes(field)) fails.push(`${name} has no mode ${field}`);
     if (op === 'allAnnotated') {
       const bad = tools.filter((t) => !(typeof t.annotations?.title === 'string' && ['readOnlyHint', 'destructiveHint', 'openWorldHint'].every((h) => typeof t.annotations?.[h] === 'boolean')));
       if (bad.length) fails.push(`not fully annotated: ${bad.map((t) => t.name).join(', ')}`);
@@ -331,16 +336,25 @@ for (const cs of cases) {
     else if (cs.kind === 'local') fails = await runLocal(cs);
     else if (cs.kind === 'instructions') { const cl = await client(cs.endpoint); fails = (cl.getInstructions() ?? '').includes(cs.checks[0][1]) ? [] : ['instructions lack the law']; }
     else {
-      const cl = await client(cs.endpoint);
+      let cl = await client(cs.endpoint);
       serverVersion ??= cl.getServerVersion()?.version;
-      const r = await cl.callTool({ name: cs.tool, arguments: derive(cs.args) });
+      let r;
+      try { r = await cl.callTool({ name: cs.tool, arguments: derive(cs.args) }); } catch (e) {
+        /* a session left idle while a long local check held this process's event loop can drop its
+           connection; reconnect once (a new session), never retry a server error */
+        if (!/fetch failed/.test(String(e?.message ?? e))) throw e;
+        await clients[cs.endpoint]?.close().catch(() => undefined);
+        delete clients[cs.endpoint];
+        cl = await client(cs.endpoint);
+        r = await cl.callTool({ name: cs.tool, arguments: derive(cs.args) });
+      }
       fails = await runChecks(cs, r, cs);
     }
   } catch (e) {
     fails = [`threw: ${String(e.message ?? e).slice(0, 160)}`];
   }
   const ms = Date.now() - t0;
-  results.push({ id: cs.id, category: cs.category, tool: cs.tool ?? cs.kind, pass: fails.length === 0, fails, ms });
+  results.push({ id: cs.id, category: cs.category, tool: cs.named ? `${cs.tool} (${cs.args?.mode ?? 'default'}) as ${cs.named}` : cs.tool ?? cs.kind, pass: fails.length === 0, fails, ms });
   console.log(`${fails.length ? 'FAIL' : 'ok  '} ${cs.id} ${ms}ms ${fails.join('; ').slice(0, 200)}`);
 }
 for (const c of Object.values(clients)) await c.close().catch(() => undefined);

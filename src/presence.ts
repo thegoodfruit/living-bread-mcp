@@ -13,6 +13,12 @@
                             and up to five first names. Counts and first
                             names only, members only, nobody blocked,
                             no minors (the function's own gate).
+                            Beside it, here_now (porch_counts, 1005): how many
+                            members of the Body are online right now (Meet the
+                            Body: the app open in front of them), by language.
+                            COUNTS ONLY, never a name or a face: Meet the Body
+                            shows faces only inside the app, to members who
+                            are shown themselves.
      find_help_for_my_need  route_need (0782): the nearest SAFE doors for
                             a need, in the house's escalation order
                             (family, the believer's groups, people who
@@ -38,6 +44,10 @@ import { fail, ok, out, READS, tool } from './shared';
 
 interface AvailRow { status: string; label: string; side: string; people: number; near: number; first_names: string[] | null }
 interface Destination { layer: string; kind: string; id: string | null; title: string; subtitle: string | null; route: string | null; action: string | null; people: number | null; names: string[] | null; starts_at?: string; score?: number; pinned?: boolean }
+
+interface PorchCounts { online?: number; open?: number; by_intent?: Record<string, number>; by_language?: Record<string, number> }
+
+const PORCH_NOTE = 'Online in Meet the Body means the person has The Living Bread open in front of them and their app said so in the last ninety seconds, read at this moment; only members who let themselves be seen are counted. Counts only; faces and names are shown only inside the app.';
 
 const WINDOW_NOTE = 'They said, within their own window (two hours unless they chose otherwise), that they are available; the database checked the window had not expired at the moment of reading. Not a promise that they will answer.';
 
@@ -65,16 +75,40 @@ function freshnessOf(d: Destination): Freshness {
 export function registerPresence(server: McpServer, env: Env, me: Believer): void {
   tool(server, 'who_is_available_now', {
     title: 'Who is available right now (counts and first names)',
-    description: 'Count, for the signed-in believer, how many members currently have an open availability window (set by themselves, two hours by default) to pray, listen, talk, serve or welcome, and how many are looking for prayer or company: per status, the total, how many are in the believer\'s city, and up to five first names. No locations finer than "your city"; blocked users and minors excluded. Contacts nobody. "Available" means a window still open, not a promise to answer. To reach someone use someone_to_talk_to; for every kind of help in order use find_help_for_my_need. count 0 when no window is open.',
+    description: 'Count, for the signed-in believer, how many members currently have an open availability window (set by themselves, two hours by default) to pray, listen, talk, serve or welcome, and how many are looking for prayer or company: per status, the total, how many are in the believer\'s city, and up to five first names. No locations finer than "your city"; blocked users and minors excluded. Contacts nobody. "Available" means a window still open, not a promise to answer. To reach someone use someone_to_talk_to; for every kind of help in order use find_help_for_my_need. count 0 when no window is open. Also here_now: how many members of the Body are online right now (Meet the Body), by language, counts only.',
     inputSchema: {},
     outputSchema: out({
       count: z.number().describe('Statuses with at least one person available.'),
       statuses: z.array(z.looseObject({ status: z.string(), label: z.string(), side: z.string(), people: z.number(), in_your_city: z.number(), first_names: z.array(z.string()) })).describe('Each status: key, label, side (offering or seeking), people with the window open, how many in the believer\'s city, up to five first names.'),
       door: z.string().describe('Link to ask the family for someone.'),
+      here_now: z.looseObject({
+        online: z.number().describe('Members of the Body online right now that this believer could meet.'),
+        open: z.number().describe('The same number as online (kept for older readers).'),
+        by_intent: z.record(z.string(), z.number()).describe('Kept for older readers; empty now that nobody chooses an intent to be online.'),
+        by_language: z.record(z.string(), z.number()).describe('Counts by language code they speak.'),
+        door: z.string().describe('Link to Meet the Body.'),
+      }).optional().describe('Meet the Body: counts only, never names. Absent when it could not be read.'),
     }),
     annotations: READS,
   }, async () => {
-    const r = await rpcAs(env, me, 'who_is_available_now');
+    const [r, pc] = await Promise.all([
+      rpcAs(env, me, 'who_is_available_now'),
+      // read-only and counts only; a failure here never fails the tool
+      rpcAs(env, me, 'porch_counts').catch(() => ({ data: null, error: 'unavailable' })),
+    ]);
+    const porch = pc.error || !pc.data ? null : (pc.data as PorchCounts);
+    const online = porch ? Number(porch.online ?? porch.open ?? 0) : 0;
+    const hereNow = porch ? {
+      online,
+      open: online,
+      by_intent: Object.fromEntries(Object.entries(porch.by_intent ?? {}).map(([k, v]) => [k, Number(v)])),
+      by_language: Object.fromEntries(Object.entries(porch.by_language ?? {}).map(([k, v]) => [k, Number(v)])),
+      door: `${SITE}/meet-the-body`,
+      freshness: online > 0 ? openWindow(PORCH_NOTE) : record(null, 'Nobody else is online in Meet the Body at the moment of reading.'),
+    } : undefined;
+    const porchLine = hereNow && hereNow.online > 0
+      ? `${hereNow.online} ${hereNow.online === 1 ? 'member of the Body is' : 'members of the Body are'} online right now, Meet the Body (${SITE}/meet-the-body)`
+      : null;
     if (r.error) return fail(`Who is available could not be read just now (${r.error}). The door is open at ${SITE}/need-someone.`, { reason: 'unavailable', try_instead: [`${SITE}/need-someone`, DOORS.prayer] });
     const rows = (Array.isArray(r.data) ? (r.data as AvailRow[]) : []).map((x) => ({
       status: x.status, label: x.label, side: x.side, people: Number(x.people ?? 0), in_your_city: Number(x.near ?? 0), first_names: x.first_names ?? [],
@@ -86,13 +120,15 @@ export function registerPresence(server: McpServer, env: Env, me: Believer): voi
         'Nobody has said they are available in an open window at this moment',
         'That is a true picture of this minute, not of the family: asking still reaches people, because the family is told and the wider circle widens until someone answers',
         `Ask at ${SITE}/need-someone, or bring a request to the prayer wall at ${DOORS.prayer}; find_help_for_my_need shows every door in order`,
-      ]), { count: 0, statuses: rows, door: `${SITE}/need-someone`, empty: true });
+        porchLine,
+      ]), { count: 0, statuses: rows, door: `${SITE}/need-someone`, empty: true, ...(hereNow ? { here_now: hereNow } : {}) });
     }
     return ok(paragraph([
       `Said they are available, in windows still open: ${list(open.map((x) => `${x.people} ${x.label.toLowerCase()}${x.in_your_city ? ` (${x.in_your_city} in your city)` : ''}${x.first_names.length ? `, among them ${list(x.first_names, 5)}` : ''}`), 8)}`,
       'Each one opened their own window; none of it is a promise that they will answer this minute',
       `To reach them, find_help_for_my_need, or ${SITE}/need-someone`,
-    ]), { count: open.length, statuses: rows, door: `${SITE}/need-someone` });
+      porchLine,
+    ]), { count: open.length, statuses: rows, door: `${SITE}/need-someone`, ...(hereNow ? { here_now: hereNow } : {}) });
   });
 
   tool(server, 'find_help_for_my_need', {

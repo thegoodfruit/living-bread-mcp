@@ -286,7 +286,7 @@ export function registerJourneys(server: McpServer, env: Env, me: Believer | nul
         const t = pr ? await kjvPassage(env, pr) : null;
         if (t && pr) items.push({ id: `verse:${t.ref}`, kind: 'scripture', title: `Linked by readers: ${t.ref}`, why: `A passage readers most often link to this one (OpenBible.info, ${votes} votes): Scripture read alongside Scripture`, freshness: record(null), visibility: 'public', source_url: `${SITE}/bible?open=${pr.bookId}.${pr.chapter}.${pr.from}`, next_step: { label: 'Read it', url: `${SITE}/bible?open=${pr.bookId}.${pr.chapter}.${pr.from}` }, scripture: { ref: t.ref, text: t.text } });
       }
-      items.push({ id: 'door:my-yes', kind: 'act', title: 'Live it: write one yes', why: 'One concrete thing you will do with this word, in your own words, kept privately or shared with the family who will stand with you. Never a streak or a score', freshness: record(null), visibility: 'public', source_url: `${SITE}/my-yes`, next_step: { label: 'Write a yes', url: via(`${SITE}/my-yes`) } });
+      items.push({ id: 'door:live-your-faith', kind: 'act', title: 'Live it: make one commitment', why: 'One concrete thing you will do with this word, in your own words, kept privately or shared with the family who will stand with you. Never a streak or a score', freshness: record(null), visibility: 'public', source_url: `${SITE}/live-your-faith`, next_step: { label: 'Make a commitment', url: via(`${SITE}/live-your-faith`) } });
       nextStep = { label: `Read ${main.ref} in the Bible`, url: open };
     }
 

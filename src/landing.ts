@@ -18,6 +18,8 @@ import { DOORS, KNOWLEDGE_API, MCP_URL, SITE, SSE_URL } from './doors';
 import { SERVER_VERSION } from './instructions';
 import { PERSONAL_TOOL_SUMMARY } from './personal';
 import { SHEPHERD_TOOL_SUMMARY } from './shepherd';
+import { LEAN_DEFS, LEAN_NAMES, LEAN_TOOLS } from './lean';
+import { kjv } from './scriptureText';
 
 /* One-click installs, in the formats the vendors document (verified 2026-10-05):
    Cursor takes base64 of the server's own JSON (no mcpServers wrapper); VS Code a URL-encoded JSON object with a name. */
@@ -27,7 +29,7 @@ const VSCODE_INSIDERS_LINK = VSCODE_LINK.replace(/^vscode:/, 'vscode-insiders:')
 
 export type ToolGroup = { name: string; purpose: string; tools: ReadonlyArray<[string, string]> };
 
-/** Every public tool, grouped by what a person is doing. The health endpoint lists the same names. */
+/** Every named public tool, grouped by what a person is doing: the names /me and /app list. On /mcp each answers as a mode of a lean tool (LEAN_ROWS). */
 export const TOOL_GROUPS: ReadonlyArray<ToolGroup> = [
   { name: 'Read', purpose: 'the Word, from a stored text, with an evidence label', tools: [
     ['scripture_passage', 'a verse, range or chapter read verbatim from the stored KJV, or from about sixty stored public domain or freely licensed Bibles'],
@@ -37,6 +39,7 @@ export const TOOL_GROUPS: ReadonlyArray<ToolGroup> = [
     ['scripture_context', 'a passage with the verses around it, so it is never read out of its place'],
     ['scripture_search', 'every verse containing given words, a page at a time'],
     ['cross_references', 'the passages readers most often link to a verse (OpenBible.info, CC BY)'],
+    ['verify_scripture_quote', 'check quoted words against every held translation: verbatim, close but different with a word diff, or not found'],
     ['verses_for', 'the verses the house pairs with a need or feeling, in the person\'s own words'],
     ['daily_bread', 'the one verse the whole family receives on a given morning'],
     ['what_the_bible_says_about', 'what the Bible says about one of about 300 topics, verse by verse'],
@@ -55,6 +58,10 @@ export const TOOL_GROUPS: ReadonlyArray<ToolGroup> = [
     ['hear_the_kingdom_pray', 'where believers from many nations pray out loud over the whole family'],
     ['worship_now', 'what the worship room offers for this hour, the hymns, and the live room'],
     ['crisis_resources', 'the real emergency number and crisis line for a country, FIRST, before the Word'],
+    ['a_person_now', 'how many believers keep the prayer watch right now, and the page where a real person answers'],
+    ['the_watch_tonight', 'which hours of the prayer watch are kept and which are gaps, in your time zone'],
+    ['real_people_will_pray', 'the door where real believers pray for a person by name, and how many prayed in the last day'],
+    ['the_open_chair', 'the door where anyone, with no account, asks the family to pray once, and is asked how they are on day 3 and day 7'],
   ] },
   { name: 'Find', purpose: 'real churches, gatherings and people, honestly, with freshness', tools: [
     ['journey_next_steps', 'six journeys end to end: at most five next steps, each with why, freshness and one link'],
@@ -80,13 +87,20 @@ export const TOOL_GROUPS: ReadonlyArray<ToolGroup> = [
     ['denomination_compare', 'two traditions side by side, charitably, with their family trees'],
     ['faith_in_a_hard_season', 'Christ at a threshold of life: grief, loneliness, church hurt, starting out'],
     ['testimonies', 'real testimonies believers chose to share with the Body'],
-    ['body_today', 'what the whole family did today: a mirror, never a leaderboard'],
+    ['family_activity_today', 'what the whole family did today: a mirror, never a leaderboard'],
     ['begin', 'the invitation, the web home, the stores, and what a newcomer finds first'],
+    ['plan_my_next_step', 'a need in a few words, the best real doors for it (community, prayer, the Word, serve, or bringing your people together), each with an honest handoff or an honest empty'],
     ['search, fetch', 'the connector contract (ChatGPT and others) over the same real data'],
   ] },
 ];
 
 export const TOOL_SUMMARY: ReadonlyArray<[string, string]> = TOOL_GROUPS.flatMap((g) => g.tools);
+
+/** The 13 lean tools /mcp lists, each with its modes. */
+export const LEAN_ROWS: ReadonlyArray<[string, string]> = LEAN_NAMES.map((n) => {
+  const modes = LEAN_TOOLS[n].mode_param === false ? '' : ` Modes: ${Object.keys(LEAN_TOOLS[n].modes).join(', ')}.`;
+  return [n, `${LEAN_DEFS[n].title}.${modes}`];
+});
 
 export const JOURNEY_PROMPTS: ReadonlyArray<string> = ['find_community_near_me', 'someone_to_pray_with_tonight', 'serve_this_weekend', 'new_to_christianity_where_do_i_start', 'prayer_group_in_my_language', 'understand_and_live_a_passage'];
 export const PROMPTS: ReadonlyArray<string> = [
@@ -109,12 +123,12 @@ const STATUS_WORDS: Record<string, string> = { listed: 'Listed', available_teste
 
 /* Real requests a person can try, one per journey. */
 const EXAMPLES: ReadonlyArray<[string, string, string]> = [
-  ['A community near me', 'Find me a Christian community near Leeds.', 'journey_next_steps, community_near_me'],
-  ['Someone to pray with tonight', 'Is there anyone I could pray with tonight in Atlanta?', 'journey_next_steps, someone_to_pray_with_tonight'],
-  ['Serve this weekend', 'Where could I volunteer this weekend? I live in Kigali.', 'journey_next_steps, serve_this_weekend'],
-  ['New to Christianity', 'I am new to Christianity. Where do I start?', 'journey_next_steps, new_to_christianity'],
-  ['A prayer group in my language', 'Is there a prayer group in Spanish?', 'journey_next_steps, prayer_group_in_my_language'],
-  ['Understand and live a passage', 'Help me understand Romans 12:1-2 and live it.', 'journey_next_steps, understand_and_live_a_passage'],
+  ['A community near me', 'Find me a Christian community near Leeds.', 'start_with_christ next_steps, community_near_me'],
+  ['Someone to pray with tonight', 'Is there anyone I could pray with tonight in Atlanta?', 'start_with_christ next_steps, someone_to_pray_with_tonight'],
+  ['Serve this weekend', 'Where could I volunteer this weekend? I live in Kigali.', 'start_with_christ next_steps, serve_this_weekend'],
+  ['New to Christianity', 'I am new to Christianity. Where do I start?', 'start_with_christ next_steps, new_to_christianity'],
+  ['A prayer group in my language', 'Is there a prayer group in Spanish?', 'start_with_christ next_steps, prayer_group_in_my_language'],
+  ['Understand and live a passage', 'Help me understand Romans 12:1-2 and live it.', 'start_with_christ next_steps, understand_and_live_a_passage'],
 ];
 
 function compatibilityTable(): string {
@@ -144,12 +158,12 @@ const DEMO_SCRIPT = `
   form.addEventListener('submit', async function(ev){
     ev.preventDefault();
     var kind = form.elements.kind.value, value = form.elements.value.value.trim();
-    var args, tool = 'journey_next_steps';
-    if (kind === 'verse') { tool = 'scripture_passage'; args = { reference: value || 'John 3:16' }; }
-    else if (kind === 'search') { tool = 'scripture_search'; args = { query: value || 'love one another', limit: 5 }; }
-    else if (kind === 'understand_and_live_a_passage') { args = { journey: kind, passage: value || 'Romans 12:1-2' }; }
-    else if (kind === 'prayer_group_in_my_language') { args = { journey: kind, language: value || 'Spanish' }; }
-    else { args = { journey: kind }; if (value) args.place = value; }
+    var args, tool = 'start_with_christ';
+    if (kind === 'verse') { tool = 'read_scripture'; args = { mode: 'passage', reference: value || 'John 3:16' }; }
+    else if (kind === 'search') { tool = 'read_scripture'; args = { mode: 'search', query: value || 'love one another', limit: 5 }; }
+    else if (kind === 'understand_and_live_a_passage') { args = { mode: 'next_steps', journey: kind, passage: value || 'Romans 12:1-2' }; }
+    else if (kind === 'prayer_group_in_my_language') { args = { mode: 'next_steps', journey: kind, language: value || 'Spanish' }; }
+    else { args = { mode: 'next_steps', journey: kind }; if (value) args.place = value; }
     out.textContent = 'Asking the live server...';
     try {
       var init = await rpc({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'living-bread-hub-demo', version: '1' } } });
@@ -247,13 +261,23 @@ footer{padding:28px 16px 48px;color:var(--muted);text-align:center;font-size:14.
 </div></header>
 <main id="main"><div class="wrap">
 
+<h2 id="do">What a person can do</h2>
+<ul>
+<li><strong>Find your family in Christ.</strong> Real communities and churches near you or online, with what is known and what is not, and a link to the exact one.</li>
+<li><strong>Share a prayer, find people to pray with.</strong> Ask the family to pray for you with no account, in your own words, with your name kept private if you choose.</li>
+<li><strong>Open the Word together.</strong> Scripture read word for word from a stored text, reading plans, and a way to read with someone.</li>
+<li><strong>Put faith into action.</strong> Open needs from verified ministries you can meet in person, from home or by giving.</li>
+<li><strong>Bring your people together.</strong> A pastor or leader can create a space for a church or group and choose who to invite.</li>
+</ul>
+<p>When nothing suitable exists, the answer says so and offers an online option or the choice to start one. A link never contains anything you wrote.</p>
+
 <h2 id="try">Try it here, with no install</h2>
 <p>This box calls the live server from your browser, with real public data, exactly as an assistant would.</p>
 <form id="demo">
 <label for="kind">What would you like?</label>
 <select id="kind" name="kind">
-<option value="verse">Read a verse (scripture_passage)</option>
-<option value="search">Find words in the Bible (scripture_search)</option>
+<option value="verse">Read a verse (read_scripture, mode passage)</option>
+<option value="search">Find words in the Bible (read_scripture, mode search)</option>
 <option value="understand_and_live_a_passage">Understand and live a passage</option>
 <option value="community_near_me">A community near a place</option>
 <option value="someone_to_pray_with_tonight">Someone to pray with tonight</option>
@@ -313,8 +337,8 @@ ${block('cfg-curl', `curl -X POST ${MCP_URL} \\\n  -H 'content-type: application
 
 <h2 id="auth">Signing in: three endpoints</h2>
 <ul>
-<li><code>${MCP_URL}</code>: public, no sign in. Everything on this page except what is yours.</li>
-<li><code>${ME_URL}</code>: acts as you, after you sign in to The Living Bread (OAuth 2.1 with PKCE, through Supabase Auth, dynamic client registration). It reads only what you could read in the app, under the same row level security, and a few tools write, only what you asked for in plain words, after your assistant reads it back and hears your yes. Every writing tool takes an <code>idempotency_key</code>, so a retry never acts twice.</li>
+<li><code>${MCP_URL}</code>: public, no sign in. The 13 lean tools: everything on this page except what is yours.</li>
+<li><code>${ME_URL}</code>: the named tools, and acts as you, after you sign in to The Living Bread (OAuth 2.1 with PKCE, through Supabase Auth, dynamic client registration). It reads only what you could read in the app, under the same row level security, and a few tools write, only what you asked for in plain words, after your assistant reads it back and hears your yes. Every writing tool takes an <code>idempotency_key</code>, so a retry never acts twice.</li>
 <li><code>https://mcp.living-bread.org/app</code>: the read only profile used by the ChatGPT plugin. No writes, no care matching, no coordinates.</li>
 </ul>
 <p>Revoke a connection any time from your assistant's connector settings. Protected resource metadata: <a href="/.well-known/oauth-protected-resource">/.well-known/oauth-protected-resource</a>.</p>
@@ -323,7 +347,9 @@ ${block('cfg-curl', `curl -X POST ${MCP_URL} \\\n  -H 'content-type: application
 <details><summary>For shepherds (appear only for verified pastors)</summary><ul class="tools">${li(SHEPHERD_TOOL_SUMMARY)}</ul></details>
 
 <h2 id="receives">What the assistant receives</h2>
-${groups}
+<p>The public endpoint <code>/mcp</code> lists 13 tools under one naming pattern. Each takes a <code>mode</code>, and every answer names its mode and the implementation that answered. Safety stays its own tool, first.</p>
+<ul class="tools">${li(LEAN_ROWS)}</ul>
+<details><summary>The named tools on <code>/me</code> and <code>/app</code> (the same implementations, by their own names)</summary>${groups}</details>
 <p>Prompts, named by the moment a person arrives in: ${PROMPTS.map((p) => `<code>${p}</code>`).join(', ')}.</p>
 <p>Resources: ${RESOURCES.map((r) => `<code>${esc(r)}</code>`).join(', ')}.</p>
 
@@ -363,7 +389,7 @@ ${compatibilityTable()}
 
 <p>Build on the open <a href="${KNOWLEDGE_API}/api">Christian Knowledge API</a> (CC BY 4.0, <a href="${KNOWLEDGE_API}/openapi.json">OpenAPI 3.1</a>) if you prefer JSON over MCP.</p>
 </div></main>
-<footer>"I am the bread of life." John 6:35. The Living Bread, <a href="${SITE}">living-bread.org</a>. Jesus Christ is Lord.</footer>
+<footer>“${kjv('John 6:35a')}” John 6:35. The Living Bread, <a href="${SITE}">living-bread.org</a>. Jesus Christ is Lord.</footer>
 <script>${DEMO_SCRIPT}</script>
 </body></html>`;
 }
@@ -380,7 +406,10 @@ export function mcpLlmsTxt(): string {
     `- Signed-in endpoint (OAuth 2.1, acts as the believer who approves it, only when they say so): ${ME_URL}`,
     `- Signed-in tools: ${[...PERSONAL_TOOL_SUMMARY, ...SIGNED_IN_READ_SUMMARY, ...ACT_TOOL_SUMMARY].map(([n]) => n).join(', ')}`,
     `- Shepherd tools (pastors only): ${SHEPHERD_TOOL_SUMMARY.map(([n]) => n).join(', ')}`,
-    ...TOOL_GROUPS.map((g) => `- ${g.name}: ${g.tools.map(([n]) => n).join(', ')}`),
+    `- Public tools on /mcp (13, each with a mode): ${LEAN_ROWS.map(([n]) => n).join(', ')}`,
+    ...LEAN_ROWS.map(([n, d]) => `  - ${n}: ${d}`),
+    '- Named tools on /me and /app (the same implementations under their own names):',
+    ...TOOL_GROUPS.map((g) => `  - ${g.name}: ${g.tools.map(([n]) => n).join(', ')}`),
     `- Resources: ${RESOURCES.join(', ')}`,
     `- Prompts: ${PROMPTS.join(', ')}`,
     '- Status: https://mcp.living-bread.org/status; distribution: https://mcp.living-bread.org/distribution.json; versions: https://mcp.living-bread.org/versions.json',

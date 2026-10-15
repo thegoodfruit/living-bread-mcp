@@ -99,7 +99,7 @@ Usage, Behavior, Parameters, Conciseness and Completeness.
 | tables_live_now | A 3.7 (4 3 4 4 3 4) | A 4.0 | A 4.6 | 5 5 4 4 4 5 |
 | prayers_left_near | A 3.9 (4 4 4 3 4 4) | A 3.7 | A 4.8 | 5 5 5 4 4 5 |
 | needs_near | A 4.3 (5 4 4 3 5 5) | A 3.6 | A 4.8 | 5 5 5 4 4 5 |
-| body_today | A 3.9 (4 4 4 4 3 4) | A 3.5 | A 4.8 | 5 5 5 4 4 5 |
+| family_activity_today | A 3.9 (4 4 4 4 3 4) | A 3.5 | A 4.8 | 5 5 5 4 4 5 |
 | worship_now | B 3.4 (4 3 4 2 3 4) | A 3.6 | A 4.8 | 5 5 5 4 4 5 |
 | a_prayer_for | A 3.8 (4 3 5 3 3 4) | A 4.0 | A 4.8 | 5 5 5 4 4 5 |
 | what_the_bible_says_about | A 3.8 (5 3 4 3 3 4) | A 3.6 | A 4.8 | 5 5 5 4 4 5 |
@@ -150,3 +150,28 @@ Usage, Behavior, Parameters, Conciseness and Completeness.
 - **Disambiguation stays at 4, not 5,** while events_this_week remains a fixed seven-day view of the same data as find_gatherings_near. The descriptions now say so honestly. Retiring it, or making it a pure alias, is the remaining lever.
 - **The ceiling with today's names and count.** If every tool scored 5.0, the overall would be round1(0.7 × 5.0 + 0.3 × 3.75) = 4.6. **5.0 is not reachable** without consolidating to 15 or fewer tools under one naming pattern.
 - **Parameter Semantics** stops at 4 for most tools. When the schema already documents every parameter, the rubric gives the description little left to add, and padding would cost Conciseness. **Conciseness** sits at 4 because covering when-not, alternatives and behavior makes descriptions dense, at about 750 characters on average.
+
+## 1.3.0: the lean public set (2026-10-06)
+
+The owner approved docs/MCP_LEAN_PUBLIC.md, which removes the two limits above that renaming could not.
+`/mcp` now lists 13 tools under one verb_noun pattern; the 52 named public tools stay on `/me` and `/app`
+and answer on `/mcp` as modes (src/data/lean-map.json, src/lean.ts).
+
+- **Tool Count Appropriateness:** 13 is inside the 3 to 15 band the rubric scores 5 (it was 2 at 45 tools).
+- **Naming Consistency:** get_crisis_help, read_scripture, find_scripture_for, learn_the_faith, find_churches,
+  find_gatherings, find_people_to_pray_with, find_ways_to_serve, find_communities, see_the_kingdom,
+  start_with_christ, plus `search` and `fetch`, which keep their names because ChatGPT deep research
+  requires them.
+- **Disambiguation:** the overlapping pairs the rubric marked down (find_gatherings_near, events_this_week and
+  gatherings_tonight; search, ask_living_bread and fetch; verses_for and what_the_bible_says_about) are now
+  modes of one tool, so the boundary is a parameter, not a choice between siblings.
+- **Per tool:** each description has PURPOSE, WHEN TO USE, WHEN NOT (naming the sibling lean tool), every
+  mode with its required parameters, PARAMETERS, OUTPUT and BEHAVIOR, with no Scripture text and no dashes.
+  Every parameter is described; annotations are explicit (read only, not destructive, idempotent, and
+  openWorldHint true exactly when any mode reads the live web or API). A parameter a mode does not use
+  is named in `ignored_params` rather than silently dropped. tests/mcpLean.test.ts holds these rules.
+
+**Not yet re-scored.** The local judge described above was not re-run for this change, so no new number is
+claimed here. The longer descriptions (one per lean tool, covering every mode) may cost a point of
+Conciseness; Coherence should rise because count and naming were the two low dimensions. Score the local
+`wrangler dev` build with the same Appendix A prompt before quoting a figure.

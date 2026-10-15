@@ -1,0 +1,10 @@
+{
+  "name": "the-living-bread",
+  "version": "1.3.0",
+  "description": "Scripture read word for word from a stored text, real churches and gatherings near any city, prayer, and crisis lines first. Everything points to Jesus Christ.",
+  "mcpServers": {
+    "living-bread": {
+      "httpUrl": "https://mcp.living-bread.org/mcp"
+    }
+  }
+}

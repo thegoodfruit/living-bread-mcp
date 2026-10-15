@@ -8,6 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { leanCall } from './lean.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const url = new URL(process.argv.slice(2).find((a) => /^https?:\/\//.test(a)) ?? 'http://127.0.0.1:8787/mcp');
@@ -32,13 +33,19 @@ async function status(u) {
 }
 let failures = 0;
 const rows = [];
-for (const t of tools) {
-  let args = firstArgs.get(t.name);
+/* On the lean endpoint (1.3.0) every mode is checked: each named example is called through its lean tool and mode. */
+const lean = tools.some((t) => t.name === 'read_scripture');
+const targets = lean ? [...firstArgs.keys()].map((name) => ({ name })) : tools.map((t) => ({ name: t.name }));
+for (const t of targets) {
+  const named = t.name;
+  let args = firstArgs.get(named);
   if (typeof args === 'function') { try { args = args(examples); } catch { args = undefined; } }
-  if (args === undefined) { rows.push([t.name, 'no example', '']); continue; }
+  if (args === undefined) { rows.push([named, 'no example', '']); continue; }
+  const call = lean ? leanCall(named, args) : { name: named, args };
+  if (lean) t.name = `${call.name}${call.mode ? ` (${call.mode})` : ''} as ${named}`;
   let r;
-  try { r = await client.callTool({ name: t.name, arguments: args }); } catch (e) { rows.push([t.name, `threw ${e.message}`, '']); failures++; continue; }
-  if (!examples[t.name]) examples[t.name] = { args, structured: r.structuredContent };
+  try { r = await client.callTool({ name: call.name, arguments: call.args }); } catch (e) { rows.push([t.name, `threw ${e.message}`, '']); failures++; continue; }
+  if (!examples[named]) examples[named] = { args, structured: r.structuredContent };
   if (r.isError) { rows.push([t.name, 'error answer (no source_url by design)', '']); continue; }
   const s = r.structuredContent?.source_url;
   const onSite = typeof s === 'string' && /^https:\/\/(discover\.)?living-bread\.org(\/|$|\?)/.test(s);
@@ -47,7 +54,7 @@ for (const t of tools) {
   if (!good) failures++;
   rows.push([t.name, good ? 'ok' : 'FAIL', `${s ?? 'null'} ${code || ''}`]);
 }
-for (const [n, st, d] of rows) if (verbose || st !== 'ok') console.log(`${st.padEnd(8)} ${n.padEnd(34)} ${d}`);
-console.log(`\n${rows.filter((r) => r[1] === 'ok').length} of ${rows.length} tools cite a living-bread.org page that answers 200; ${failures} failed`);
+for (const [n, st, d] of rows) if (verbose || st !== 'ok') console.log(`${st.padEnd(8)} ${n.padEnd(60)} ${d}`);
+console.log(`\n${rows.filter((r) => r[1] === 'ok').length} of ${rows.length} tools (or lean modes) cite a living-bread.org page that answers 200; ${failures} failed`);
 await client.close();
 process.exit(failures ? 1 : 0);

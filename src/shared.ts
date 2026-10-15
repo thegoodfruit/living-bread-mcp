@@ -28,6 +28,7 @@ import { z } from 'zod';
 import { SITE } from './doors';
 import { callStore, evidenceFor, sha256Hex, type CallContext } from './evidence';
 import { citeUs } from './citations';
+import { applyHandoffs } from './handoffApply';
 import { record } from './freshness';
 import { count } from './metrics';
 import { paragraph } from './render';
@@ -282,7 +283,7 @@ export function tool<OutputArgs extends ZodRawShapeCompat | AnySchema, InputArgs
       const prior = await priorResult(sctx.storage, name, input);
       if (prior) return prior;
     }
-    const ctx: CallContext = { readings: [], crossRefs: false };
+    const ctx: CallContext = { readings: [], crossRefs: false, client };
     let r: AnyResult;
     try {
       r = (await callStore.run(ctx, () => (cb as unknown as (...a: unknown[]) => Promise<AnyResult> | AnyResult)(...args))) as AnyResult;
@@ -291,6 +292,8 @@ export function tool<OutputArgs extends ZodRawShapeCompat | AnySchema, InputArgs
     }
     const visibility = String((full._meta as Structured | undefined)?.['living-bread/visibility'] ?? 'public');
     r = await finish(r, ctx, visibility);
+    /* the door an answer hands over (src/handoff.ts): fixed parameters only, never a person's words */
+    if (visibility === 'public') { try { callStore.run(ctx, () => applyHandoffs(name, r as never)); } catch { /* an answer never fails for want of a handoff */ } }
     if (visibility === 'public') await citeUs(name, r);
     if (writes && sctx?.storage) await remember(sctx.storage, name, input, r);
     if (sctx) {

@@ -44,6 +44,8 @@ export interface Reading {
 export interface CallContext {
   readings: Reading[];
   crossRefs: boolean;
+  /** The MCP client name as announced in initialize (src/handoff.ts turns it into a fixed src value). */
+  client?: string | null;
 }
 
 export const callStore = new AsyncLocalStorage<CallContext>();
@@ -63,7 +65,7 @@ const enc = new TextEncoder();
 
 export async function sha256Hex(data: string | ArrayBuffer | Uint8Array): Promise<string> {
   const bytes = typeof data === 'string' ? enc.encode(data) : data instanceof Uint8Array ? data : new Uint8Array(data);
-  const d = await crypto.subtle.digest('SHA-256', bytes);
+  const d = await crypto.subtle.digest('SHA-256', bytes as BufferSource);
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
